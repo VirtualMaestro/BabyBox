@@ -53,7 +53,5 @@ package bb.prototyping
 
 			return circle;
 		}
-
-
 	}
 }

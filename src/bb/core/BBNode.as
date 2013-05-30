@@ -135,6 +135,9 @@ package bb.core
 		private var _nextComponentUpdList:BBComponent = null;
 		private var _nextChildNode:BBNode = null;
 
+		//
+		private var _isDisposed:Boolean = false;
+
 		///////////////////
 		///// Signals /////
 		///////////////////
@@ -938,9 +941,6 @@ package bb.core
 				delete _properties[prop];
 			}
 		}
-
-		//
-		private var _isDisposed:Boolean = false;
 
 		/**
 		 * Returns state of node.
