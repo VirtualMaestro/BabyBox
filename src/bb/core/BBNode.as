@@ -52,7 +52,7 @@ package bb.core
 		bb_private var z_renderComponent:BBRenderable = null;
 
 		// Show if node in pool now
-		bb_private var z_inPool:Boolean = false;
+		private var _inPool:Boolean = false;
 
 		// root of tree
 		bb_private var z_core:BBGraphModule = null;
@@ -1018,7 +1018,7 @@ package bb.core
 					_properties = null;
 
 					_lookupComponentTable = null;
-					z_inPool = false;
+					_inPool = false;
 					z_core = null;
 				}
 				else
@@ -1302,7 +1302,7 @@ package bb.core
 				node.next = null;
 				node._name = p_name;
 				node.transform = BBComponentPool.get(BBTransform) as BBTransform;
-				node.z_inPool = false;
+				node._inPool = false;
 				node.cacheable = CACHING_NODE;
 				node._isDisposed = false;
 				--_numInPool;
@@ -1316,7 +1316,7 @@ package bb.core
 		 */
 		static private function put(p_node:BBNode):void
 		{
-			if (!p_node.z_inPool)
+			if (!p_node._inPool)
 			{
 				if (_headPool) p_node.next = _headPool;
 				else p_node.next = null;
