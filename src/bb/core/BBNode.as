@@ -8,7 +8,6 @@ package bb.core
 	import bb.core.context.BBContext;
 	import bb.events.BBMouseEvent;
 	import bb.modules.BBGraphModule;
-	import bb.pools.BBActorPool;
 	import bb.signals.BBSignal;
 
 	import flash.utils.Dictionary;
@@ -1206,7 +1205,7 @@ package bb.core
 		{
 			var node:BBNode;
 			var alias:String = p_prototype.@alias;
-			if (alias != "") node = BBActorPool.getIfExist(alias);
+			if (alias != "") node = BBNode.getFromCache(alias);
 
 			if (node == null)
 			{

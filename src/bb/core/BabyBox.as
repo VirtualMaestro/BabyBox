@@ -14,7 +14,6 @@ package bb.core
 	import bb.modules.BBMouseModule;
 	import bb.modules.BBPhysicsModule;
 	import bb.modules.BBWorldModule;
-	import bb.pools.BBActorPool;
 	import bb.pools.BBMasterPool;
 	import bb.pools.BBNativePool;
 	import bb.signals.BBSignal;
@@ -73,7 +72,6 @@ package bb.core
 			BBMasterPool.addRidPoolMethod(BBNodeStatus.rid);
 			BBMasterPool.addRidPoolMethod(BBMouseEvent.rid);
 			BBMasterPool.addRidPoolMethod(BBNativePool.rid);
-			BBMasterPool.addRidPoolMethod(BBActorPool.rid);
 			BBMasterPool.addRidPoolMethod(BBJoint.rid);
 
 			//
