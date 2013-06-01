@@ -56,6 +56,7 @@ package bb.components
 		protected var _active:Boolean = true;
 
 		private var _isDisposed:Boolean = false;
+		private var _isRid:Boolean = false;
 
 		/**
 		 */
@@ -251,14 +252,17 @@ package bb.components
 		protected function rid():void
 		{
 			if (!_isDisposed) destroy();
-
-			onUpdate.dispose();
-			_onAdded.dispose();
-			_onRemoved.dispose();
-			onUpdate = null;
-			_onAdded = null;
-			_onRemoved = null;
-			_componentClass = null;
+			if (!_isRid)
+			{
+				_isRid = true;
+				onUpdate.dispose();
+				_onAdded.dispose();
+				_onRemoved.dispose();
+				onUpdate = null;
+				_onAdded = null;
+				_onRemoved = null;
+				_componentClass = null;
+			}
 		}
 
 		/**

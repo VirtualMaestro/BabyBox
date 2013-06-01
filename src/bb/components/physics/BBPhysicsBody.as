@@ -658,14 +658,20 @@ package bb.components.physics
 				_body.angularVel = 0;
 				_body.kinAngVel = 0;
 			}
-			else
-			{
-				_joints = null;
-				_initJointList = null;
-				_space = null;
-				_body = null;
-				_bodyPosition = null;
-			}
+			else rid();
+		}
+
+		/**
+		 */
+		override protected function rid():void
+		{
+			super.rid();
+
+			_joints = null;
+			_initJointList = null;
+			_space = null;
+			_body = null;
+			_bodyPosition = null;
 		}
 
 		/**
