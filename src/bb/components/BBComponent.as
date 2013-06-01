@@ -305,6 +305,10 @@ package bb.components
 
 			_prototype.properties = <properties/>;
 
+			// add protected 'cacheable' prop
+			addPrototypeProperty("cacheable", cacheable, "boolean");
+
+			//
 			var describe:XML = describeType(this);
 			var variables:XMLList = describe.variable;
 			var variable:XML;
@@ -428,14 +432,8 @@ package bb.components
 		/**
 		 * Adds component instance to pool of course of component isn't disposed.
 		 */
-		static public function put(p_component:BBComponent):void
+		static private function put(p_component:BBComponent):void
 		{
-			CONFIG::debug
-			{
-				Assert.isTrue((!p_component.isDisposed), "you can't add disposed component to cache", "BBComponentPool.add");
-				Assert.isTrue((p_component.node == null), "you can't add component which still used of some node", "BBComponentPool.add");
-			}
-
 			p_component.next = null;
 			p_component.prev = null;
 
