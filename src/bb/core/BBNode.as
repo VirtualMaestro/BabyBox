@@ -1343,15 +1343,15 @@ package bb.core
 		static private var _cache:Array = [];
 
 		/**
-		 * Stored prototype of node (with all components and children) with related alias to cache.
+		 * Adds cache with given alias which stores prototype of node (with all components and children) and instances created from prototype.
 		 * When using getFromCache creates and returns instance of BBNode by its prototype.
 		 * It is possible to pre cache some number of instances by setting third parameter 'preCache'.
 		 */
-		static public function addToCache(p_prototype:XML, p_alias:String, p_preCache:int = 0):void
+		static public function addCache(p_prototype:XML, p_alias:String, p_preCache:int = 0):void
 		{
 			CONFIG::debug
 			{
-				Assert.isTrue(_cache[p_alias] == null, "Node with given alias '" + p_alias + "' already added to cache", "BBNode.addToCache");
+				Assert.isTrue(_cache[p_alias] == null, "Cache with given alias '" + p_alias + "' already added", "BBNode.addToCache");
 			}
 
 			_cache[p_alias] = new BBCache(p_prototype, p_alias, p_preCache);
@@ -1364,7 +1364,7 @@ package bb.core
 		{
 			CONFIG::debug
 			{
-				Assert.isTrue(_cache[p_alias] != null, "Node with given alias '" + p_alias + "' doesn't exist in cache", "BBNode.getFromCache");
+				Assert.isTrue(_cache[p_alias] != null, "Cache with given alias '" + p_alias + "' doesn't exist", "BBNode.getFromCache");
 			}
 
 			var pool:BBCache = _cache[p_alias];
@@ -1379,7 +1379,7 @@ package bb.core
 		{
 			CONFIG::debug
 			{
-				Assert.isTrue(_cache[p_alias] != null, "Node with given alias '" + p_alias + "' doesn't exist in cache", "BBNode.preCache");
+				Assert.isTrue(_cache[p_alias] != null, "Cache with given alias '" + p_alias + "' doesn't exist", "BBNode.preCache");
 			}
 
 			var pool:BBCache = _cache[p_alias];
@@ -1387,9 +1387,24 @@ package bb.core
 		}
 
 		/**
+		 * Removes specified cache by its alias.
+		 */
+		static public function removeCache(p_alias:String):void
+		{
+			CONFIG::debug
+			{
+				Assert.isTrue(_cache[p_alias] != null, "Cache with given alias '" + p_alias + "' doesn't exist", "BBNode.removeCache");
+			}
+
+			var cache:BBCache = _cache[p_alias];
+			cache.dispose();
+			delete _cache[p_alias];
+		}
+
+		/**
 		 * Clears and removes all caches.
 		 */
-		static public function ridCache():void
+		static public function ridCaches():void
 		{
 			for each (var cache:BBCache in _cache)
 			{
@@ -1443,7 +1458,6 @@ internal class BBCache
 			var creationNum:int = _preCache - _inCache;
 			for (var i:int = 0; i < creationNum; i++)
 			{
-//				put(BBNode.getFromPrototype(_prototype));
 				put(_pattern.copy());
 			}
 		}
@@ -1455,7 +1469,6 @@ internal class BBCache
 	{
 		var actor:BBNode = getIfExist();
 		return actor ? actor : _pattern.copy();
-//		return actor ? actor : BBNode.getFromPrototype(_prototype);
 	}
 
 	/**

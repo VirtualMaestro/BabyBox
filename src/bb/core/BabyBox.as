@@ -67,7 +67,7 @@ package bb.core
 		{
 			// add all rid methods of pools to master pool
 			BBMasterPool.addRidPoolMethod(BBNode.rid);
-			BBMasterPool.addRidPoolMethod(BBNode.ridCache);
+			BBMasterPool.addRidPoolMethod(BBNode.ridCaches);
 			BBMasterPool.addRidPoolMethod(BBComponent.rid);
 			BBMasterPool.addRidPoolMethod(BBNodeStatus.rid);
 			BBMasterPool.addRidPoolMethod(BBMouseEvent.rid);
