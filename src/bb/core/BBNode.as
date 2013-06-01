@@ -33,9 +33,6 @@ package bb.core
 	 */
 	final public class BBNode
 	{
-		// Is should caching node with its components by default.
-		static public var CACHING_NODE:Boolean = false;
-
 		// Next/prev links to be able to create dynamic linked list
 		public var next:BBNode = null;
 		public var prev:BBNode = null;
@@ -178,7 +175,6 @@ package bb.core
 
 			//
 			transform = addComponent(BBTransform) as BBTransform;
-			cacheable = CACHING_NODE;
 		}
 
 		/**
@@ -900,7 +896,7 @@ package bb.core
 		/**
 		 * Detaches children from this parent node and disposes them.
 		 */
-		bb_private function disposeChildren(p_rid:Boolean = false):void
+		bb_private function disposeChildren():void
 		{
 			if (childrenHead)
 			{
@@ -909,7 +905,7 @@ package bb.core
 				{
 					curNode = childrenHead;
 					childrenHead = childrenHead.next;
-					curNode.dispose(p_rid);
+					curNode.dispose();
 				}
 			}
 		}
@@ -918,13 +914,12 @@ package bb.core
 		 * Unlink and disposes all components attached to this node.
 		 * p_rid - if 'true' components disposed independent on component.cacheable value.
 		 */
-		private function disposeComponents(p_rid:Boolean = false):void
+		private function disposeComponents():void
 		{
 			var component:BBComponent;
 			for (var componentClass:Object in _lookupComponentTable)
 			{
 				component = _lookupComponentTable[componentClass];
-				if (p_rid) component.cacheable = false;
 
 				removeComponent(componentClass as Class);
 				component.dispose();
@@ -952,18 +947,20 @@ package bb.core
 		}
 
 		/**
-		 * If 'true' mean node with all children and components caches in pool.
-		 */
-		public var cacheable:Boolean = false;
-
-		/**
 		 * Removes node with all children and their components.
-		 * If p_rid is 'true' node with components and all children is disposed entirely and doesn't matter 'cacheable' property is 'true' or 'false'.
 		 * After that impossible to use it.
 		 */
-		public function dispose(p_rid:Boolean = false):void
+		public function dispose():void
 		{
 			if (_isDisposed) return;
+			destroy();
+			put(this);
+		}
+
+		/**
+		 */
+		private function destroy():void
+		{
 			_isDisposed = true;
 
 			// Remove from parent list if it exist
@@ -984,50 +981,42 @@ package bb.core
 			_isOnStage = false;
 			_active = true;
 
+			keepGroup = false;
 
-			var alias:String = getProperty("bb_alias");
-			if (!p_rid && cacheable && alias) BBActorPool.put(this, alias);
-			else
-			{
-				keepGroup = false;
+			// Remove all listeners to prevent dispatching 'onUnlinked' signal for better performance due to avoiding issues which lie behind it
+			_onAdded.removeAllListeners();
+			_onRemoved.removeAllListeners();
+			_onAdded.add(onAddedHandler);
+			_onRemoved.add(onRemovedHandler);
 
-				// Remove all listeners to prevent dispatching 'onUnlinked' signal for better performance due to avoiding issues which lie behind it
-				_onAdded.removeAllListeners();
-				_onRemoved.removeAllListeners();
+			// Remove all components
+			disposeComponents();
+			transform = null;
 
-				// Remove all components
-				disposeComponents(p_rid);
-				transform = null;
+			// Remove all children
+			disposeChildren();
 
-				// Remove all children
-				disposeChildren(p_rid);
+			// clear properties
+			clearProperties();
+		}
 
-				// clear properties
-				clearProperties();
+		/**
+		 * Completely destroy node without possible to add to pool.
+		 */
+		private function rid():void
+		{
+			if (!_isDisposed) destroy();
 
-				//
-				if (p_rid)
-				{
-					// Remove all signals
-					_onAdded.dispose();
-					_onRemoved.dispose();
+			_onAdded.dispose();
+			_onRemoved.dispose();
 
-					_onAdded = null;
-					_onRemoved = null;
-					_properties = null;
+			_onAdded = null;
+			_onRemoved = null;
+			_properties = null;
 
-					_lookupComponentTable = null;
-					_inPool = false;
-					z_core = null;
-				}
-				else
-				{
-					_onAdded.add(onAddedHandler);
-					_onRemoved.add(onRemovedHandler);
-
-					put(this);
-				}
-			}
+			_lookupComponentTable = null;
+			_inPool = false;
+			z_core = null;
 		}
 
 		/**
@@ -1037,7 +1026,6 @@ package bb.core
 		public function copy():BBNode
 		{
 			var copyNode:BBNode = get(_name);
-			copyNode.cacheable = cacheable;
 			copyNode.independentTransformation = independentTransformation;
 			copyNode.group = group;
 			copyNode.keepGroup = keepGroup;
@@ -1302,7 +1290,6 @@ package bb.core
 				node._name = p_name;
 				node.transform = BBComponentPool.get(BBTransform) as BBTransform;
 				node._inPool = false;
-				node.cacheable = CACHING_NODE;
 				node._isDisposed = false;
 				--_numInPool;
 			}
@@ -1345,7 +1332,7 @@ package bb.core
 				_headPool = _headPool.next;
 				node.next = null;
 				node.prev = null;
-				node.dispose(true);
+				node.rid();
 			}
 
 			_numInPool = 0;
@@ -1507,7 +1494,7 @@ internal class BBCache
 	{
 		for (var i:int = 0; i < _inCache; i++)
 		{
-			_cache[i].dispose(true);
+			_cache[i].dispose();
 		}
 
 		_cache.length = 0;
@@ -1522,7 +1509,7 @@ internal class BBCache
 		clear();
 		_cache = null;
 		_prototype = null;
-		_pattern.dispose(true);
+		_pattern.dispose();
 		_pattern = null;
 		_alias = null;
 		_preCache = 0;
