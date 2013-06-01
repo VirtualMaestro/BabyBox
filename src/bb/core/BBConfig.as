@@ -425,36 +425,6 @@ package bb.core
 		}
 
 		/**
-		 * Is node cached with all its components.
-		 */
-		public function set cachingNode(p_val:Boolean):void
-		{
-			BBNode.CACHING_NODE = p_val;
-		}
-
-		/**
-		 */
-		public function get cachingNode():Boolean
-		{
-			return BBNode.CACHING_NODE;
-		}
-
-		/**
-		 * Is should components cached by default.
-		 */
-		public function set cachingComponent(p_val:Boolean):void
-		{
-			BBComponent.CACHING_COMPONENT = p_val;
-		}
-
-		/**
-		 */
-		public function get cachingComponent():Boolean
-		{
-			return BBComponent.CACHING_COMPONENT;
-		}
-
-		/**
 		 * Dispatches changed property.
 		 * First param is name of property, second its value.
 		 * (Method can be overridden in children for custom config)
