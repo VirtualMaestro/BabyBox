@@ -984,10 +984,9 @@ package bb.core
 			_isOnStage = false;
 			_active = true;
 
-			// TODO: Переделать пул актера. Как такового BBActorPool класса не будет
 
-			var actorClass:String = getProperty("bb_actorClass");
-			if (!p_rid && cacheable && actorClass) BBActorPool.put(this, actorClass);
+			var alias:String = getProperty("bb_alias");
+			if (!p_rid && cacheable && alias) BBActorPool.put(this, alias);
 			else
 			{
 				keepGroup = false;
@@ -1054,7 +1053,7 @@ package bb.core
 			}
 
 			// partially copy  of properties
-			if (getProperty("bb_actorClass")) copyNode.addProperty("bb_actorClass", getProperty("bb_actorClass"));
+			if (getProperty("bb_alias")) copyNode.addProperty("bb_alias", getProperty("bb_alias"));
 
 			// components
 			copyNode.transform.dispose();
@@ -1091,10 +1090,10 @@ package bb.core
 				componentsStr += component.toString() + "\n";
 			}
 
-			var actorClass:String = getProperty("bb_actorClass") ? getProperty("bb_actorClass") : "";
+			var alias:String = getProperty("bb_alias") ? getProperty("bb_alias") : "";
 
 			return  "===========================================================================================================================================\n" +
-					"[BBNode: {id: "+_id+"}"+(actorClass ? "-{actorClass: "+actorClass+"}" : "")+"\n" +
+					"[BBNode: {id: "+_id+"}"+(alias ? "-{alias: "+alias+"}" : "")+"\n" +
 					"{name: "+_name+"}-{group: "+group+"}-{keepGroup: "+keepGroup+"}-{active: "+_active+"}-{independentTransformation: "+independentTransformation+"}-" +
 					"{mouseChildren: "+mouseChildren+"}-{mouseEnabled: "+mouseEnabled+"}\n" +
 					"{numChildren: "+_numChildren+"}-{numComponents: "+_numComponents+"}-{has parent: "+(_parent != null)+"}-{isOnStage: "+_isOnStage+"}-{visible: "+_visible+"}\n" +
@@ -1157,8 +1156,8 @@ package bb.core
 			nodePrototype.@group = group;
 			nodePrototype.@keepGroup = keepGroup;
 			nodePrototype.@independentTransformation = independentTransformation;
-			var actorClass:String = getProperty("bb_actorClass");
-			nodePrototype.@actorClass = actorClass == null ? "" : actorClass;
+			var alias:String = getProperty("bb_alias");
+			nodePrototype.@alias = alias == null ? "" : alias;
 
 			// parse tags and combine them into one string
 			var tagsResult:String = "";
@@ -1220,8 +1219,8 @@ package bb.core
 		static public function getFromPrototype(p_prototype:XML):BBNode
 		{
 			var node:BBNode;
-			var actorClass:String = p_prototype.@actorClass;
-			if (actorClass != "") node = BBActorPool.getIfExist(actorClass);
+			var alias:String = p_prototype.@alias;
+			if (alias != "") node = BBActorPool.getIfExist(alias);
 
 			if (node == null)
 			{
@@ -1235,7 +1234,7 @@ package bb.core
 				node.independentTransformation = p_prototype.@independentTransformation == "true";
 				node.group = parseInt(p_prototype.@group);
 
-				if (actorClass != "") node.addProperty("bb_actorClass", actorClass);
+				if (alias != "") node.addProperty("bb_alias", alias);
 
 				var tags:Array = p_prototype.@tags.split(",");
 				var tagsLen:int = tags.length;
@@ -1280,9 +1279,9 @@ package bb.core
 		}
 
 
-		///////////////////////
-		//*** Pool system ***//
-		///////////////////////
+		/////////////////////////
+		//*** Pool for node ***//
+		/////////////////////////
 
 		// pool
 		static private var _headPool:BBNode = null;
@@ -1353,5 +1352,180 @@ package bb.core
 		}
 
 		/////////////////////////////////////
+
+		/////////////////////
+		// CACHE FOR ACTOR //
+		/////////////////////
+
+		static private var _cache:Array = [];
+
+		/**
+		 * Stored prototype of node (with all components and children) with related alias to cache.
+		 * When using getFromCache creates and returns instance of BBNode by its prototype.
+		 * It is possible to pre cache some number of instances by setting third parameter 'preCache'.
+		 */
+		static public function addToCache(p_prototype:XML, p_alias:String, p_preCache:int = 0):void
+		{
+			CONFIG::debug
+			{
+				Assert.isTrue(_cache[p_alias] == null, "Node with given alias '"+p_alias+"' already added to cache", "BBNode.addToCache");
+			}
+
+			_cache[p_alias] = new BBCache(p_prototype, p_alias, p_preCache);
+		}
+
+		/**
+		 * Returns instance of BBNode by give alias.
+		 */
+		static public function getFromCache(p_alias:String):BBNode
+		{
+			CONFIG::debug
+			{
+				Assert.isTrue(_cache[p_alias] != null, "Node with given alias '"+p_alias+"' doesn't exist in cache", "BBNode.getFromCache");
+			}
+
+			var pool:BBCache = _cache[p_alias];
+
+			return pool.get();
+		}
+
+		/**
+		 * Pre-cache given number of instances of BBNode by given alias.
+		 */
+		static public function preCache(p_alias:String, p_preCache:int):void
+		{
+			CONFIG::debug
+			{
+				Assert.isTrue(_cache[p_alias] != null, "Node with given alias '"+p_alias+"' doesn't exist in cache", "BBNode.preCache");
+			}
+
+			var pool:BBCache = _cache[p_alias];
+			pool.preCache(p_preCache);
+		}
+
+		/**
+		 * Clears and removes all caches.
+		 */
+		static public function ridCache():void
+		{
+			for each (var cache:BBCache in _cache)
+			{
+				cache.dispose();
+			}
+
+			for (var alias:String in _cache)
+			{
+				_cache[alias] = null;
+			}
+
+			_cache = [];
+		}
+	}
+}
+
+
+import bb.core.BBNode;
+
+/**
+ */
+internal class BBCache
+{
+	private var _prototype:XML;
+	private var _pattern:BBNode;
+	private var _cache:Vector.<BBNode>;
+	private var _alias:String;
+	private var _preCache:int = 0;
+	private var _inCache:int = 0;
+
+	/**
+	 */
+	public function BBCache(p_prototype:XML, p_alias:String, p_preCache:int = 0)
+	{
+		_prototype = p_prototype;
+		_alias = p_alias;
+		_pattern = BBNode.getFromPrototype(p_prototype);
+		_preCache = p_preCache;
+		_cache = new <BBNode>[];
+
+		 if (p_preCache > 0) preCache(_preCache);
+	}
+
+	/**
+	 */
+	public function preCache(p_preCacheNum:int):void
+	{
+		_preCache = p_preCacheNum;
+
+		if (_preCache > _inCache)
+		{
+			var creationNum:int = _preCache - _inCache;
+			for (var i:int = 0; i < creationNum; i++)
+			{
+//				put(BBNode.getFromPrototype(_prototype));
+				put(_pattern.copy());
+			}
+		}
+	}
+
+	/**
+	 */
+	public function get():BBNode
+	{
+		var actor:BBNode = getIfExist();
+		return actor ? actor : _pattern.copy();
+//		return actor ? actor : BBNode.getFromPrototype(_prototype);
+	}
+
+	/**
+	 * Returns actor if its instance exist in cache, else returns null.
+	 * @return BBNode
+	 */
+	private function getIfExist():BBNode
+	{
+		var actor:BBNode;
+
+		if (_inCache > 0)
+		{
+			actor = _cache[--_inCache];
+			_cache[_inCache] = null;
+		}
+
+		return actor;
+	}
+
+	/**
+	 */
+	private function put(p_actor:BBNode):void
+	{
+		_cache[_inCache++] = p_actor;
+	}
+
+	/**
+	 * Clear cache.
+	 */
+	private function clear():void
+	{
+		for (var i:int = 0; i < _inCache; i++)
+		{
+			_cache[i].dispose(true);
+		}
+
+		_cache.length = 0;
+		_inCache = 0;
+	}
+
+	/**
+	 * Completely removes the cache.
+	 */
+	public function dispose():void
+	{
+		clear();
+		_cache = null;
+		_prototype = null;
+		_pattern.dispose(true);
+		_pattern = null;
+		_alias = null;
+		_preCache = 0;
+		_inCache = 0;
 	}
 }
