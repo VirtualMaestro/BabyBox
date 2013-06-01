@@ -55,6 +55,8 @@ package bb.components
 		//
 		protected var _active:Boolean = true;
 
+		private var _isDisposed:Boolean = false;
+
 		/**
 		 */
 		public function BBComponent()
@@ -205,7 +207,7 @@ package bb.components
 		 */
 		public function get isDisposed():Boolean
 		{
-			return !_onAdded;
+			return _isDisposed;
 		}
 
 		/**
@@ -213,7 +215,22 @@ package bb.components
 		 */
 		public function dispose():void
 		{
-			if (isDisposed) return;
+			if (_isDisposed) return;
+			destroy();
+
+			if (cacheable)
+			{
+				_onAdded.add(onComponentAddedHandler);
+				put(this);
+			}
+			else rid();
+		}
+
+		/**
+		 */
+		private function destroy():void
+		{
+			_isDisposed = true;
 
 			onUpdate.removeAllListeners();
 			_onAdded.removeAllListeners();
@@ -227,22 +244,21 @@ package bb.components
 			next = null;
 			prev = null;
 			_userData = null;
+		}
 
-			if (cacheable)
-			{
-				_onAdded.add(onComponentAddedHandler);
-				put(this);
-			}
-			else
-			{
-				onUpdate.dispose();
-				_onAdded.dispose();
-				_onRemoved.dispose();
-				onUpdate = null;
-				_onAdded = null;
-				_onRemoved = null;
-				_componentClass = null;
-			}
+		/**
+		 */
+		protected function rid():void
+		{
+			if (!_isDisposed) destroy();
+
+			onUpdate.dispose();
+			_onAdded.dispose();
+			_onRemoved.dispose();
+			onUpdate = null;
+			_onAdded = null;
+			_onRemoved = null;
+			_componentClass = null;
 		}
 
 		/**
@@ -442,6 +458,7 @@ package bb.components
 				head = head.next;
 				_pool[componentClass] = head;
 				component.next = null;
+				component._isDisposed = false;
 				--_numInPool;
 			}
 			else component = new componentClass();
@@ -472,7 +489,7 @@ package bb.components
 					component = head;
 					head = head.next;
 
-					component.dispose();
+					component.rid();
 				}
 
 				delete _pool[classDef];
