@@ -5,11 +5,6 @@
  */
 package bb.components
 {
-	import bb.signals.BBSignal;
-
-	import flash.geom.Point;
-	import flash.geom.Rectangle;
-
 	import bb.bb_spaces.bb_private;
 	import bb.core.BBConfig;
 	import bb.core.BBNodeStatus;
@@ -18,8 +13,11 @@ package bb.components
 	import bb.events.BBMouseEvent;
 	import bb.modules.BBCamerasModule;
 	import bb.modules.BBGraphModule;
-	import bb.pools.BBComponentPool;
+	import bb.signals.BBSignal;
 	import bb.vo.BBColor;
+
+	import flash.geom.Point;
+	import flash.geom.Rectangle;
 
 	import vm.debug.Assert;
 
@@ -461,7 +459,7 @@ package bb.components
 		 */
 		static public function get(p_cameraName:String = ""):BBCamera
 		{
-			return BBComponentPool.getWithNode(BBCamera, p_cameraName) as BBCamera;
+			return BBComponent.getWithNode(BBCamera, p_cameraName) as BBCamera;
 		}
 	}
 }

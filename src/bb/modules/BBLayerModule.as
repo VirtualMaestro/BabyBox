@@ -5,12 +5,10 @@
  */
 package bb.modules
 {
-	import bb.modules.BBModule;
-	import bb.signals.BBSignal;
-
 	import bb.bb_spaces.bb_private;
 	import bb.common.BBLayer;
 	import bb.core.BBNode;
+	import bb.signals.BBSignal;
 	import bb.tools.BBGroupMask;
 
 	CONFIG::debug

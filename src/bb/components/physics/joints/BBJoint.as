@@ -5,12 +5,12 @@
  */
 package bb.components.physics.joints
 {
+	import bb.bb_spaces.bb_private;
+	import bb.components.physics.BBPhysicsBody;
+
 	import nape.constraint.Constraint;
 	import nape.geom.Vec2;
 	import nape.phys.Body;
-
-	import bb.bb_spaces.bb_private;
-	import bb.components.physics.BBPhysicsBody;
 
 	import vm.math.unique.UniqueId;
 	import vm.str.StringUtil;

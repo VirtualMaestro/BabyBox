@@ -5,9 +5,9 @@
  */
 package bb.pools
 {
-	import flash.utils.Dictionary;
-
 	import bb.core.BBNode;
+
+	import flash.utils.Dictionary;
 
 	/**
 	 * Represents pool of actors.
@@ -179,7 +179,7 @@ internal class BBPool
 	{
 		for (var i:int = 0; i < _inPool; i++)
 		{
-			_pool[i].dispose(true);
+			_pool[i].dispose();
 		}
 
 		_pool.length = 0;

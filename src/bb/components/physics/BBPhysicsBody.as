@@ -5,7 +5,16 @@
  */
 package bb.components.physics
 {
+	import bb.bb_spaces.bb_private;
+	import bb.components.BBComponent;
+	import bb.components.BBTransform;
+	import bb.components.physics.joints.BBConstraintFactory;
+	import bb.components.physics.joints.BBJoint;
+	import bb.core.BBNode;
+	import bb.core.BabyBox;
+	import bb.modules.BBPhysicsModule;
 	import bb.signals.BBSignal;
+	import bb.tools.physics.BBPhysicalMaterials;
 
 	import nape.constraint.ConstraintList;
 	import nape.dynamics.InteractionFilter;
@@ -23,17 +32,6 @@ package bb.components.physics
 	import nape.shape.ShapeList;
 	import nape.shape.ShapeType;
 	import nape.space.Space;
-
-	import bb.bb_spaces.bb_private;
-	import bb.components.BBComponent;
-	import bb.components.BBTransform;
-	import bb.components.physics.joints.BBConstraintFactory;
-	import bb.components.physics.joints.BBJoint;
-	import bb.core.BBNode;
-	import bb.core.BabyBox;
-	import bb.modules.BBPhysicsModule;
-	import bb.pools.BBComponentPool;
-	import bb.tools.physics.BBPhysicalMaterials;
 
 	import vm.math.numbers.NumberUtil;
 	import vm.str.StringUtil;
@@ -1091,7 +1089,7 @@ package bb.components.physics
 		 */
 		static public function get(p_type:BodyType = null):BBPhysicsBody
 		{
-			var body:BBPhysicsBody = BBComponentPool.get(BBPhysicsBody) as BBPhysicsBody;
+			var body:BBPhysicsBody = BBComponent.get(BBPhysicsBody) as BBPhysicsBody;
 			body.type = p_type;
 			return body;
 		}

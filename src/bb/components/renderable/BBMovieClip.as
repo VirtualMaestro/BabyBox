@@ -5,13 +5,11 @@
  */
 package bb.components.renderable
 {
-	import bb.signals.BBSignal;
-
 	import bb.bb_spaces.bb_private;
 	import bb.components.BBComponent;
 	import bb.core.BBNode;
 	import bb.core.BabyBox;
-	import bb.pools.BBComponentPool;
+	import bb.signals.BBSignal;
 	import bb.textures.BBTextureAtlas;
 
 	CONFIG::debug
@@ -363,7 +361,7 @@ package bb.components.renderable
 
 		static public function get(p_textureAtlas:BBTextureAtlas = null, p_frameRate:int = 30):BBMovieClip
 		{
-			var movieClip:BBMovieClip = BBComponentPool.get(BBMovieClip) as BBMovieClip;
+			var movieClip:BBMovieClip = BBComponent.get(BBMovieClip) as BBMovieClip;
 			if (p_textureAtlas)
 			{
 				movieClip.setTextureAtlas(p_textureAtlas);
@@ -378,7 +376,7 @@ package bb.components.renderable
 		 */
 		static public function getWithNode(p_textureAtlas:BBTextureAtlas = null, p_nodeName:String = "", p_frameRate:int = 30):BBMovieClip
 		{
-			var movieClip:BBMovieClip = BBComponentPool.getWithNode(BBMovieClip, p_nodeName) as BBMovieClip;
+			var movieClip:BBMovieClip = BBComponent.getWithNode(BBMovieClip, p_nodeName) as BBMovieClip;
 
 			if (p_textureAtlas)
 			{

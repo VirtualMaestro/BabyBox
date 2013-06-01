@@ -1,13 +1,11 @@
 package bb.modules
 {
-	import bb.modules.BBModule;
-	import bb.signals.BBSignal;
-
-	import nape.geom.Vec2;
-
 	import bb.bb_spaces.bb_private;
 	import bb.core.BBConfig;
 	import bb.core.BabyBox;
+	import bb.signals.BBSignal;
+
+	import nape.geom.Vec2;
 
 	use namespace bb_private;
 

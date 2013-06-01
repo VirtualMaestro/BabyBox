@@ -1,16 +1,11 @@
 package bb.tools.physics
 {
+	import bb.tools.BBGroupMask;
+
 	import nape.dynamics.InteractionFilter;
 	import nape.phys.Body;
 	import nape.shape.Shape;
 	import nape.shape.ShapeList;
-
-	import bb.tools.BBGroupMask;
-
-//	CONFIG::debug
-//	{
-//		import vm.debug.Assert;
-//	}
 
 	/**
 	 */

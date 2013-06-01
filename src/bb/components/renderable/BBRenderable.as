@@ -5,8 +5,6 @@
  */
 package bb.components.renderable
 {
-	import flash.geom.Point;
-
 	import bb.bb_spaces.bb_private;
 	import bb.components.*;
 	import bb.core.BabyBox;
@@ -14,6 +12,8 @@ package bb.components.renderable
 	import bb.events.BBMouseEvent;
 	import bb.pools.BBNativePool;
 	import bb.textures.BBTexture;
+
+	import flash.geom.Point;
 
 	use namespace bb_private;
 

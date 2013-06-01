@@ -5,7 +5,15 @@
  */
 package bb.core.context
 {
+	import bb.bb_spaces.bb_private;
+	import bb.components.BBCamera;
+	import bb.components.BBTransform;
+	import bb.components.renderable.BBRenderable;
+	import bb.constants.render.BBRenderMode;
+	import bb.core.BBConfig;
+	import bb.core.BabyBox;
 	import bb.signals.BBSignal;
+	import bb.textures.BBTexture;
 
 	import com.genome2d.context.GContext;
 	import com.genome2d.core.GConfig;
@@ -18,15 +26,6 @@ package bb.core.context
 	import flash.geom.Matrix;
 	import flash.geom.Point;
 	import flash.geom.Rectangle;
-
-	import bb.bb_spaces.bb_private;
-	import bb.components.BBCamera;
-	import bb.components.BBTransform;
-	import bb.components.renderable.BBRenderable;
-	import bb.constants.render.BBRenderMode;
-	import bb.core.BBConfig;
-	import bb.core.BabyBox;
-	import bb.textures.BBTexture;
 
 	use namespace bb_private;
 

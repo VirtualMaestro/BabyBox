@@ -1,15 +1,14 @@
 package bb.core
 {
+	import bb.assets.BBAssetsManager;
+	import bb.bb_spaces.bb_private;
+	import bb.components.BBComponent;
+	import bb.constants.render.BBRenderMode;
 	import bb.signals.BBSignal;
 
 	import flash.geom.Rectangle;
 
 	import nape.geom.Vec2;
-
-	import bb.assets.BBAssetsManager;
-	import bb.bb_spaces.bb_private;
-	import bb.components.BBComponent;
-	import bb.constants.render.BBRenderMode;
 
 	/**
 	 * Config of engine.

@@ -5,7 +5,11 @@
  */
 package bb.modules
 {
-	import bb.modules.BBModule;
+	import bb.components.physics.BBPhysicsBody;
+	import bb.components.physics.joints.BBConstraintFactory;
+	import bb.components.physics.joints.BBJoint;
+	import bb.core.BBConfig;
+	import bb.core.BabyBox;
 	import bb.signals.BBSignal;
 
 	import flash.events.MouseEvent;
@@ -21,12 +25,6 @@ package bb.modules
 	import nape.phys.BodyList;
 	import nape.space.Broadphase;
 	import nape.space.Space;
-
-	import bb.components.physics.BBPhysicsBody;
-	import bb.components.physics.joints.BBConstraintFactory;
-	import bb.components.physics.joints.BBJoint;
-	import bb.core.BBConfig;
-	import bb.core.BabyBox;
 
 	/**
 	 * Response for physics simulation.

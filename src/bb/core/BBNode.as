@@ -1,10 +1,5 @@
 package bb.core
 {
-	import bb.signals.BBSignal;
-
-	import flash.utils.Dictionary;
-	import flash.utils.getDefinitionByName;
-
 	import bb.bb_spaces.bb_private;
 	import bb.components.BBComponent;
 	import bb.components.BBTransform;
@@ -14,7 +9,10 @@ package bb.core
 	import bb.events.BBMouseEvent;
 	import bb.modules.BBGraphModule;
 	import bb.pools.BBActorPool;
-	import bb.pools.BBComponentPool;
+	import bb.signals.BBSignal;
+
+	import flash.utils.Dictionary;
+	import flash.utils.getDefinitionByName;
 
 	import vm.math.unique.UniqueId;
 	import vm.str.StringUtil;
@@ -264,7 +262,7 @@ package bb.core
 			if (isClass)
 			{
 				lookup = p_lookupClass ? p_lookupClass : p_component;
-				component = BBComponentPool.get(p_component);
+				component = BBComponent.get(p_component);
 			}
 			else
 			{
@@ -487,7 +485,7 @@ package bb.core
 			if (_numChildren > 0)
 			{
 				var node:BBNode = childrenHead;
-				while(node)
+				while (node)
 				{
 					if (node._name == p_childName)
 					{
@@ -620,7 +618,7 @@ package bb.core
 			// send to children
 			var child:BBNode = childrenHead;
 			var currentChild:BBNode;
-			while(child)
+			while (child)
 			{
 				currentChild = child;
 				child = child.next;
@@ -1059,7 +1057,7 @@ package bb.core
 
 			// children
 			var child:BBNode = childrenHead;
-			while(child)
+			while (child)
 			{
 				copyNode.addChild(child.copy());
 				child = child.next;
@@ -1081,11 +1079,11 @@ package bb.core
 			var alias:String = getProperty("bb_alias") ? getProperty("bb_alias") : "";
 
 			return  "===========================================================================================================================================\n" +
-					"[BBNode: {id: "+_id+"}"+(alias ? "-{alias: "+alias+"}" : "")+"\n" +
-					"{name: "+_name+"}-{group: "+group+"}-{keepGroup: "+keepGroup+"}-{active: "+_active+"}-{independentTransformation: "+independentTransformation+"}-" +
-					"{mouseChildren: "+mouseChildren+"}-{mouseEnabled: "+mouseEnabled+"}\n" +
-					"{numChildren: "+_numChildren+"}-{numComponents: "+_numComponents+"}-{has parent: "+(_parent != null)+"}-{isOnStage: "+_isOnStage+"}-{visible: "+_visible+"}\n" +
-					"{Components:\n "+componentsStr+"}]\n" +
+					"[BBNode: {id: " + _id + "}" + (alias ? "-{alias: " + alias + "}" : "") + "\n" +
+					"{name: " + _name + "}-{group: " + group + "}-{keepGroup: " + keepGroup + "}-{active: " + _active + "}-{independentTransformation: " + independentTransformation + "}-" +
+					"{mouseChildren: " + mouseChildren + "}-{mouseEnabled: " + mouseEnabled + "}\n" +
+					"{numChildren: " + _numChildren + "}-{numComponents: " + _numComponents + "}-{has parent: " + (_parent != null) + "}-{isOnStage: " + _isOnStage + "}-{visible: " + _visible + "}\n" +
+					"{Components:\n " + componentsStr + "}]\n" +
 					"===========================================================================================================================================";
 		}
 
@@ -1266,7 +1264,6 @@ package bb.core
 			return UniqueId.getUniqueName("node");
 		}
 
-
 		/////////////////////////
 		//*** Pool for node ***//
 		/////////////////////////
@@ -1288,7 +1285,7 @@ package bb.core
 				_headPool = _headPool.next;
 				node.next = null;
 				node._name = p_name;
-				node.transform = BBComponentPool.get(BBTransform) as BBTransform;
+				node.transform = BBComponent.get(BBTransform) as BBTransform;
 				node._inPool = false;
 				node._isDisposed = false;
 				--_numInPool;
@@ -1355,7 +1352,7 @@ package bb.core
 		{
 			CONFIG::debug
 			{
-				Assert.isTrue(_cache[p_alias] == null, "Node with given alias '"+p_alias+"' already added to cache", "BBNode.addToCache");
+				Assert.isTrue(_cache[p_alias] == null, "Node with given alias '" + p_alias + "' already added to cache", "BBNode.addToCache");
 			}
 
 			_cache[p_alias] = new BBCache(p_prototype, p_alias, p_preCache);
@@ -1368,7 +1365,7 @@ package bb.core
 		{
 			CONFIG::debug
 			{
-				Assert.isTrue(_cache[p_alias] != null, "Node with given alias '"+p_alias+"' doesn't exist in cache", "BBNode.getFromCache");
+				Assert.isTrue(_cache[p_alias] != null, "Node with given alias '" + p_alias + "' doesn't exist in cache", "BBNode.getFromCache");
 			}
 
 			var pool:BBCache = _cache[p_alias];
@@ -1383,7 +1380,7 @@ package bb.core
 		{
 			CONFIG::debug
 			{
-				Assert.isTrue(_cache[p_alias] != null, "Node with given alias '"+p_alias+"' doesn't exist in cache", "BBNode.preCache");
+				Assert.isTrue(_cache[p_alias] != null, "Node with given alias '" + p_alias + "' doesn't exist in cache", "BBNode.preCache");
 			}
 
 			var pool:BBCache = _cache[p_alias];
@@ -1410,7 +1407,6 @@ package bb.core
 	}
 }
 
-
 import bb.core.BBNode;
 
 /**
@@ -1434,7 +1430,7 @@ internal class BBCache
 		_preCache = p_preCache;
 		_cache = new <BBNode>[];
 
-		 if (p_preCache > 0) preCache(_preCache);
+		if (p_preCache > 0) preCache(_preCache);
 	}
 
 	/**

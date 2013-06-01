@@ -5,10 +5,10 @@
  */
 package bb.components
 {
+	import bb.bb_spaces.bb_private;
+
 	import flash.geom.Matrix;
 	import flash.geom.Point;
-
-	import bb.bb_spaces.bb_private;
 
 	use namespace bb_private;
 

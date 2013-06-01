@@ -5,15 +5,15 @@
  */
 package bb.prototyping
 {
-	import nape.phys.BodyType;
-	import nape.phys.Material;
-
 	import bb.components.physics.BBPhysicsBody;
 	import bb.components.renderable.BBSprite;
 	import bb.core.BBNode;
 	import bb.textures.BBTexture;
 	import bb.tools.physics.BBPhysicalMaterials;
 	import bb.vo.BBColor;
+
+	import nape.phys.BodyType;
+	import nape.phys.Material;
 
 	/**
 	 * Class for rapid prototyping and tests.

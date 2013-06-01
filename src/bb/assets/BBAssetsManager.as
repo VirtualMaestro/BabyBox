@@ -5,7 +5,13 @@
  */
 package bb.assets
 {
+	import bb.components.renderable.BBMovieClip;
+	import bb.components.renderable.BBRenderable;
+	import bb.components.renderable.BBSprite;
 	import bb.signals.BBSignal;
+	import bb.textures.BBTexture;
+	import bb.textures.BBTextureAtlas;
+	import bb.textures.BBTextureBase;
 
 	import flash.display.Bitmap;
 	import flash.display.DisplayObject;
@@ -14,13 +20,6 @@ package bb.assets
 	import flash.events.Event;
 	import flash.utils.Dictionary;
 	import flash.utils.getTimer;
-
-	import bb.components.renderable.BBMovieClip;
-	import bb.components.renderable.BBRenderable;
-	import bb.components.renderable.BBSprite;
-	import bb.textures.BBTexture;
-	import bb.textures.BBTextureAtlas;
-	import bb.textures.BBTextureBase;
 
 	import vm.classes.ClassUtil;
 	import vm.str.StringUtil;

@@ -8,7 +8,6 @@ package bb.components.renderable
 	import bb.bb_spaces.bb_private;
 	import bb.components.BBComponent;
 	import bb.core.BBNode;
-	import bb.pools.BBComponentPool;
 	import bb.textures.BBTexture;
 
 	CONFIG::debug
@@ -87,7 +86,7 @@ package bb.components.renderable
 		 */
 		static public function get(p_texture:BBTexture = null):BBSprite
 		{
-			var sprite:BBSprite = BBComponentPool.get(BBSprite) as BBSprite;
+			var sprite:BBSprite = BBComponent.get(BBSprite) as BBSprite;
 			if (p_texture) sprite.setTexture(p_texture);
 			return sprite;
 		}
@@ -98,7 +97,7 @@ package bb.components.renderable
 		 */
 		static public function getWithNode(p_nodeName:String = "", p_texture:BBTexture = null):BBSprite
 		{
-			var sprite:BBSprite = BBComponentPool.getWithNode(BBSprite, p_nodeName) as BBSprite;
+			var sprite:BBSprite = BBComponent.getWithNode(BBSprite, p_nodeName) as BBSprite;
 			if (p_texture) sprite.setTexture(p_texture);
 			return sprite;
 		}

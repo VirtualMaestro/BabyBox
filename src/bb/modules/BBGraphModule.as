@@ -5,9 +5,6 @@
  */
 package bb.modules
 {
-	import bb.modules.BBModule;
-	import bb.signals.BBSignal;
-
 	import bb.bb_spaces.bb_private;
 	import bb.components.BBCamera;
 	import bb.constants.mouse.BBMouseFlags;
@@ -16,6 +13,7 @@ package bb.modules
 	import bb.core.BabyBox;
 	import bb.core.context.BBContext;
 	import bb.events.BBMouseEvent;
+	import bb.signals.BBSignal;
 
 	use namespace bb_private;
 

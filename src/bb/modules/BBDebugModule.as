@@ -5,8 +5,10 @@
  */
 package bb.modules
 {
-	import bb.modules.BBModule;
+	import bb.core.BBConfig;
+	import bb.core.BabyBox;
 	import bb.signals.BBSignal;
+	import bb.tools.debug.BBGridDebug;
 
 	import flash.display.DisplayObjectContainer;
 	import flash.geom.Rectangle;
@@ -14,10 +16,6 @@ package bb.modules
 	import nape.space.Space;
 	import nape.util.BitmapDebug;
 	import nape.util.Debug;
-
-	import bb.core.BBConfig;
-	import bb.core.BabyBox;
-	import bb.tools.debug.BBGridDebug;
 
 	import vm.stat.Stats;
 

@@ -5,6 +5,9 @@
  */
 package bb.textures
 {
+	import bb.bb_spaces.bb_private;
+	import bb.core.BabyBox;
+
 	import com.genome2d.textures.GTexture;
 	import com.genome2d.textures.GTextureAtlas;
 	import com.genome2d.textures.factories.GTextureAtlasFactory;
@@ -12,9 +15,6 @@ package bb.textures
 	import flash.display.BitmapData;
 	import flash.display.MovieClip;
 	import flash.geom.Rectangle;
-
-	import bb.bb_spaces.bb_private;
-	import bb.core.BabyBox;
 
 	import vm.math.unique.UniqueId;
 	import vm.str.StringUtil;

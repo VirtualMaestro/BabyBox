@@ -1,11 +1,8 @@
 package bb.core
 {
 	import bb.BBModuleEngine;
-	import bb.signals.BBSignal;
-
-	import flash.display.Stage;
-
 	import bb.assets.BBAssetsManager;
+	import bb.components.BBComponent;
 	import bb.components.physics.joints.BBJoint;
 	import bb.core.context.BBContext;
 	import bb.events.BBMouseEvent;
@@ -18,9 +15,11 @@ package bb.core
 	import bb.modules.BBPhysicsModule;
 	import bb.modules.BBWorldModule;
 	import bb.pools.BBActorPool;
-	import bb.pools.BBComponentPool;
 	import bb.pools.BBMasterPool;
 	import bb.pools.BBNativePool;
+	import bb.signals.BBSignal;
+
+	import flash.display.Stage;
 
 	/**
 	 * Enter point to engine.
@@ -69,7 +68,8 @@ package bb.core
 		{
 			// add all rid methods of pools to master pool
 			BBMasterPool.addRidPoolMethod(BBNode.rid);
-			BBMasterPool.addRidPoolMethod(BBComponentPool.rid);
+			BBMasterPool.addRidPoolMethod(BBNode.ridCache);
+			BBMasterPool.addRidPoolMethod(BBComponent.rid);
 			BBMasterPool.addRidPoolMethod(BBNodeStatus.rid);
 			BBMasterPool.addRidPoolMethod(BBMouseEvent.rid);
 			BBMasterPool.addRidPoolMethod(BBNativePool.rid);

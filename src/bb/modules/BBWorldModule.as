@@ -5,9 +5,6 @@
  */
 package bb.modules
 {
-	import bb.modules.BBModule;
-	import bb.signals.BBSignal;
-
 	import bb.common.BBLayer;
 	import bb.components.BBCamera;
 	import bb.constants.layers.BBLayerNames;
@@ -15,6 +12,7 @@ package bb.modules
 	import bb.core.BBConfig;
 	import bb.core.BBNode;
 	import bb.core.BabyBox;
+	import bb.signals.BBSignal;
 
 	/**
 	 * Module represent world - main point to add actors (nodes) to world (scene).

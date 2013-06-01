@@ -5,19 +5,17 @@
  */
 package bb.modules
 {
-	import bb.modules.BBModule;
-	import bb.signals.BBSignal;
-
-	import flash.events.MouseEvent;
-	import flash.geom.Point;
-	import flash.geom.Rectangle;
-
 	import bb.bb_spaces.bb_private;
 	import bb.components.BBCamera;
 	import bb.constants.mouse.BBMouseFlags;
 	import bb.core.BabyBox;
 	import bb.events.BBMouseEvent;
 	import bb.pools.BBNativePool;
+	import bb.signals.BBSignal;
+
+	import flash.events.MouseEvent;
+	import flash.geom.Point;
+	import flash.geom.Rectangle;
 
 	use namespace bb_private;
 
