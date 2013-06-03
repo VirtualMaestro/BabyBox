@@ -80,11 +80,10 @@ package bb.core
 		private var _active:Boolean = true;
 
 		/**
-		 * Mean that transformation won't change if changed parent transformation.
-		 * It will not takes into account parent transformation.
+		 * Mean that transform object won't invalidate after changing its transformation (position, rotation etc.) or transformation its parent.
 		 * Need for components which need own independent transformation (e.g. Camera, BBPhysicsBody).
 		 */
-		public var independentTransformation:Boolean = false;
+		public var lockTransformInvalidation:Boolean = false;
 
 		/**
 		 * Transform component of node.
@@ -705,7 +704,7 @@ package bb.core
 			if (!_active) return;
 
 			// Update transform if need
-			var updateTransform:Boolean = !independentTransformation && (p_parentTransformUpdate || transform.isTransformChanged);
+			var updateTransform:Boolean = !lockTransformInvalidation && (p_parentTransformUpdate || transform.isTransformChanged);
 			var updateColor:Boolean = p_parentColorUpdate || transform.isColorChanged;
 
 			if (updateTransform || updateColor) transform.invalidate(updateTransform, updateColor);
@@ -1023,7 +1022,7 @@ package bb.core
 		public function copy():BBNode
 		{
 			var copyNode:BBNode = get(_name);
-			copyNode.independentTransformation = independentTransformation;
+			copyNode.lockTransformInvalidation = lockTransformInvalidation;
 			copyNode.group = group;
 			copyNode.keepGroup = keepGroup;
 			copyNode.mouseChildren = mouseChildren;
@@ -1079,7 +1078,7 @@ package bb.core
 
 			return  "===========================================================================================================================================\n" +
 					"[BBNode: {id: " + _id + "}" + (alias ? "-{alias: " + alias + "}" : "") + "\n" +
-					"{name: " + _name + "}-{group: " + group + "}-{keepGroup: " + keepGroup + "}-{active: " + _active + "}-{independentTransformation: " + independentTransformation + "}-" +
+					"{name: " + _name + "}-{group: " + group + "}-{keepGroup: " + keepGroup + "}-{active: " + _active + "}-{lockTransformInvalidation: " + lockTransformInvalidation + "}-" +
 					"{mouseChildren: " + mouseChildren + "}-{mouseEnabled: " + mouseEnabled + "}\n" +
 					"{numChildren: " + _numChildren + "}-{numComponents: " + _numComponents + "}-{has parent: " + (_parent != null) + "}-{isOnStage: " + _isOnStage + "}-{visible: " + _visible + "}\n" +
 					"{Components:\n " + componentsStr + "}]\n" +
@@ -1140,7 +1139,7 @@ package bb.core
 			nodePrototype.@mouseChildren = mouseChildren;
 			nodePrototype.@group = group;
 			nodePrototype.@keepGroup = keepGroup;
-			nodePrototype.@independentTransformation = independentTransformation;
+			nodePrototype.@lockTransformInvalidation = lockTransformInvalidation;
 			var alias:String = getProperty("bb_alias");
 			nodePrototype.@alias = alias == null ? "" : alias;
 
@@ -1216,7 +1215,7 @@ package bb.core
 				node.mouseEnabled = p_prototype.@mouseEnabled == "true";
 				node.mouseChildren = p_prototype.@mouseChildren == "true";
 				node.keepGroup = p_prototype.@keepGroup == "true";
-				node.independentTransformation = p_prototype.@independentTransformation == "true";
+				node.lockTransformInvalidation = p_prototype.@lockTransformInvalidation == "true";
 				node.group = parseInt(p_prototype.@group);
 
 				if (alias != "") node.addProperty("bb_alias", alias);
