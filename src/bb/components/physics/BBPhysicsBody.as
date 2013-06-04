@@ -16,7 +16,6 @@ package bb.components.physics
 	import bb.signals.BBSignal;
 	import bb.tools.physics.BBPhysicalMaterials;
 
-	import nape.constraint.ConstraintList;
 	import nape.dynamics.InteractionFilter;
 	import nape.geom.Vec2;
 	import nape.geom.Vec2Iterator;
@@ -49,6 +48,8 @@ package bb.components.physics
 	 */
 	public class BBPhysicsBody extends BBComponent
 	{
+		static private const SCALE_PRECISE:Number = 0.01;
+
 		/**
 		 * Allow to use hand for this object.
 		 */
@@ -71,7 +72,8 @@ package bb.components.physics
 		private var _isNeedInitJoints:Boolean = false;
 
 		//
-		private var _joints:Vector.<BBJoint>;
+		private var _thisJoints:Vector.<BBJoint>;
+		private var _attachedJoints:Vector.<BBJoint>;
 		private var _initJointList:Vector.<BBJoint>;
 
 		/**
@@ -85,7 +87,8 @@ package bb.components.physics
 			_bodyPosition = _body.position;
 
 			//
-			_joints = new <BBJoint>[];
+			_thisJoints = new <BBJoint>[];
+			_attachedJoints = new <BBJoint>[];
 
 			//
 			onAdded.add(addedToNodeHandler);
@@ -97,7 +100,6 @@ package bb.components.physics
 		private function addedToNodeHandler(p_signal:BBSignal):void
 		{
 			_transform = node.transform;
-			lock = _lock;
 
 			if (!_space) _space = (BabyBox.getInstance().getModule(BBPhysicsModule) as BBPhysicsModule).space;
 
@@ -108,7 +110,7 @@ package bb.components.physics
 			node.onActive.add(onNodeActiveHandler);
 
 			//
-			updateEnable = true;
+			updateEnable = false;
 		}
 
 		/**
@@ -125,14 +127,6 @@ package bb.components.physics
 		 */
 		private function addToStage():void
 		{
-			scale = _transform.scaleX < _transform.scaleY ? _transform.scaleX : _transform.scaleY;
-
-			if (_lock)
-			{
-				_body.position.setxy(_transform.x, _transform.y);
-				_body.rotation = _transform.rotation;
-			}
-
 			node.onUpdated.add(initBody);
 			node.onUpdated.add(initJoints);
 		}
@@ -145,8 +139,13 @@ package bb.components.physics
 			{
 				p_signal.removeCurrentListener();
 
+				updateEnable = _body.type != BodyType.STATIC;
+
+				scale = _transform.worldScaleX < _transform.worldScaleY ? _transform.worldScaleX : _transform.worldScaleY;
+				_body.position.setxy(_transform.worldX, _transform.worldY);
+				_body.rotation = _transform.worldRotation;
 				_body.space = _space;
-				lock = false;
+				_lock = false;
 			}
 		}
 
@@ -171,7 +170,7 @@ package bb.components.physics
 			node.onRemoved.remove(unlinkedFromStageHandler);
 			node.onActive.remove(onNodeActiveHandler);
 
-			lock = true;
+			_lock = true;
 		}
 
 		/**
@@ -273,6 +272,7 @@ package bb.components.physics
 				// creates new joints if need
 				if (_initJointList)
 				{
+					var isNeedToScale:Boolean = Math.abs(1 - _scale) >= SCALE_PRECISE;
 					var currentNodeName:String = node.name;
 					var jointsNum:int = _initJointList.length;
 					var joint:BBJoint;
@@ -283,9 +283,16 @@ package bb.components.physics
 
 						if (joint.jointedActorName != currentNodeName)
 						{
+							if (isNeedToScale)
+							{
+								joint.thisAnchor.muleq(_scale);
+								joint.jointedAnchor.muleq(_scale);
+							}
+
+							//
 							createJoint(joint);
-							_joints.push(joint);
-							if (joint.jointedBodyComponent) joint.jointedBodyComponent._joints.push(joint);
+							_thisJoints.push(joint);
+							if (joint.jointedBodyComponent) joint.jointedBodyComponent._attachedJoints.push(joint);
 						}
 					}
 
@@ -387,86 +394,109 @@ package bb.components.physics
 		{
 			var wasFound:Boolean = false;
 
-			if (_joints)
-			{
-				var numJoints:int = _joints.length;
-				for (var i:int = 0; i < numJoints; i++)
-				{
-					wasFound = _joints[i] == p_joint;
-					if (wasFound)
-					{
-						_joints.splice(i, 1);
-						p_joint.dispose();
-						break;
-					}
-				}
-			}
-
-			if (wasFound && _initJointList)
-			{
-				var numInitJoints:int = _initJointList.length;
-				for (var j:int = 0; j < numInitJoints; j++)
-				{
-					if (_initJointList[j] == p_joint)
-					{
-						_initJointList.splice(j, 1);
-						p_joint.dispose();
-						break;
-					}
-				}
-			}
-		}
-
-		/**
-		 * Removes all joints assigned to this component.
-		 */
-		public function removeAllJoints():void
-		{
-			var numJoints:int = _joints.length;
+			var numJoints:int = _thisJoints.length;
 			for (var i:int = 0; i < numJoints; i++)
 			{
-				_joints[i].dispose();
-				_joints[i] = null;
-			}
-
-			_joints.length = 0;
-
-			// if some joint is still here remove it from nape's body directly
-			var jointsList:ConstraintList = _body.constraints;
-			while(!jointsList.empty()) jointsList.at(0).space = null;
-		}
-
-		/**
-		 * Returns joint by given name.
-		 */
-		public function getJointByName(p_jointName:String):BBJoint
-		{
-			var joint:BBJoint;
-			var numJoints:int = _joints.length;
-
-			for (var i:int = 0; i < numJoints; i++)
-			{
-				if (_joints[i].name == p_jointName)
+				if (_thisJoints[i] == p_joint)
 				{
-					joint = _joints[i];
+					wasFound = true;
+					_thisJoints.splice(i, 1);
+					p_joint.dispose();
 					break;
 				}
 			}
 
-			if (joint == null && _initJointList && _initJointList.length > 0)
+			if (!wasFound)
 			{
-				var numInitJoints:int = _initJointList.length;
-				for (var j:int = 0; j < numInitJoints; j++)
+				numJoints = _attachedJoints.length;
+				for (i = 0; i < numJoints; i++)
 				{
-					if (_initJointList[i].name == p_jointName)
+					if (_attachedJoints[i] == p_joint)
 					{
-						joint = _initJointList[i];
+						wasFound = true;
+						_attachedJoints.splice(i, 1);
+						p_joint.dispose();
 						break;
 					}
 				}
 			}
 
-			return joint;
+			if (!wasFound && _initJointList)
+			{
+				var numInitJoints:int = _initJointList.length;
+				for (i = 0; i < numInitJoints; i++)
+				{
+					if (_initJointList[i] == p_joint)
+					{
+						_initJointList.splice(i, 1);
+						p_joint.dispose();
+						break;
+					}
+				}
+			}
+		}
+
+		/**
+		 * Removes all joints which this component own.
+		 * if 'p_removeAttached' == true - mean removes also joints which were attached by another component (this component isn't owns these components).
+		 */
+		public function removeAllJoints(p_removeAttached:Boolean = false):void
+		{
+			var numJoints:int = _thisJoints.length;
+			for (var i:int = 0; i < numJoints; i++)
+			{
+				_thisJoints[i].dispose();
+				_thisJoints[i] = null;
+			}
+
+			_thisJoints.length = 0;
+
+			if (p_removeAttached)
+			{
+				numJoints = _attachedJoints.length;
+				for (i = 0; i < numJoints; i++)
+				{
+					_attachedJoints[i].dispose();
+					_attachedJoints[i] = null;
+				}
+
+				_attachedJoints.length = 0;
+			}
+		}
+
+		/**
+		 * Returns joint by given name.
+		 * p_includeAttached - will search  in attached joints too.
+		 */
+		public function getJointByName(p_jointName:String, p_includeAttached:Boolean = true):BBJoint
+		{
+			var numJoints:int = _thisJoints.length;
+			for (var i:int = 0; i < numJoints; i++)
+			{
+				if (_thisJoints[i].name == p_jointName) return _thisJoints[i];
+			}
+
+			//
+			if (p_includeAttached)
+			{
+				numJoints = _attachedJoints.length;
+				for (i = 0; i < numJoints; i++)
+				{
+					if (_thisJoints[i].name == p_jointName) return _thisJoints[i];
+				}
+			}
+
+			//
+			if (_initJointList && _initJointList.length > 0)
+			{
+				var numInitJoints:int = _initJointList.length;
+				for (var j:int = 0; j < numInitJoints; j++)
+				{
+					if (_initJointList[i].name == p_jointName) return _initJointList[i];
+				}
+			}
+
+			return null;
 		}
 
 		/**
@@ -523,11 +553,28 @@ package bb.components.physics
 		 */
 		public function set scale(p_scale:Number):void
 		{
-			if (Math.abs(p_scale - _scale) >= 0.01)
+			if (Math.abs(p_scale - _scale) >= SCALE_PRECISE)
 			{
 				var nScale:Number = NumberUtil.round(1.0 / _scale) * p_scale;
 				_body.scaleShapes(nScale, nScale);
 				_scale = p_scale;
+
+				// change joints position
+				var joint:BBJoint;
+				if (_thisJoints && _thisJoints.length > 0)
+				{
+					var _jointsNum:int = _thisJoints.length;
+					for (var i:int = 0; i < _jointsNum; i++)
+					{
+						joint = _thisJoints[i];
+
+						if (joint.hasAnchors)
+						{
+							joint.thisAnchor.muleq(nScale);
+							joint.jointedAnchor.muleq(nScale);
+						}
+					}
+				}
 			}
 		}
 
@@ -548,12 +595,16 @@ package bb.components.physics
 			if (_body.type == p_val) return;
 			_body.type = p_val;
 
-			if (_body.type == BodyType.STATIC) updateEnable = false;
-			else if (_body.type == BodyType.KINEMATIC) lock = true;
-			else
+			// mean we change type at runtime
+			if (node && node.isOnStage)
 			{
-				updateEnable = true;
-				if (node && node.isOnStage) lock = false;
+				if (_body.type == BodyType.STATIC) updateEnable = false;
+				else if (_body.type == BodyType.KINEMATIC) _lock = true;
+				else
+				{
+					updateEnable = true;
+					_lock = false;
+				}
 			}
 		}
 
@@ -597,38 +648,30 @@ package bb.components.physics
 		 */
 		private function set activateJoints(p_val:Boolean):void
 		{
-			var numJoints:int = _joints.length;
-			for (var i:int = 0; i < numJoints; i++) _joints[i].active = p_val;
+			var numJoints:int = _thisJoints.length;
+			for (var i:int = 0; i < numJoints; i++) _thisJoints[i].active = p_val;
 		}
 
 		/**
 		 */
 		override public function update(p_deltaTime:Number):void
 		{
-			if (_transform.isScaleChanged) scale = _transform.scaleX < _transform.scaleY ? _transform.scaleX : _transform.scaleY;
-
-			if (_lock)
+			if (_transform.isInvalidated || _lock)
 			{
-				_bodyPosition.setxy(_transform.worldX, _transform.worldY);
-				_body.rotation = _transform.worldRotation;
+				if (_transform.isScaleInvalidated) scale = _transform.worldScaleX < _transform.worldScaleY ? _transform.worldScaleX : _transform.worldScaleY;
+				if (_transform.isPositionInvalidated) _bodyPosition.setxy(_transform.worldX, _transform.worldY);
+				if (_transform.isRotationInvalidated) _body.rotation = _transform.worldRotation;
 			}
-			else _transform.setPositionAndRotation(_bodyPosition.x, _bodyPosition.y, _body.rotation);
+			else updateBodyToTransform();
 		}
 
 		/**
 		 */
-		public function get lock():Boolean
+		private function updateBodyToTransform():void
 		{
-			return _lock;
-		}
-
-		/**
-		 * Lock physic body. Node's transform will update physic body.
-		 */
-		public function set lock(p_value:Boolean):void
-		{
-			_lock = p_value;
-			if (node) node.independentTransformation = !_lock;
+			_transform.worldX = _bodyPosition.x;
+			_transform.worldY = _bodyPosition.y;
+			_transform.worldRotation = _body.rotation;
 		}
 
 		/**
@@ -667,7 +710,8 @@ package bb.components.physics
 		{
 			super.rid();
 
-			_joints = null;
+			_thisJoints = null;
+			_attachedJoints = null;
 			_initJointList = null;
 			_space = null;
 			_body = null;
@@ -702,12 +746,12 @@ package bb.components.physics
 			}
 
 			// copy joints
-			var numJoints:int = _joints.length;
+			var numJoints:int = _thisJoints.length;
 			if (numJoints > 0)
 			{
 				for (i = 0; i < numJoints; i++)
 				{
-					component.addJoint(_joints[i].copy());
+					component.addJoint(_thisJoints[i].copy());
 				}
 			}
 
@@ -781,15 +825,15 @@ package bb.components.physics
 			}
 
 			var jointsTrace:String = "";
-			var numJoints:int = (_initJointList) ? _joints.length + _initJointList.length : _joints.length;
+			var numJoints:int = (_initJointList) ? _thisJoints.length + _initJointList.length : _thisJoints.length;
 
 			if (numJoints > 0)
 			{
 				jointsTrace += "-----\n";
 
-				for (var i:int = 0; i < _joints.length; i++)
+				for (var i:int = 0; i < _thisJoints.length; i++)
 				{
-					jointsTrace += _joints[i].toString();
+					jointsTrace += _thisJoints[i].toString();
 					jointsTrace += "-----\n";
 				}
 
@@ -926,16 +970,16 @@ package bb.components.physics
 			}
 
 			// parse joints
-			if (_joints.length > 0 || (_initJointList && _initJointList.length > 0))
+			if (_thisJoints.length > 0 || (_initJointList && _initJointList.length > 0))
 			{
 				var jointsXML:XML = <joints/>;
-				var numJoints:int = _joints ? _joints.length : 0;
+				var numJoints:int = _thisJoints ? _thisJoints.length : 0;
 				var joint:BBJoint;
 				var currentNodeName:String = node.name;
 
 				for (var i:int = 0; i < numJoints; i++)
 				{
-					joint = _joints[i];
+					joint = _thisJoints[i];
 					if (joint.jointedActorName != currentNodeName)
 					{
 						jointsXML.appendChild(joint.getPrototype());

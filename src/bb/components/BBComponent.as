@@ -1,7 +1,5 @@
 package bb.components
 {
-	import avmplus.getQualifiedClassName;
-
 	import bb.bb_spaces.bb_private;
 	import bb.core.*;
 	import bb.signals.BBSignal;
@@ -9,9 +7,9 @@ package bb.components
 	import flash.utils.Dictionary;
 	import flash.utils.describeType;
 	import flash.utils.getDefinitionByName;
+	import flash.utils.getQualifiedClassName;
 
 	import vm.classes.ClassUtil;
-	import vm.debug.Assert;
 	import vm.math.unique.UniqueId;
 
 	use namespace bb_private;
@@ -122,6 +120,7 @@ package bb.components
 		{
 			return _id;
 		}
+
 		/**
 		 * Signal dispatches when component was added to the node.
 		 */
@@ -284,7 +283,7 @@ package bb.components
 		 */
 		public function toString():String
 		{
-			return "{id: "+_id+"}-{lookup class: " + getQualifiedClassName(_lookupClass) + "}-{cacheable: " + cacheable + "}-{updateEnable: " + _updateEnable + "}";
+			return "{id: " + _id + "}-{lookup class: " + getQualifiedClassName(_lookupClass) + "}-{cacheable: " + cacheable + "}-{updateEnable: " + _updateEnable + "}";
 		}
 
 		/////////////////////////////
@@ -305,7 +304,7 @@ package bb.components
 
 			_prototype.properties = <properties/>;
 
-			// add protected 'cacheable' prop
+			// add protected prop 'cacheable'
 			addPrototypeProperty("cacheable", cacheable, "boolean");
 
 			//
@@ -403,11 +402,11 @@ package bb.components
 
 			try
 			{
-				p_object[p_property.name()] = value == null ? p_property : value;
+				p_object[p_property.name()] = (value == null) ? p_property : value;
 			}
 			catch (error:Error)
 			{
-				trace("bindPrototypeProperty", error, p_object, p_property.name(), value);
+				trace("bindPrototypeProperty", error, getQualifiedClassName(p_object), p_property.name(), value);
 			}
 		}
 

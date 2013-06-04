@@ -175,6 +175,8 @@ package bb.components.physics.joints
 				{
 					if (_joint.userData.bb_joint) _joint.userData.bb_joint = null;
 					_joint.space = null;
+					thisBody.constraints.remove(_joint);
+					jointedBody.constraints.remove(_joint);
 					_joint = null;
 				}
 

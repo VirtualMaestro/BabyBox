@@ -83,7 +83,7 @@ package bb.core
 		 * Mean that transform object won't invalidate after changing its transformation (position, rotation etc.) or transformation its parent.
 		 * Need for components which need own independent transformation (e.g. Camera, BBPhysicsBody).
 		 */
-		public var lockTransformInvalidation:Boolean = false;
+//		public var lockTransformInvalidation:Boolean = false;
 
 		/**
 		 * Transform component of node.
@@ -625,6 +625,26 @@ package bb.core
 			}
 		}
 
+		//
+		private var _reverseLockAfterUpdate:Boolean = false;
+
+		/**
+		 * Lock/unlock current and all children's transform invalidation.
+		 * p_reverseAfterUpdate - mean that after first update given lock value changes to vise versa.
+		 */
+		public function lockTransformInvalidation(p_lock:Boolean, p_reverseAfterUpdate:Boolean = false):void
+		{
+			transform.lockInvalidation = p_lock;
+			_reverseLockAfterUpdate = p_reverseAfterUpdate;
+
+			var child:BBNode = childrenHead;
+			while(child)
+			{
+				child.transform.lockInvalidation = p_lock;
+				child = child.next;
+			}
+		}
+
 		/**
 		 * Adds tag.
 		 */
@@ -704,7 +724,7 @@ package bb.core
 			if (!_active) return;
 
 			// Update transform if need
-			var updateTransform:Boolean = !lockTransformInvalidation && (p_parentTransformUpdate || transform.isTransformChanged);
+			var updateTransform:Boolean = !transform.lockInvalidation && (p_parentTransformUpdate || transform.isTransformChanged);
 			var updateColor:Boolean = p_parentColorUpdate || transform.isColorChanged;
 
 			if (updateTransform || updateColor) transform.invalidate(updateTransform, updateColor);
@@ -737,8 +757,18 @@ package bb.core
 				childNode = _nextChildNode;
 			}
 
+			//
+			if (_reverseLockAfterUpdate) lockTransformInvalidation(!transform.lockInvalidation);
+
 			// dispatch onUpdated signal, after node was completely updated
 			if (_onUpdated) _onUpdated.dispatch();
+
+			///
+			transform.isInvalidated = false;
+			transform.isPositionInvalidated = false;
+			transform.isRotationInvalidated = false;
+			transform.isScaleInvalidated = false;
+			transform.isColorInvalidated = false;
 		}
 
 		/**
@@ -1022,7 +1052,6 @@ package bb.core
 		public function copy():BBNode
 		{
 			var copyNode:BBNode = get(_name);
-			copyNode.lockTransformInvalidation = lockTransformInvalidation;
 			copyNode.group = group;
 			copyNode.keepGroup = keepGroup;
 			copyNode.mouseChildren = mouseChildren;
@@ -1078,7 +1107,7 @@ package bb.core
 
 			return  "===========================================================================================================================================\n" +
 					"[BBNode: {id: " + _id + "}" + (alias ? "-{alias: " + alias + "}" : "") + "\n" +
-					"{name: " + _name + "}-{group: " + group + "}-{keepGroup: " + keepGroup + "}-{active: " + _active + "}-{lockTransformInvalidation: " + lockTransformInvalidation + "}-" +
+					"{name: " + _name + "}-{group: " + group + "}-{keepGroup: " + keepGroup + "}-{active: " + _active + "}-" +
 					"{mouseChildren: " + mouseChildren + "}-{mouseEnabled: " + mouseEnabled + "}\n" +
 					"{numChildren: " + _numChildren + "}-{numComponents: " + _numComponents + "}-{has parent: " + (_parent != null) + "}-{isOnStage: " + _isOnStage + "}-{visible: " + _visible + "}\n" +
 					"{Components:\n " + componentsStr + "}]\n" +
@@ -1139,7 +1168,6 @@ package bb.core
 			nodePrototype.@mouseChildren = mouseChildren;
 			nodePrototype.@group = group;
 			nodePrototype.@keepGroup = keepGroup;
-			nodePrototype.@lockTransformInvalidation = lockTransformInvalidation;
 			var alias:String = getProperty("bb_alias");
 			nodePrototype.@alias = alias == null ? "" : alias;
 
@@ -1215,7 +1243,6 @@ package bb.core
 				node.mouseEnabled = p_prototype.@mouseEnabled == "true";
 				node.mouseChildren = p_prototype.@mouseChildren == "true";
 				node.keepGroup = p_prototype.@keepGroup == "true";
-				node.lockTransformInvalidation = p_prototype.@lockTransformInvalidation == "true";
 				node.group = parseInt(p_prototype.@group);
 
 				if (alias != "") node.addProperty("bb_alias", alias);

@@ -16,7 +16,7 @@ package bb.components
 	 * Represents all transformation like: translation, rotation, scale, skew.
 	 * Also contain geometric data like: width, height.
 	 */
-	public class BBTransform extends BBComponent
+	final public class BBTransform extends BBComponent
 	{
 		private const PI2:Number = Math.PI * 2;
 		private const RAD_TO_DEG:Number = 180.0 / Math.PI;
@@ -38,12 +38,6 @@ package bb.components
 		bb_private var worldScaleX:Number = 1;
 		bb_private var worldScaleY:Number = 1;
 
-		/**
-		 * Determines if scale of transform was changed.
-		 */
-		public var isScaleChanged:Boolean = false;
-		private var _isScaledCurrentStep:Boolean = false;
-
 		// TODO: Add able to skew
 		private var _localSkewX:Number = 0;
 		private var _localSkewY:Number = 0;
@@ -55,6 +49,9 @@ package bb.components
 		private var _isWorldTransformMatrixChanged:Boolean = true;
 
 		bb_private var isTransformChanged:Boolean = false;
+		bb_private var isPositionChanged:Boolean = false;
+		bb_private var isRotationChanged:Boolean = false;
+		bb_private var isScaleChanged:Boolean = false;
 		bb_private var isColorChanged:Boolean = false;
 
 		bb_private var COS:Number = 1.0;
@@ -75,7 +72,17 @@ package bb.components
 		bb_private var worldAlpha:Number = 1;
 		private var _alpha:Number = 1;
 
+		//
+		public var lockInvalidation:Boolean = false;
 
+		/**
+		 * Is transform changed and updated values.
+		 */
+		public var isInvalidated:Boolean = false;
+		public var isPositionInvalidated:Boolean = false;
+		public var isRotationInvalidated:Boolean = false;
+		public var isScaleInvalidated:Boolean = false;
+		public var isColorInvalidated:Boolean = false;
 
 		/**
 		 */
@@ -109,6 +116,7 @@ package bb.components
 		{
 			worldRed = _red = p_red > 1.0 ? 1.0 : p_red;
 			isColorChanged = true;
+			isColorInvalidated = true;
 		}
 
 		/**
@@ -123,6 +131,7 @@ package bb.components
 		{
 			worldGreen = _green = p_green > 1.0 ? 1.0 : p_green;
 			isColorChanged = true;
+			isColorInvalidated = true;
 		}
 
 		/**
@@ -137,6 +146,7 @@ package bb.components
 		{
 			worldBlue = _blue = p_blue > 1.0 ? 1.0 : p_blue;
 			isColorChanged = true;
+			isColorInvalidated = true;
 		}
 
 		/**
@@ -151,6 +161,7 @@ package bb.components
 		{
 			worldAlpha = _alpha = p_alpha > 1.0 ? 1.0 : p_alpha;
 			isColorChanged = true;
+			isColorInvalidated = true;
 		}
 
 		/**
@@ -201,6 +212,7 @@ package bb.components
 			worldX = _localX = p_x;
 			worldY = _localY = p_y;
 			isTransformChanged = true;
+			isPositionChanged = true;
 		}
 
 		/**
@@ -210,6 +222,7 @@ package bb.components
 		{
 			worldX = _localX = p_x;
 			isTransformChanged = true;
+			isPositionChanged = true;
 		}
 
 		/**
@@ -227,6 +240,7 @@ package bb.components
 		{
 			worldY = _localY = p_y;
 			isTransformChanged = true;
+			isPositionChanged = true;
 		}
 
 		/**
@@ -238,54 +252,20 @@ package bb.components
 		}
 
 		/**
+		 * p_angle - angle in radians.
 		 */
-		private function scaleChanged():void
+		public function setPositionAndRotation(p_x:Number, p_y:Number, p_angle:Number):void
 		{
-			isScaleChanged = true;
-			_isScaledCurrentStep = true;
-		}
+			worldX = _localX = p_x;
+			worldY = _localY = p_y;
 
-		/**
-		 * Sets scale.
-		 */
-		public function setScale(p_scaleX:Number, p_scaleY:Number):void
-		{
-			worldScaleX = _localScaleX = p_scaleX;
-			worldScaleY = _localScaleY = p_scaleY;
+			p_angle %= PI2;
+			if (Math.abs(p_angle) < PRECISE_ROTATION) p_angle = 0;
+			worldRotation = _localRotation = p_angle;
+
 			isTransformChanged = true;
-			scaleChanged();
-		}
-
-		/**
-		 */
-		public function set scaleX(val:Number):void
-		{
-			worldScaleX = _localScaleX = val;
-			isTransformChanged = true;
-			scaleChanged();
-		}
-
-		/**
-		 */
-		public function get scaleX():Number
-		{
-			return _localScaleX;
-		}
-
-		/**
-		 */
-		public function set scaleY(val:Number):void
-		{
-			worldScaleY = _localScaleY = val;
-			isTransformChanged = true;
-			scaleChanged();
-		}
-
-		/**
-		 */
-		public function get scaleY():Number
-		{
-			return _localScaleY;
+			isPositionChanged = true;
+			isRotationChanged = true;
 		}
 
 		/**
@@ -297,6 +277,7 @@ package bb.components
 			if (Math.abs(p_angle) < PRECISE_ROTATION) p_angle = 0;
 			worldRotation = _localRotation = p_angle;
 			isTransformChanged = true;
+			isRotationChanged = true;
 		}
 
 		/**
@@ -321,21 +302,50 @@ package bb.components
 		{
 			worldRotation = _localRotation = (Math.round(p_angle * 10) / 10) * DEG_TO_RAD;
 			isTransformChanged = true;
+			isRotationChanged = true;
 		}
 
 		/**
-		 * p_angle - angle in radians.
+		 * Sets scale.
 		 */
-		public function setPositionAndRotation(p_x:Number, p_y:Number, p_angle:Number):void
+		public function setScale(p_scaleX:Number, p_scaleY:Number):void
 		{
-			worldX = _localX = p_x;
-			worldY = _localY = p_y;
-
-			p_angle %= PI2;
-			if (Math.abs(p_angle) < PRECISE_ROTATION) p_angle = 0;
-			worldRotation = _localRotation = p_angle;
-
+			worldScaleX = _localScaleX = p_scaleX;
+			worldScaleY = _localScaleY = p_scaleY;
 			isTransformChanged = true;
+			isScaleChanged = true;
+		}
+
+		/**
+		 */
+		public function set scaleX(val:Number):void
+		{
+			worldScaleX = _localScaleX = val;
+			isTransformChanged = true;
+			isScaleChanged = true;
+		}
+
+		/**
+		 */
+		public function get scaleX():Number
+		{
+			return _localScaleX;
+		}
+
+		/**
+		 */
+		public function set scaleY(val:Number):void
+		{
+			worldScaleY = _localScaleY = val;
+			isTransformChanged = true;
+			isScaleChanged = true;
+		}
+
+		/**
+		 */
+		public function get scaleY():Number
+		{
+			return _localScaleY;
 		}
 
 		/**
@@ -392,8 +402,11 @@ package bb.components
 		/**
 		 * Invalidate transformation settings.
 		 */
-		bb_private function invalidate(p_updateTransformation:Boolean, p_updateColor:Boolean):void
+		[Inline]
+		final bb_private function invalidate(p_updateTransformation:Boolean, p_updateColor:Boolean):void
 		{
+			if (lockInvalidation) return;
+
 			var parentTransform:BBTransform = node.parent.transform;
 
 			// Update transformation
@@ -405,27 +418,45 @@ package bb.components
 				var cos:Number = parentTransform.COS;
 				var sin:Number = parentTransform.SIN;
 
-				worldX = (_localX * cos - _localY * sin) * parentWorldScaleX + parentTransform.worldX;
-				worldY = (_localX * sin + _localY * cos) * parentWorldScaleY + parentTransform.worldY;
+				var newWorldX:Number = (_localX * cos - _localY * sin) * parentWorldScaleX + parentTransform.worldX;
+				var newWorldY:Number = (_localX * sin + _localY * cos) * parentWorldScaleY + parentTransform.worldY;
 
-				worldScaleX = _localScaleX * parentWorldScaleX;
-				worldScaleY = _localScaleY * parentWorldScaleY;
+				if (isPositionChanged || !isEqual(newWorldX, worldX) || !isEqual(newWorldY, worldY))
+				{
+					worldX = newWorldX;
+					worldY = newWorldY;
+
+					isPositionInvalidated = true;
+				}
+
+				var newScaleX:Number = _localScaleX * parentWorldScaleX;
+				var newScaleY:Number = _localScaleY * parentWorldScaleY;
+
+				if (isScaleChanged || !isEqual(newScaleX, worldScaleX) || !isEqual(newScaleY, worldScaleY))
+				{
+					worldScaleX = newScaleX;
+					worldScaleY = newScaleY;
+
+					isScaleInvalidated = true;
+				}
 
 				var newWorldRotation:Number = _localRotation + parentWorldRotation;
-				if (newWorldRotation != worldRotation)
+				if (isRotationChanged || !isEqual(newWorldRotation, worldRotation))
 				{
 					worldRotation = newWorldRotation;
 					COS = Math.cos(worldRotation);
 					SIN = Math.sin(worldRotation);
+
+					isRotationInvalidated = true;
 				}
 
 				_isWorldTransformMatrixChanged = true;
 
 				// mark transform as updated
 				isTransformChanged = false;
-
-				if (_isScaledCurrentStep) _isScaledCurrentStep = false;
-				else isScaleChanged = false;
+				isPositionChanged = false;
+				isRotationChanged = false;
+				isScaleChanged = false;
 			}
 
 			// Update color
@@ -438,7 +469,19 @@ package bb.components
 
 				isColorChanged = false;
 				isColorShouldBeDisplayed = (4.0 - (worldRed + worldGreen + worldBlue + worldAlpha)) > 0.02*4;  // 0.02 - precise color
+				isColorInvalidated = true;
 			}
+
+			//
+			isInvalidated = true;
+		}
+
+		/**
+		 */
+		[Inline]
+		final private function isEqual(p_val1:Number, p_val2:Number, p_precis:Number = 0.01):Boolean
+		{
+			return Math.abs(p_val1 - p_val2) < p_precis;
 		}
 
 		/**
@@ -475,11 +518,17 @@ package bb.components
 			PRECISE_ROTATION = (Math.PI / 180.0) / 10;
 
 			isScaleChanged = false;
-			_isScaledCurrentStep = false;
+			isRotationChanged = false;
+			isPositionChanged = false;
 			isTransformChanged = false;
 			isColorChanged = false;
 			isColorShouldBeDisplayed = false;
 			_isWorldTransformMatrixChanged = true;
+			isInvalidated = false;
+			isScaleInvalidated = false;
+			isColorInvalidated = false;
+			isPositionInvalidated = false;
+			isRotationInvalidated = false;
 		}
 
 		/**
@@ -509,8 +558,6 @@ package bb.components
 			component.worldGreen = worldGreen;
 			component._blue = _blue;
 			component.worldBlue = worldBlue;
-			component.isTransformChanged = isTransformChanged;
-			component.isColorChanged = isColorChanged;
 			component.COS = COS;
 			component.SIN = SIN;
 			component.PRECISE_ROTATION = PRECISE_ROTATION;
@@ -527,8 +574,9 @@ package bb.components
 					super.toString() +"\n"+
 					"{localX/localY: " + _localX+" / "+_localY + "}-{worldX/worldY: " + worldX+" / "+worldY + "}-{local/world rotation: " + _localRotation +" / "+ worldRotation + "}-"+
 					"{scale local: " + _localScaleX+" / " + _localScaleY + "}-{ scale world: " + worldScaleX+" / " + worldScaleY + "}" + "\n" +
-					"{isTransformChanged: " + isTransformChanged + "}-{isColorChanged: " + isColorChanged + "}-" +
-					"{local/world ARGB: " + _alpha+";"+_red+";"+_green+";"+_blue+" / "+ worldAlpha+";"+worldRed+";"+worldGreen+";"+worldBlue+"}]" +
+					"{isTransformChanged: " + isTransformChanged + "}-{isScaleInvalidated: "+isScaleInvalidated+"}-{isColorChanged: " + isColorChanged + "}-" +
+					"{local/world ARGB: " + _alpha+";"+_red+";"+_green+";"+_blue+" / "+ worldAlpha+";"+worldRed+";"+worldGreen+";"+worldBlue+"}] \n" +
+					"{COS: "+COS+ "}-{SIN: " + SIN + "}-{PRECISE_ROTATION: "+PRECISE_ROTATION+"}" +
 					"\n" + "------------------------------------------------------------------------------------------------------------------------\n";
 		}
 	}
