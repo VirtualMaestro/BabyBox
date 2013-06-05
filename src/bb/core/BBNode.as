@@ -764,11 +764,7 @@ package bb.core
 			if (_onUpdated) _onUpdated.dispatch();
 
 			///
-			transform.isInvalidated = false;
-			transform.isPositionInvalidated = false;
-			transform.isRotationInvalidated = false;
-			transform.isScaleInvalidated = false;
-			transform.isColorInvalidated = false;
+			transform.resetInvalidationsFlags();
 		}
 
 		/**

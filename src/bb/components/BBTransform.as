@@ -6,6 +6,7 @@
 package bb.components
 {
 	import bb.bb_spaces.bb_private;
+	import bb.core.BBNode;
 
 	import flash.geom.Matrix;
 	import flash.geom.Point;
@@ -72,6 +73,12 @@ package bb.components
 		bb_private var worldAlpha:Number = 1;
 		private var _alpha:Number = 1;
 
+		/**
+		 * Method need when world transforms (like worldX, worldY etc.) updates directly, avoid update pipeline. E.g. updates by physic component.
+		 * This mean every time when need to get local params like worldX/Y, worldRotation etc. related local params will calculates every time.
+		 */
+		bb_private var updateLocalTransformByQuery:Boolean = false;
+
 		//
 		public var lockInvalidation:Boolean = false;
 
@@ -112,7 +119,8 @@ package bb.components
 			return _red;
 		}
 
-		public function set red(p_red:Number):void
+		[Inline]
+		final public function set red(p_red:Number):void
 		{
 			worldRed = _red = p_red > 1.0 ? 1.0 : p_red;
 			isColorChanged = true;
@@ -127,7 +135,8 @@ package bb.components
 			return _green;
 		}
 
-		public function set green(p_green:Number):void
+		[Inline]
+		final public function set green(p_green:Number):void
 		{
 			worldGreen = _green = p_green > 1.0 ? 1.0 : p_green;
 			isColorChanged = true;
@@ -142,7 +151,8 @@ package bb.components
 			return _blue;
 		}
 
-		public function set blue(p_blue:Number):void
+		[Inline]
+		final public function set blue(p_blue:Number):void
 		{
 			worldBlue = _blue = p_blue > 1.0 ? 1.0 : p_blue;
 			isColorChanged = true;
@@ -157,7 +167,8 @@ package bb.components
 			return _alpha;
 		}
 
-		public function set alpha(p_alpha:Number):void
+		[Inline]
+		final public function set alpha(p_alpha:Number):void
 		{
 			worldAlpha = _alpha = p_alpha > 1.0 ? 1.0 : p_alpha;
 			isColorChanged = true;
@@ -210,18 +221,17 @@ package bb.components
 		[Inline]
 		final public function setPosition(p_x:Number, p_y:Number):void
 		{
-			worldX = _localX = p_x;
-			worldY = _localY = p_y;
-			isTransformChanged = true;
-			isPositionChanged = true;
+			x = p_x;
+			y = p_y;
 		}
 
 		/**
 		 * Sets x position.
 		 */
-		public function set x(p_x:Number):void
+		[Inline]
+		final public function set x(p_x:Number):void
 		{
-			worldX = _localX = p_x;
+			/*worldX = */_localX = p_x;
 			isTransformChanged = true;
 			isPositionChanged = true;
 		}
@@ -231,15 +241,22 @@ package bb.components
 		 */
 		public function get x():Number
 		{
+			if (updateLocalTransformByQuery)
+			{
+				var parentNode:BBNode = node.parent;
+				if (parentNode) _localX = worldX - parentNode.transform.worldX;
+			}
+
 			return _localX;
 		}
 
 		/**
 		 * Sets y position.
 		 */
-		public function set y(p_y:Number):void
+		[Inline]
+		final public function set y(p_y:Number):void
 		{
-			worldY = _localY = p_y;
+			/*worldY = */_localY = p_y;
 			isTransformChanged = true;
 			isPositionChanged = true;
 		}
@@ -249,6 +266,12 @@ package bb.components
 		 */
 		public function get y():Number
 		{
+			if (updateLocalTransformByQuery)
+			{
+				var parentNode:BBNode = node.parent;
+				if (parentNode) _localY = worldY - parentNode.transform.worldY;
+			}
+
 			return _localY;
 		}
 
@@ -269,7 +292,8 @@ package bb.components
 		{
 			p_angle %= PI2;
 			if (Math.abs(p_angle) < PRECISE_ROTATION) p_angle = 0;
-			worldRotation = _localRotation = p_angle;
+
+			/*worldRotation = */_localRotation = p_angle;
 
 			isTransformChanged = true;
 			isRotationChanged = true;
@@ -279,6 +303,12 @@ package bb.components
 		 */
 		public function get rotation():Number
 		{
+			if (updateLocalTransformByQuery)
+			{
+				var parentNode:BBNode = node.parent;
+				if (parentNode) _localRotation = worldRotation - parentNode.transform.worldRotation;
+			}
+
 			return _localRotation;
 		}
 
@@ -295,9 +325,7 @@ package bb.components
 		 */
 		public function set rotationDegree(p_angle:Number):void
 		{
-			worldRotation = _localRotation = (Math.round(p_angle * 10) / 10) * DEG_TO_RAD;
-			isTransformChanged = true;
-			isRotationChanged = true;
+			rotation = (Math.round(p_angle * 10) / 10) * DEG_TO_RAD;
 		}
 
 		/**
@@ -306,41 +334,67 @@ package bb.components
 		[Inline]
 		final public function setScale(p_scaleX:Number, p_scaleY:Number):void
 		{
-			worldScaleX = _localScaleX = p_scaleX;
-			worldScaleY = _localScaleY = p_scaleY;
-			isTransformChanged = true;
-			isScaleChanged = true;
+			scaleX = p_scaleX;
+			scaleY = p_scaleY;
 		}
 
 		/**
 		 */
-		public function set scaleX(val:Number):void
+		[Inline]
+		final public function set scaleX(val:Number):void
 		{
-			worldScaleX = _localScaleX = val;
+			/*worldScaleX = */_localScaleX = val;
 			isTransformChanged = true;
 			isScaleChanged = true;
+
+			// if true update localX. E.g. need for physic comp. If localX won't update, after scaling position isn't correct
+			if (updateLocalTransformByQuery)
+			{
+				var parentNode:BBNode = node.parent;
+				if (parentNode) _localX = worldX - parentNode.transform.worldX;
+			}
 		}
 
 		/**
 		 */
 		public function get scaleX():Number
 		{
+			if (updateLocalTransformByQuery)
+			{
+				var parentNode:BBNode = node.parent;
+				if (parentNode) _localScaleX = worldScaleX - parentNode.transform.worldScaleX;
+			}
+
 			return _localScaleX;
 		}
 
 		/**
 		 */
-		public function set scaleY(val:Number):void
+		[Inline]
+		final public function set scaleY(val:Number):void
 		{
-			worldScaleY = _localScaleY = val;
+			/*worldScaleY = */_localScaleY = val;
 			isTransformChanged = true;
 			isScaleChanged = true;
+
+			// if true update localY. E.g. need for physic comp. If localY won't update, after scaling position isn't correct
+			if (updateLocalTransformByQuery)
+			{
+				var parentNode:BBNode = node.parent;
+				if (parentNode) _localY = worldY - parentNode.transform.worldY;
+			}
 		}
 
 		/**
 		 */
 		public function get scaleY():Number
 		{
+			if (updateLocalTransformByQuery)
+			{
+				var parentNode:BBNode = node.parent;
+				if (parentNode) _localScaleY = worldScaleY - parentNode.transform.worldScaleY;
+			}
+
 			return _localScaleY;
 		}
 
@@ -474,6 +528,18 @@ package bb.components
 
 			//
 			isInvalidated = true;
+		}
+
+		/**
+		 */
+		[Inline]
+		final bb_private function resetInvalidationsFlags():void
+		{
+			isInvalidated = false;
+			isColorInvalidated = false;
+			isPositionInvalidated = false;
+			isRotationInvalidated = false;
+			isScaleInvalidated = false;
 		}
 
 		/**

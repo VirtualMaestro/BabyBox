@@ -100,6 +100,7 @@ package bb.components.physics
 		private function addedToNodeHandler(p_signal:BBSignal):void
 		{
 			_transform = node.transform;
+			_transform.updateLocalTransformByQuery = true;
 
 			if (!_space) _space = (BabyBox.getInstance().getModule(BBPhysicsModule) as BBPhysicsModule).space;
 

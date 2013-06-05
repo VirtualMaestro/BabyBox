@@ -80,8 +80,8 @@ package bb.modules
 					cameraBack.node.transform.setPosition(_config.appWidth/2, _config.appHeight/2);
 					cameraFront.node.transform.setPosition(_config.appWidth/2, _config.appHeight/2);
 
-					cameraBack.dependOnCamera(main, 0.5, 0.5);
-					cameraFront.dependOnCamera(main, 1.5, 1.5);
+					cameraBack.dependOnCamera(main, 0.5, 0.5, 0.5);
+					cameraFront.dependOnCamera(main, 1.5, 1.5, 0.8);
 
 					_layerManager.add(BBLayerNames.BACKEND, true).attachCamera(cameraBack);
 					_layerManager.add(BBLayerNames.FRONTEND, true).attachCamera(cameraFront);
