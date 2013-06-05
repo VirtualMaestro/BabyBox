@@ -45,6 +45,9 @@ package bb.modules
 		private var _hand:PivotJoint;
 		private var _isHandEnable:Boolean = false;
 
+		private var _onPickup:BBSignal;
+		private var _onDrop:BBSignal;
+
 		/**
 		 */
 		public function BBPhysicsModule()
@@ -199,6 +202,8 @@ package bb.modules
 						_hand.active = true;
 						physicsComp.handJoint = _hand;
 
+						if (_onPickup) _onPickup.dispatch(physicsComp);
+
 						break;
 					}
 				}
@@ -212,10 +217,34 @@ package bb.modules
 		private function mouseUpHandler(event:MouseEvent):void
 		{
 			var physicsComp:BBPhysicsBody = _hand.body2.userData.bb_component;
-			if (physicsComp) physicsComp.handJoint = null;
+			if (physicsComp)
+			{
+				physicsComp.handJoint = null;
+				if (_onDrop) _onDrop.dispatch(physicsComp);
+			}
 
 			_hand.active = false;
 			_hand.body2 = _space.world;
+		}
+
+		/**
+		 * Sends when some physical object was picked up.
+		 * Returns physical component what was picked up.
+		 */
+		public function get onPickUp():BBSignal
+		{
+			if (!_onPickup) _onPickup = BBSignal.get(this);
+			return _onPickup;
+		}
+
+		/**
+		 * Sends when some physical object was dropped.
+		 * Returns physical component what was dropped.
+		 */
+		public function get onDrop():BBSignal
+		{
+			if (!_onDrop) _onDrop = BBSignal.get(this);
+			return _onDrop;
 		}
 	}
 }
