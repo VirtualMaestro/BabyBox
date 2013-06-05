@@ -273,9 +273,15 @@ package bb.components
 		 */
 		public function set rotation(p_angle:Number):void
 		{
+			trace("rotation method");
+			trace("Angle: " + p_angle);
+			trace("p_angle %= PI2: " + (p_angle %= PI2));
+			trace("Math.abs(p_angle) < PRECISE_ROTATION: " + (Math.abs(p_angle %= PI2) < PRECISE_ROTATION));
+
 			p_angle %= PI2;
 			if (Math.abs(p_angle) < PRECISE_ROTATION) p_angle = 0;
 			worldRotation = _localRotation = p_angle;
+
 			isTransformChanged = true;
 			isRotationChanged = true;
 		}
@@ -349,6 +355,13 @@ package bb.components
 		}
 
 		/**
+		 */
+		public function shiftScale(p_shiftScaleX:Number, p_shiftScaleY:Number):void
+		{
+			setScale(_localScaleX+p_shiftScaleX, _localScaleY+p_shiftScaleY);
+		}
+
+		/**
 		 * Shift position on given offset.
 		 */
 		public function shiftPosition(p_offsetX:Number, p_offsetY:Number):void
@@ -363,8 +376,10 @@ package bb.components
 		 */
 		public function set shiftRotation(p_offsetAngle:Number):void
 		{
-			_localRotation += p_offsetAngle;
-			rotation = _localRotation;
+			trace("shiftRotation method");
+			trace("Offset angle: " + p_offsetAngle);
+			trace("Offset rotation: " + (_localRotation + p_offsetAngle));
+			rotation = _localRotation + p_offsetAngle;
 		}
 
 		/**

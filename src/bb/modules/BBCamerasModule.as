@@ -10,7 +10,10 @@ package bb.modules
 	import bb.core.BBNode;
 	import bb.signals.BBSignal;
 
-	import vm.debug.Assert;
+	CONFIG::debug
+	{
+		import vm.debug.Assert;
+	}
 
 	use namespace bb_private;
 

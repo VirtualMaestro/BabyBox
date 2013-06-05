@@ -19,7 +19,10 @@ package bb.components
 	import flash.geom.Point;
 	import flash.geom.Rectangle;
 
-	import vm.debug.Assert;
+	CONFIG::debug
+	{
+		import vm.debug.Assert;
+	}
 
 	use namespace bb_private;
 
@@ -68,12 +71,12 @@ package bb.components
 
 		//
 		bb_private var isCaptured:Boolean = false;
-//		bb_private var canvas:BitmapData;
 
 		// previous parent camera position
 		private var _parentCameraX:Number = 0;
 		private var _parentCameraY:Number = 0;
 		private var _parentCameraR:Number = 0;
+		private var _parentCameraZ:Number = 0;
 
 		/**
 		 */
@@ -88,7 +91,6 @@ package bb.components
 			backgroundColor = new BBColor();
 
 			onAdded.add(cameraAddedToNode);
-//			onRemoved.add(cameraRemovedFromNode);
 		}
 
 		/**
@@ -102,16 +104,6 @@ package bb.components
 			return _core.root.processMouseEvent(p_captured, p_event);
 		}
 
-//		bb_private function captureMouseEvent(p_captured:Boolean, p_event:MouseEvent, p_position:Point):Boolean
-//		{
-//			if (isCaptured || !node.active) return false;
-//			isCaptured = true;
-//
-//			if (!calcRelatedPosition(p_position)) return false;
-//
-//			return _core.root.processMouseEvent(p_captured, p_event, p_position, this);
-//		}
-//
 		/**
 		 * Calculate new position of given point related to coordinate system of camera.
 		 * Return false if point is not in the camera's viewPort.
@@ -147,12 +139,11 @@ package bb.components
 		 */
 		private function cameraAddedToNode(p_signal:BBSignal):void
 		{
-			node.independentTransformation = true;
+			node.transform.lockInvalidation = true;
 			node.transform.setScale(_zoom, _zoom);
 			setViewport(0, 0, _config.getViewRect().width, _config.getViewRect().height);
 
 			node.onAdded.add(nodeAddedToParentHandler);
-//			node.onRemoved.add(nodeRemovedFromParentHandler, true);
 
 			if (node.isOnStage) addCameraToEngine();
 		}
@@ -164,20 +155,6 @@ package bb.components
 			var status:BBNodeStatus = p_signal.params as BBNodeStatus;
 			if (status.isOnStage) addCameraToEngine();
 		}
-//
-//		/**
-//		 */
-//		private function nodeRemovedFromParentHandler(p_signal:BBSignal):void
-//		{
-//			if (_core) _core.removeCamera(this);
-//		}
-//
-//		/**
-//		 */
-//		private function cameraRemovedFromNode(p_signal:BBSignal):void
-//		{
-//			if (_core) _core.removeCamera(this);
-//		}
 
 		/**
 		 */
@@ -235,10 +212,6 @@ package bb.components
 				viewPortScaleY = p_height / _config.gameHeight;
 			}
 			else viewPortScaleX = viewPortScaleY = 1.0;
-
-			//
-//			if (canvas) canvas.dispose();
-//			canvas = new BitmapData(p_width, p_height);
 		}
 
 		/**
@@ -330,25 +303,17 @@ package bb.components
 
 			// fill the background
 			if (isFillViewport && backgroundColor.z_alpha > 0) p_context.fillRect(_viewPort.x, _viewPort.y, _viewPort.width, _viewPort.height, backgroundColor.color);
-//			clearCanvas();
 
 			// start to rendering all nodes
 			_core.root.render(p_context);
 		}
 
-//		/**
-//		 */
-//		private function clearCanvas():void
-//		{
-//			canvas.fillRect(canvas.rect, backgroundColor.color);
-//		}
-
 		/**
 		 */
 		private var _dependOnCamera:BBCamera;
-		private var _offsetFactorX:Number = 1.0;
-		private var _offsetFactorY:Number = 1.0;
-		private var _offsetFactorRotation:Number = 1.0;
+		private var _offsetX:Number = 1.0;
+		private var _offsetY:Number = 1.0;
+		private var _offsetZoom:Number = 1.0;
 
 		/**
 		 * Depend moving from another camera.
@@ -359,7 +324,7 @@ package bb.components
 		 * 0.5 - mean with half speed;
 		 * 2.0 - mean with 2x speed;
 		 */
-		public function dependOnCamera(p_camera:BBCamera, p_offsetFactorX:Number = 1.0, p_offsetFactorY:Number = 1.0, p_offsetFactorRotation:Number = 1.0):void
+		public function dependOnCamera(p_camera:BBCamera, p_offsetX:Number = 1.0, p_offsetY:Number = 1.0, p_offsetZoom:Number = 1.0):void
 		{
 			CONFIG::debug
 			{
@@ -368,47 +333,48 @@ package bb.components
 			}
 
 			_dependOnCamera = p_camera;
-			_offsetFactorX = p_offsetFactorX;
-			_offsetFactorY = p_offsetFactorY;
-			_offsetFactorRotation = p_offsetFactorRotation;
+			_offsetX = p_offsetX;
+			_offsetY = p_offsetY;
+			_offsetZoom = p_offsetZoom;
 
 			var parentTransform:BBTransform = _dependOnCamera.node.transform;
 			_parentCameraX = parentTransform.x;
 			_parentCameraY = parentTransform.y;
 			_parentCameraR = parentTransform.rotation;
+			_parentCameraZ = _dependOnCamera.zoom;
 
 			updateEnable = true;
 		}
 
 		/**
-		 * Set offset related to parent camera (from which this camera depends).
+		 * Set offset related to parent camera (which this camera depends on).
 		 */
-		public function setOffsets(p_offsetFactorX:Number, p_offsetFactorY:Number, p_offsetFactorRotation:Number):void
+		public function setOffsets(p_offsetX:Number, p_offsetY:Number, p_offsetZoom:Number):void
 		{
-			_offsetFactorX = p_offsetFactorX;
-			_offsetFactorY = p_offsetFactorY;
-			_offsetFactorRotation = p_offsetFactorRotation;
+			_offsetX = p_offsetX;
+			_offsetY = p_offsetY;
+			_offsetZoom = p_offsetZoom;
 		}
 
 		/**
 		 */
 		public function get offsetX():Number
 		{
-			return _offsetFactorX;
+			return _offsetX;
 		}
 
 		/**
 		 */
 		public function get offsetY():Number
 		{
-			return _offsetFactorY;
+			return _offsetY;
 		}
 
 		/**
 		 */
-		public function get offsetRotation():Number
+		public function get offsetZoom():Number
 		{
-			return _offsetFactorRotation;
+			return _offsetZoom;
 		}
 
 		/**
@@ -421,20 +387,22 @@ package bb.components
 				var nParentCameraX:Number = transformDependCamera.x;
 				var nParentCameraY:Number = transformDependCamera.y;
 				var nParentCameraR:Number = transformDependCamera.rotation;
+				var nParentCameraZ:Number = _dependOnCamera.zoom;
 
 				var shiftX:Number = nParentCameraX - _parentCameraX;
 				var shiftY:Number = nParentCameraY - _parentCameraY;
-				var shiftR:Number = nParentCameraR - _parentCameraR;
+				var shiftZ:Number = nParentCameraZ - _parentCameraZ;
 
-				if ((shiftX + shiftY + shiftR) != 0)
+				if ((shiftX + shiftY + shiftZ) != 0)
 				{
-					node.transform.shiftPositionAndRotation(shiftX * _offsetFactorX, shiftY * _offsetFactorY,
-							shiftR * _offsetFactorRotation);
+					node.transform.shiftPosition(shiftX * _offsetX, shiftY * _offsetY);
+					node.transform.shiftScale(shiftZ*_offsetZoom, shiftZ*_offsetZoom);
 				}
 
 				_parentCameraX = nParentCameraX;
 				_parentCameraY = nParentCameraY;
 				_parentCameraR = nParentCameraR;
+				_parentCameraZ = nParentCameraZ;
 			}
 		}
 
