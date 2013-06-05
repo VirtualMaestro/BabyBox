@@ -96,12 +96,13 @@ package bb.components
 		private var _offsetX:Number = 1.0;
 		private var _offsetY:Number = 1.0;
 		private var _offsetZoom:Number = 1.0;
+		private var _offsetRotation:Number = 1.0;
 
 		// previous parent camera position
 		private var _parentCameraX:Number = 0;
 		private var _parentCameraY:Number = 0;
-		private var _parentCameraR:Number = 0;
 		private var _parentCameraZ:Number = 0;
+		private var _parentCameraR:Number = 0;
 
 		/**
 		 */
@@ -163,7 +164,7 @@ package bb.components
 		 */
 		private function cameraAddedToNode(p_signal:BBSignal):void
 		{
-			node.transform.lockInvalidation = true;
+			node.transform.lockInvalidation = false;
 			node.transform.setScale(_zoom, _zoom);
 			setViewport(0, 0, _config.getViewRect().width, _config.getViewRect().height);
 
@@ -178,6 +179,8 @@ package bb.components
 		{
 			var status:BBNodeStatus = p_signal.params as BBNodeStatus;
 			if (status.isOnStage) addCameraToEngine();
+
+			updateEnable = true;
 		}
 
 		/**
@@ -254,7 +257,7 @@ package bb.components
 			else viewPortScaleX = viewPortScaleY = 1.0;
 
 			//
-			node.transform.isTransformChanged = true;
+//			node.transform.isTransformChanged = true;
 		}
 
 		/**
@@ -264,44 +267,102 @@ package bb.components
 			return _fitContentToViewport;
 		}
 
-
 		/**
 		 */
-		bb_private function invalidate():void
+		private function invalidate():void
 		{
 			var transform:BBTransform = node.transform;
 
-			if (transform.isTransformChanged)
+			// if rotation changed
+			if (transform.worldRotation != rotation)
 			{
-				transform.isTransformChanged = false;
+				rotation = transform.worldRotation;
+				SIN = Math.sin(-rotation);
+				COS = Math.cos(-rotation);
+			}
 
-				// if rotation changed
-				if (transform.worldRotation != rotation)
+			// total scale
+			var cameraZoom:Number = transform.worldScaleX;
+			cameraZoom = cameraZoom < 0.1 ? 0.1 : cameraZoom;
+			totalScaleX = cameraZoom * viewPortScaleX;
+			totalScaleY = cameraZoom * viewPortScaleY;
+
+			// camera position
+			cameraX = transform.worldX;
+			cameraY = transform.worldY;
+		}
+
+		/**
+		 */
+		[Inline]
+		final private function updateDependOn():void
+		{
+			if (_dependOnCamera)
+			{
+				var nParentCameraX:Number = _dependOnCameraTransform.x;
+				var nParentCameraY:Number = _dependOnCameraTransform.y;
+				var nParentCameraZ:Number = _dependOnCamera.zoom;
+				var nParentCameraR:Number = _dependOnCameraTransform.rotation;
+
+				var shiftX:Number = nParentCameraX - _parentCameraX;
+				var shiftY:Number = nParentCameraY - _parentCameraY;
+				var shiftZ:Number = nParentCameraZ - _parentCameraZ;
+				var shiftR:Number = nParentCameraR - _parentCameraR;
+
+				if ((shiftX + shiftY + shiftR + shiftZ) != 0)
 				{
-					rotation = transform.worldRotation;
-					SIN = Math.sin(-rotation);
-					COS = Math.cos(-rotation);
+					node.transform.shiftPositionAndRotation(shiftX * _offsetX, shiftY * _offsetY, shiftR*_offsetRotation);
+					node.transform.shiftScale(shiftZ*_offsetZoom, shiftZ*_offsetZoom);
+					node.transform.invalidate(true, false);
+					node.transform.resetInvalidationsFlags();
+					invalidate();
 				}
 
-				// total scale
-				var cameraZoom:Number = transform.worldScaleX;
-				cameraZoom = cameraZoom < 0.1 ? 0.1 : cameraZoom;
-				totalScaleX = cameraZoom * viewPortScaleX;
-				totalScaleY = cameraZoom * viewPortScaleY;
-
-				// camera position
-				cameraX = transform.worldX;
-				cameraY = transform.worldY;
+				_parentCameraX = nParentCameraX;
+				_parentCameraY = nParentCameraY;
+				_parentCameraZ = nParentCameraZ;
+				_parentCameraR = nParentCameraR;
 			}
 		}
 
+//		/**
+//		 */
+//		private function invalidate():void
+//		{
+//			var transform:BBTransform = node.transform;
+//
+//			if (transform.isTransformChanged)
+//			{
+//				transform.isTransformChanged = false;
+//
+//				// if rotation changed
+//				if (transform.worldRotation != rotation)
+//				{
+//					rotation = transform.worldRotation;
+//					SIN = Math.sin(-rotation);
+//					COS = Math.cos(-rotation);
+//				}
+//
+//				// total scale
+//				var cameraZoom:Number = transform.worldScaleX;
+//				cameraZoom = cameraZoom < 0.1 ? 0.1 : cameraZoom;
+//				totalScaleX = cameraZoom * viewPortScaleX;
+//				totalScaleY = cameraZoom * viewPortScaleY;
+//
+//				// camera position
+//				cameraX = transform.worldX;
+//				cameraY = transform.worldY;
+//			}
+//		}
+//
 		/**
 		 * Render current view port of current camera.
 		 */
 		public function render(p_context:BBContext):void
 		{
 			// invalidate camera's parameters
-			invalidate();
+//			invalidate();
+			updateDependOn();
 
 			// set current camera
 			p_context.setCamera(this);
@@ -338,10 +399,9 @@ package bb.components
 
 			_parentCameraX = _dependOnCameraTransform.x;
 			_parentCameraY = _dependOnCameraTransform.y;
-			_parentCameraR = _dependOnCameraTransform.rotation;
 			_parentCameraZ = _dependOnCamera.zoom;
 
-			updateEnable = true;
+//			updateEnable = true;
 		}
 
 		/**
@@ -379,29 +439,30 @@ package bb.components
 		 */
 		override public function update(p_deltaTime:Number):void
 		{
-			if (_dependOnCamera)
-			{
-				var nParentCameraX:Number = _dependOnCameraTransform.x;
-				var nParentCameraY:Number = _dependOnCameraTransform.y;
-				var nParentCameraR:Number = _dependOnCameraTransform.rotation;
-				var nParentCameraZ:Number = _dependOnCamera.zoom;
+			invalidate();
 
-				var shiftX:Number = nParentCameraX - _parentCameraX;
-				var shiftY:Number = nParentCameraY - _parentCameraY;
-				var shiftZ:Number = nParentCameraZ - _parentCameraZ;
-
-				if ((shiftX + shiftY + shiftZ) != 0)
-				{
-					node.transform.shiftPosition(shiftX * _offsetX, shiftY * _offsetY);
-					node.transform.shiftScale(shiftZ*_offsetZoom, shiftZ*_offsetZoom);
-				}
-
-				_parentCameraX = nParentCameraX;
-				_parentCameraY = nParentCameraY;
-				_parentCameraR = nParentCameraR;
-				_parentCameraZ = nParentCameraZ;
-			}
+//			if (_dependOnCamera)
+//			{
+//				var nParentCameraX:Number = _dependOnCameraTransform.x;
+//				var nParentCameraY:Number = _dependOnCameraTransform.y;
+//				var nParentCameraZ:Number = _dependOnCamera.zoom;
+//
+//				var shiftX:Number = nParentCameraX - _parentCameraX;
+//				var shiftY:Number = nParentCameraY - _parentCameraY;
+//				var shiftZ:Number = nParentCameraZ - _parentCameraZ;
+//
+//				if ((shiftX + shiftY + shiftZ) != 0)
+//				{
+//					node.transform.shiftPosition(shiftX * _offsetX, shiftY * _offsetY);
+//					node.transform.shiftScale(shiftZ*_offsetZoom, shiftZ*_offsetZoom);
+//				}
+//
+//				_parentCameraX = nParentCameraX;
+//				_parentCameraY = nParentCameraY;
+//				_parentCameraZ = nParentCameraZ;
+//			}
 		}
+
 
 		/**
 		 * Disposes camera. Remove from render graph and from system.
