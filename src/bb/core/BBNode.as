@@ -500,7 +500,8 @@ package bb.core
 		/**
 		 * Just unlink current node from its parent.
 		 */
-		public function removeFromParent():void
+		[Inline]
+		final public function removeFromParent():void
 		{
 			if (_parent)
 			{
@@ -896,13 +897,18 @@ package bb.core
 		{
 			if (childrenHead)
 			{
+				var node:BBNode = childrenHead;
 				var curNode:BBNode;
-				while (childrenHead)
+				while (node)
 				{
-					curNode = childrenHead;
-					childrenHead = childrenHead.next;
+					curNode = node;
+					node = node.next;
+					_nextChildNode = node;
 					curNode.dispose();
+					node = _nextChildNode;
 				}
+
+				_nextChildNode = null;
 			}
 		}
 
@@ -976,7 +982,6 @@ package bb.core
 			next = null;
 			_isOnStage = false;
 			_active = true;
-
 			keepGroup = false;
 
 			// Remove all listeners to prevent dispatching 'onUnlinked' signal for better performance due to avoiding issues which lie behind it

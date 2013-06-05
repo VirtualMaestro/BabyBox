@@ -53,6 +53,7 @@ package bb.modules
 		 */
 		public function add(p_actor:BBNode, p_layerName:String):void
 		{
+			if (p_actor.isDisposed) return;
 			_layerManager.get(p_layerName).add(p_actor);
 		}
 
