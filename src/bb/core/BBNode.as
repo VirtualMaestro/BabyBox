@@ -625,26 +625,6 @@ package bb.core
 			}
 		}
 
-		//
-		private var _reverseLockAfterUpdate:Boolean = false;
-
-		/**
-		 * Lock/unlock current and all children's transform invalidation.
-		 * p_reverseAfterUpdate - mean that after first update given lock value changes to vise versa.
-		 */
-		public function lockTransformInvalidation(p_lock:Boolean, p_reverseAfterUpdate:Boolean = false):void
-		{
-			transform.lockInvalidation = p_lock;
-			_reverseLockAfterUpdate = p_reverseAfterUpdate;
-
-			var child:BBNode = childrenHead;
-			while(child)
-			{
-				child.transform.lockInvalidation = p_lock;
-				child = child.next;
-			}
-		}
-
 		/**
 		 * Adds tag.
 		 */
@@ -756,9 +736,6 @@ package bb.core
 
 				childNode = _nextChildNode;
 			}
-
-			//
-			if (_reverseLockAfterUpdate) lockTransformInvalidation(!transform.lockInvalidation);
 
 			// dispatch onUpdated signal, after node was completely updated
 			if (_onUpdated) _onUpdated.dispatch();

@@ -74,12 +74,14 @@ package bb.components
 		private var _alpha:Number = 1;
 
 		/**
-		 * Method need when world transforms (like worldX, worldY etc.) updates directly, avoid update pipeline. E.g. updates by physic component.
+		 * Flag need when world transforms (like worldX, worldY etc.) updates directly, avoid update pipeline. E.g. updates by physic component.
 		 * This mean every time when need to get local params like worldX/Y, worldRotation etc. related local params will calculates every time.
 		 */
-		bb_private var updateLocalTransformByQuery:Boolean = false;
+		bb_private var independentUpdateWorldParameters:Boolean = false;
 
-		//
+		/**
+		 * Lock invalidation method, so world's parameters like worldX, worldRotation etc. won't not update (changed).
+		 */
 		public var lockInvalidation:Boolean = false;
 
 		/**
@@ -221,8 +223,12 @@ package bb.components
 		[Inline]
 		final public function setPosition(p_x:Number, p_y:Number):void
 		{
-			x = p_x;
-			y = p_y;
+			_localX = p_x;
+			_localY = p_y;
+			isTransformChanged = true;
+			isPositionChanged = true;
+
+			if (independentUpdateWorldParameters && node.parent) invalidate(true, false);
 		}
 
 		/**
@@ -241,7 +247,7 @@ package bb.components
 		 */
 		public function get x():Number
 		{
-			if (updateLocalTransformByQuery)
+			if (independentUpdateWorldParameters)
 			{
 				var parentNode:BBNode = node.parent;
 				if (parentNode) _localX = worldX - parentNode.transform.worldX;
@@ -266,7 +272,7 @@ package bb.components
 		 */
 		public function get y():Number
 		{
-			if (updateLocalTransformByQuery)
+			if (independentUpdateWorldParameters)
 			{
 				var parentNode:BBNode = node.parent;
 				if (parentNode) _localY = worldY - parentNode.transform.worldY;
@@ -303,7 +309,7 @@ package bb.components
 		 */
 		public function get rotation():Number
 		{
-			if (updateLocalTransformByQuery)
+			if (independentUpdateWorldParameters)
 			{
 				var parentNode:BBNode = node.parent;
 				if (parentNode) _localRotation = worldRotation - parentNode.transform.worldRotation;
@@ -348,7 +354,7 @@ package bb.components
 			isScaleChanged = true;
 
 			// if true update localX. E.g. need for physic comp. If localX won't update, after scaling position isn't correct
-			if (updateLocalTransformByQuery)
+			if (independentUpdateWorldParameters)
 			{
 				var parentNode:BBNode = node.parent;
 				if (parentNode) _localX = worldX - parentNode.transform.worldX;
@@ -359,7 +365,7 @@ package bb.components
 		 */
 		public function get scaleX():Number
 		{
-			if (updateLocalTransformByQuery)
+			if (independentUpdateWorldParameters)
 			{
 				var parentNode:BBNode = node.parent;
 				if (parentNode) _localScaleX = worldScaleX - parentNode.transform.worldScaleX;
@@ -378,7 +384,7 @@ package bb.components
 			isScaleChanged = true;
 
 			// if true update localY. E.g. need for physic comp. If localY won't update, after scaling position isn't correct
-			if (updateLocalTransformByQuery)
+			if (independentUpdateWorldParameters)
 			{
 				var parentNode:BBNode = node.parent;
 				if (parentNode) _localY = worldY - parentNode.transform.worldY;
@@ -389,7 +395,7 @@ package bb.components
 		 */
 		public function get scaleY():Number
 		{
-			if (updateLocalTransformByQuery)
+			if (independentUpdateWorldParameters)
 			{
 				var parentNode:BBNode = node.parent;
 				if (parentNode) _localScaleY = worldScaleY - parentNode.transform.worldScaleY;
