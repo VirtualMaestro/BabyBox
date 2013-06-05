@@ -269,7 +269,8 @@ package bb.components
 
 		/**
 		 */
-		private function invalidate():void
+		[Inline]
+		final private function invalidate():void
 		{
 			var transform:BBTransform = node.transform;
 
