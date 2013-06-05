@@ -96,8 +96,6 @@ package bb.core.context
 		private var _matrix:Matrix = null;
 		private var _colorTransform:ColorTransform = null;
 
-		private var _debugBitmap:Bitmap;
-
 		/**
 		 */
 		public function BBContext()
@@ -121,10 +119,6 @@ package bb.core.context
 
 			if (_config.renderMode == BBRenderMode.BLITTING) initBlitting();
 			else initGenome();
-
-			//
-			_debugBitmap = new Bitmap();
-			_stage.addChild(_debugBitmap);
 		}
 
 		/**
@@ -267,7 +261,6 @@ package bb.core.context
 
 		/**
 		 * Render the renderable component to screen.
-		 * TODO:
 		 */
 		public function renderComponent(p_renderableComponent:BBRenderable):void
 		{
@@ -363,30 +356,16 @@ package bb.core.context
 				var PI_sub_RAD:Number = PI2 - totalRotABS;
 				var totalScaleABS:Number = Math.abs(1.0 - Math.abs(totalScale));
 
-//				return;
-
 				//
 				if ((PI_sub_RAD < PRECISE_ROTATION || totalRotABS < PRECISE_ROTATION) && totalScaleABS < PRECISE_SCALE && (!colorTransform))
 				{
-//					trace("CopyPixel");
 					_rect.setTo(0, 0, textureBitmapData.width, textureBitmapData.height);
 					_point.setTo(newTextureX + texturePivotX, newTextureY + texturePivotY);
 
-					// Способ 2 - медленный
-//					_point.setTo(_point.x - _currentCameraViewportX, _point.y - _currentCameraViewportY);
-//					currentCamera.canvas.copyPixels(textureBitmapData, _rect, _point, null, null, true);
-//					_point.setTo(_currentCameraViewportX, _currentCameraViewportY);
-//					_rect.setTo(0,0, _currentCameraViewport.width, _currentCameraViewport.height);
-//					_canvas.copyPixels(currentCamera.canvas, _rect, _point, null, null, textureBitmapData.transparent);
-
-//					_debugBitmap.bitmapData = currentCamera.canvas;
-
-					// Способ 1
 					_canvas.copyPixels(textureBitmapData, _rect, _point, null, null, textureBitmapData.transparent);
 				}
 				else
 				{
-//					trace("Draw");
 					// tuning of matrix
 					_matrix.identity();
 					_matrix.scale(totalScaleX, totalScaleY);
@@ -401,27 +380,26 @@ package bb.core.context
 
 		/**
 		 */
-		private function max(p_a:Number, p_b:Number):Number
+		[Inline]
+		final private function max(p_a:Number, p_b:Number):Number
 		{
 			return p_a > p_b ? p_a : p_b
 		}
 
 		/**
 		 */
-		private function min(p_a:Number, p_b:Number):Number
+		[Inline]
+		final private function min(p_a:Number, p_b:Number):Number
 		{
 			return p_a < p_b ? p_a : p_b
 		}
 
 		/**
 		 */
-		private function isIntersect(p_leftTopX:Number, p_leftTopY:Number, p_rightBottomX:Number, p_rightBottomY:Number,
+		[Inline]
+		final private function isIntersect(p_leftTopX:Number, p_leftTopY:Number, p_rightBottomX:Number, p_rightBottomY:Number,
 		                            p_leftTopX_1:Number, p_leftTopY_1:Number, p_rightBottomX_1:Number, p_rightBottomY_1:Number):Boolean
 		{
-//			return ((p_leftTopX >= p_leftTopX_1 && p_leftTopX <= p_rightBottomX_1) || (p_leftTopX_1 >= p_leftTopX && p_leftTopX_1 <= p_rightBottomX)) &&
-//					((p_leftTopY >= p_leftTopY_1 && p_leftTopY <= p_rightBottomY_1) || (p_leftTopY_1 >= p_leftTopY && p_leftTopY_1 <= p_rightBottomY));
-
-
 			var exp:Boolean = false;
 
 			if (p_leftTopX >= p_leftTopX_1)
@@ -471,7 +449,8 @@ package bb.core.context
 		/**
 		 * Fill with specify color some rect area.
 		 */
-		public function fillRect(p_x:Number, p_y:Number, p_width:int, p_height:int, p_color:uint):void
+		[Inline]
+		final public function fillRect(p_x:Number, p_y:Number, p_width:int, p_height:int, p_color:uint):void
 		{
 			_rect.setTo(p_x, p_y, p_width, p_height);
 			_canvas.fillRect(_rect, p_color);
