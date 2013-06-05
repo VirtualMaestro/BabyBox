@@ -552,7 +552,7 @@ package bb.components.physics
 		/**
 		 * Set scale for physics body.
 		 */
-		public function set scale(p_scale:Number):void
+		private function set scale(p_scale:Number):void
 		{
 			if (Math.abs(p_scale - _scale) >= SCALE_PRECISE)
 			{
@@ -577,13 +577,6 @@ package bb.components.physics
 					}
 				}
 			}
-		}
-
-		/**
-		 */
-		public function get scale():Number
-		{
-			return _scale;
 		}
 
 		/**

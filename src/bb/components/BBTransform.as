@@ -365,8 +365,7 @@ package bb.components
 
 		/**
 		 */
-		[Inline]
-		final public function set scaleX(val:Number):void
+		public function set scaleX(val:Number):void
 		{
 			/*worldScaleX = */_localScaleX = val;
 			isTransformChanged = true;
@@ -395,8 +394,7 @@ package bb.components
 
 		/**
 		 */
-		[Inline]
-		final public function set scaleY(val:Number):void
+		public function set scaleY(val:Number):void
 		{
 			/*worldScaleY = */_localScaleY = val;
 			isTransformChanged = true;
