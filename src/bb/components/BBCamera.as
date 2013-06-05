@@ -85,10 +85,9 @@ package bb.components
 			super();
 
 			_config = BabyBox.getInstance().config;
-
 			_viewPort = new Rectangle();
-
 			backgroundColor = new BBColor();
+			cacheable = false;
 
 			onAdded.add(cameraAddedToNode);
 		}
@@ -311,6 +310,7 @@ package bb.components
 		/**
 		 */
 		private var _dependOnCamera:BBCamera;
+		private var _dependOnCameraTransform:BBTransform;
 		private var _offsetX:Number = 1.0;
 		private var _offsetY:Number = 1.0;
 		private var _offsetZoom:Number = 1.0;
@@ -333,14 +333,14 @@ package bb.components
 			}
 
 			_dependOnCamera = p_camera;
+			_dependOnCameraTransform = _dependOnCamera.node.transform;
 			_offsetX = p_offsetX;
 			_offsetY = p_offsetY;
 			_offsetZoom = p_offsetZoom;
 
-			var parentTransform:BBTransform = _dependOnCamera.node.transform;
-			_parentCameraX = parentTransform.x;
-			_parentCameraY = parentTransform.y;
-			_parentCameraR = parentTransform.rotation;
+			_parentCameraX = _dependOnCameraTransform.x;
+			_parentCameraY = _dependOnCameraTransform.y;
+			_parentCameraR = _dependOnCameraTransform.rotation;
 			_parentCameraZ = _dependOnCamera.zoom;
 
 			updateEnable = true;
@@ -383,10 +383,9 @@ package bb.components
 		{
 			if (_dependOnCamera)
 			{
-				var transformDependCamera:BBTransform = _dependOnCamera.node.transform;
-				var nParentCameraX:Number = transformDependCamera.x;
-				var nParentCameraY:Number = transformDependCamera.y;
-				var nParentCameraR:Number = transformDependCamera.rotation;
+				var nParentCameraX:Number = _dependOnCameraTransform.x;
+				var nParentCameraY:Number = _dependOnCameraTransform.y;
+				var nParentCameraR:Number = _dependOnCameraTransform.rotation;
 				var nParentCameraZ:Number = _dependOnCamera.zoom;
 
 				var shiftX:Number = nParentCameraX - _parentCameraX;
@@ -416,6 +415,12 @@ package bb.components
 				(_core.getModule(BBCamerasModule) as BBCamerasModule).removeCamera(this);
 				_core = null;
 			}
+
+			_dependOnCamera = null;
+			_dependOnCameraTransform = null;
+			_config = null;
+			_viewPort = null;
+			backgroundColor = null;
 
 			super.dispose();
 		}
