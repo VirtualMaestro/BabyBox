@@ -580,6 +580,13 @@ package bb.components.physics
 		}
 
 		/**
+		 */
+		public function getScale():Number
+		{
+			return _scale;
+		}
+
+		/**
 		 * Sets body type via BodyType: BodyType.DYNAMIC, BodyType.KINEMATIC, BodyType.STATIC
 		 */
 		public function set type(p_val:BodyType):void
