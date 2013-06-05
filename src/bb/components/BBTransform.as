@@ -207,7 +207,8 @@ package bb.components
 		 * Sets position.
 		 * If node of this component has parent it is mean position sets in parent's coordinate system.
 		 */
-		public function setPosition(p_x:Number, p_y:Number):void
+		[Inline]
+		final public function setPosition(p_x:Number, p_y:Number):void
 		{
 			worldX = _localX = p_x;
 			worldY = _localY = p_y;
@@ -256,28 +257,16 @@ package bb.components
 		 */
 		public function setPositionAndRotation(p_x:Number, p_y:Number, p_angle:Number):void
 		{
-			worldX = _localX = p_x;
-			worldY = _localY = p_y;
-
-			p_angle %= PI2;
-			if (Math.abs(p_angle) < PRECISE_ROTATION) p_angle = 0;
-			worldRotation = _localRotation = p_angle;
-
-			isTransformChanged = true;
-			isPositionChanged = true;
-			isRotationChanged = true;
+			setPosition(p_x, p_y);
+			rotation = p_angle;
 		}
 
 		/**
 		 * Sets rotation in radians.
 		 */
-		public function set rotation(p_angle:Number):void
+		[Inline]
+		final public function set rotation(p_angle:Number):void
 		{
-			trace("rotation method");
-			trace("Angle: " + p_angle);
-			trace("p_angle %= PI2: " + (p_angle %= PI2));
-			trace("Math.abs(p_angle) < PRECISE_ROTATION: " + (Math.abs(p_angle %= PI2) < PRECISE_ROTATION));
-
 			p_angle %= PI2;
 			if (Math.abs(p_angle) < PRECISE_ROTATION) p_angle = 0;
 			worldRotation = _localRotation = p_angle;
@@ -314,7 +303,8 @@ package bb.components
 		/**
 		 * Sets scale.
 		 */
-		public function setScale(p_scaleX:Number, p_scaleY:Number):void
+		[Inline]
+		final public function setScale(p_scaleX:Number, p_scaleY:Number):void
 		{
 			worldScaleX = _localScaleX = p_scaleX;
 			worldScaleY = _localScaleY = p_scaleY;
@@ -366,9 +356,7 @@ package bb.components
 		 */
 		public function shiftPosition(p_offsetX:Number, p_offsetY:Number):void
 		{
-			_localX += p_offsetX;
-			_localY += p_offsetY;
-			setPosition(_localX, _localY);
+			setPosition(_localX+p_offsetX, _localY+p_offsetY);
 		}
 
 		/**
@@ -376,9 +364,6 @@ package bb.components
 		 */
 		public function set shiftRotation(p_offsetAngle:Number):void
 		{
-			trace("shiftRotation method");
-			trace("Offset angle: " + p_offsetAngle);
-			trace("Offset rotation: " + (_localRotation + p_offsetAngle));
 			rotation = _localRotation + p_offsetAngle;
 		}
 
