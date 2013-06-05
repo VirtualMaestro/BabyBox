@@ -14,6 +14,11 @@ package bb.modules
 	import bb.core.BabyBox;
 	import bb.signals.BBSignal;
 
+	CONFIG::debug
+	{
+		import vm.debug.Assert;
+	}
+
 	/**
 	 * Module represent world - main point to add actors (nodes) to world (scene).
 	 */
@@ -53,7 +58,11 @@ package bb.modules
 		 */
 		public function add(p_actor:BBNode, p_layerName:String):void
 		{
-			if (p_actor.isDisposed) return;
+			CONFIG::debug
+			{
+				if (p_actor.isDisposed) return;
+			}
+
 			_layerManager.get(p_layerName).add(p_actor);
 		}
 
