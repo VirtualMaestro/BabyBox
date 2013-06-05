@@ -31,7 +31,7 @@ package bb.components
 		/**
 		 * If this component should be cached.
 		 */
-		protected var cacheable:Boolean = false;
+		protected var cacheable:Boolean = true;
 
 		//
 		private var _id:int;
@@ -262,8 +262,6 @@ package bb.components
 				_onRemoved = null;
 				_componentClass = null;
 			}
-
-			trace("Component was rid: " + componentClass);
 		}
 
 		/**
@@ -445,8 +443,6 @@ package bb.components
 			_pool[componentClass] = p_component;
 
 			++_numInPool;
-
-			trace("Added component to pool: " + p_component.componentClass + ". Total components in pool: " + _numInPool);
 		}
 
 		/**

@@ -1301,8 +1301,6 @@ package bb.core
 
 			_headPool = p_node;
 			++_numInPool;
-
-			trace("Node was added to pool. Num nodes in pool: " + _numInPool);
 		}
 
 		/**
