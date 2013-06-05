@@ -663,16 +663,12 @@ package bb.components.physics
 				if (_transform.isPositionInvalidated) _bodyPosition.setxy(_transform.worldX, _transform.worldY);
 				if (_transform.isRotationInvalidated) _body.rotation = _transform.worldRotation;
 			}
-			else updateBodyToTransform();
-		}
-
-		/**
-		 */
-		private function updateBodyToTransform():void
-		{
-			_transform.worldX = _bodyPosition.x;
-			_transform.worldY = _bodyPosition.y;
-			_transform.worldRotation = _body.rotation;
+			else
+			{
+				_transform.worldX = _bodyPosition.x;
+				_transform.worldY = _bodyPosition.y;
+				_transform.worldRotation = _body.rotation;
+			}
 		}
 
 		/**

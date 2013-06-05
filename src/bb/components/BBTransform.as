@@ -240,6 +240,8 @@ package bb.components
 			/*worldX = */_localX = p_x;
 			isTransformChanged = true;
 			isPositionChanged = true;
+
+			if (independentUpdateWorldParameters && node.parent) invalidate(true, false);
 		}
 
 		/**
@@ -265,6 +267,8 @@ package bb.components
 			/*worldY = */_localY = p_y;
 			isTransformChanged = true;
 			isPositionChanged = true;
+
+			if (independentUpdateWorldParameters && node.parent) invalidate(true, false);
 		}
 
 		/**
@@ -303,6 +307,8 @@ package bb.components
 
 			isTransformChanged = true;
 			isRotationChanged = true;
+
+			if (independentUpdateWorldParameters && node.parent) invalidate(true, false);
 		}
 
 		/**
@@ -340,8 +346,21 @@ package bb.components
 		[Inline]
 		final public function setScale(p_scaleX:Number, p_scaleY:Number):void
 		{
-			scaleX = p_scaleX;
-			scaleY = p_scaleY;
+			_localScaleX = p_scaleX;
+			_localScaleY = p_scaleY;
+			isTransformChanged = true;
+			isScaleChanged = true;
+
+			//
+			if (independentUpdateWorldParameters)
+			{
+				var parentNode:BBNode = node.parent;
+				if (parentNode)
+				{
+					_localX = worldX - parentNode.transform.worldX;
+					_localY = worldY - parentNode.transform.worldY;
+				}
+			}
 		}
 
 		/**
