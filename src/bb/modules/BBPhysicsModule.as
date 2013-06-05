@@ -5,6 +5,7 @@
  */
 package bb.modules
 {
+	import bb.bb_spaces.bb_private;
 	import bb.components.physics.BBPhysicsBody;
 	import bb.components.physics.joints.BBConstraintFactory;
 	import bb.components.physics.joints.BBJoint;
@@ -25,6 +26,8 @@ package bb.modules
 	import nape.phys.BodyList;
 	import nape.space.Broadphase;
 	import nape.space.Space;
+
+	use namespace bb_private;
 
 	/**
 	 * Response for physics simulation.
@@ -194,6 +197,7 @@ package bb.modules
 						_hand.body2 = body;
 						_hand.anchor2.set(body.worldPointToLocal(mp, true));
 						_hand.active = true;
+						physicsComp.handJoint = _hand;
 
 						break;
 					}
@@ -207,6 +211,9 @@ package bb.modules
 		 */
 		private function mouseUpHandler(event:MouseEvent):void
 		{
+			var physicsComp:BBPhysicsBody = _hand.body2.userData.bb_component;
+			if (physicsComp) physicsComp.handJoint = null;
+
 			_hand.active = false;
 			_hand.body2 = _space.world;
 		}

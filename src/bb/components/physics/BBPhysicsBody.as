@@ -16,6 +16,8 @@ package bb.components.physics
 	import bb.signals.BBSignal;
 	import bb.tools.physics.BBPhysicalMaterials;
 
+	import nape.constraint.PivotJoint;
+
 	import nape.dynamics.InteractionFilter;
 	import nape.geom.Vec2;
 	import nape.geom.Vec2Iterator;
@@ -54,6 +56,9 @@ package bb.components.physics
 		 * Allow to use hand for this object.
 		 */
 		public var allowHand:Boolean = false;
+
+		//
+		bb_private var handJoint:PivotJoint = null;
 
 		/**
 		 * Lock physic body. If 'true' mean node's transform does update physic body, in other case vise versa.
@@ -467,6 +472,9 @@ package bb.components.physics
 
 				_initJointList = null;
 			}
+
+			//
+			if (handJoint) handJoint.space = null;
 		}
 
 		/**
