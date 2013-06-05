@@ -31,13 +31,6 @@ package bb.components
 	 */
 	public class BBCamera extends BBComponent
 	{
-		// viewport
-		private var _viewPort:Rectangle = null;
-
-		/**
-		 */
-		private var _fitContentToViewport:Boolean = false;
-
 		/**
 		 * Color of filling background.
 		 */
@@ -60,6 +53,13 @@ package bb.components
 		 */
 		public var mouseEnable:Boolean = true;
 
+		// viewport
+		private var _viewPort:Rectangle = null;
+
+		/**
+		 */
+		private var _fitContentToViewport:Boolean = false;
+
 		/**
 		 * Zoom of camera.
 		 */
@@ -71,6 +71,31 @@ package bb.components
 
 		//
 		bb_private var isCaptured:Boolean = false;
+		bb_private var viewportCenterX:Number = 0;
+		bb_private var viewportCenterY:Number = 0;
+		bb_private var viewPortScaleX:Number = 1;
+		bb_private var viewPortScaleY:Number = 1;
+
+		//
+		bb_private var rotation:Number = 0;
+
+		bb_private var SIN:Number = Math.sin(-rotation);
+		bb_private var COS:Number = Math.cos(-rotation);
+
+		// total scale = zoom*viewPortScale
+		bb_private var totalScaleX:Number = 1;
+		bb_private var totalScaleY:Number = 1;
+
+		// camera position
+		bb_private var cameraX:Number = 0;
+		bb_private var cameraY:Number = 0;
+
+		//
+		private var _dependOnCamera:BBCamera;
+		private var _dependOnCameraTransform:BBTransform;
+		private var _offsetX:Number = 1.0;
+		private var _offsetY:Number = 1.0;
+		private var _offsetZoom:Number = 1.0;
 
 		// previous parent camera position
 		private var _parentCameraX:Number = 0;
@@ -186,12 +211,6 @@ package bb.components
 			return _zoom;
 		}
 
-		//
-		bb_private var viewportCenterX:Number = 0;
-		bb_private var viewportCenterY:Number = 0;
-		bb_private var viewPortScaleX:Number = 1;
-		bb_private var viewPortScaleY:Number = 1;
-
 		/**
 		 * Sets camera's view port.
 		 */
@@ -245,19 +264,6 @@ package bb.components
 			return _fitContentToViewport;
 		}
 
-		//
-		bb_private var rotation:Number = 0;
-
-		bb_private var SIN:Number = Math.sin(-rotation);
-		bb_private var COS:Number = Math.cos(-rotation);
-
-		// total scale = zoom*viewPortScale
-		bb_private var totalScaleX:Number = 1;
-		bb_private var totalScaleY:Number = 1;
-
-		// camera position
-		bb_private var cameraX:Number = 0;
-		bb_private var cameraY:Number = 0;
 
 		/**
 		 */
@@ -306,14 +312,6 @@ package bb.components
 			// start to rendering all nodes
 			_core.root.render(p_context);
 		}
-
-		/**
-		 */
-		private var _dependOnCamera:BBCamera;
-		private var _dependOnCameraTransform:BBTransform;
-		private var _offsetX:Number = 1.0;
-		private var _offsetY:Number = 1.0;
-		private var _offsetZoom:Number = 1.0;
 
 		/**
 		 * Depend moving from another camera.
