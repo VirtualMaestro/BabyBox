@@ -389,48 +389,49 @@ package bb.components.physics
 		}
 
 		/**
-		 * Removes joint from body.
+		 * Removes joint from body (used only in BBJoint).
 		 */
 		bb_private function removeJoint(p_joint:BBJoint):void
 		{
-			var wasFound:Boolean = false;
-
-			var numJoints:int = _thisJoints.length;
-			for (var i:int = 0; i < numJoints; i++)
+			if (p_joint.joint)
 			{
-				if (_thisJoints[i] == p_joint)
+				var wasFound:Boolean = false;
+				var numJoints:int = _thisJoints.length;
+				for (var i:int = numJoints-1; i >= 0; i--)
 				{
-					wasFound = true;
-					_thisJoints.splice(i, 1);
-					p_joint.dispose();
-					break;
-				}
-			}
-
-			if (!wasFound)
-			{
-				numJoints = _attachedJoints.length;
-				for (i = 0; i < numJoints; i++)
-				{
-					if (_attachedJoints[i] == p_joint)
+					if (_thisJoints[i] == p_joint)
 					{
 						wasFound = true;
-						_attachedJoints.splice(i, 1);
-						p_joint.dispose();
+						_thisJoints[i] = null;
+						_thisJoints.splice(i, 1);
 						break;
 					}
 				}
-			}
 
-			if (!wasFound && _initJointList)
+				if (!wasFound)
+				{
+					numJoints = _attachedJoints.length;
+					for (i = numJoints-1; i >= 0; i--)
+					{
+						if (_attachedJoints[i] == p_joint)
+						{
+							wasFound = true;
+							_attachedJoints[i] = null;
+							_attachedJoints.splice(i, 1);
+							break;
+						}
+					}
+				}
+			}
+			else if (_initJointList)
 			{
-				var numInitJoints:int = _initJointList.length;
-				for (i = 0; i < numInitJoints; i++)
+				numJoints = _initJointList.length;
+				for (i = numJoints-1; i >= 0; i--)
 				{
 					if (_initJointList[i] == p_joint)
 					{
+						_initJointList[i] = null;
 						_initJointList.splice(i, 1);
-						p_joint.dispose();
 						break;
 					}
 				}
@@ -443,25 +444,28 @@ package bb.components.physics
 		 */
 		public function removeAllJoints(p_removeAttached:Boolean = false):void
 		{
-			var numJoints:int = _thisJoints.length;
-			for (var i:int = 0; i < numJoints; i++)
+			var numJoints:int;
+			while((numJoints = _thisJoints.length) > 0)
 			{
-				_thisJoints[i].dispose();
-				_thisJoints[i] = null;
+				_thisJoints[numJoints-1].dispose();
 			}
-
-			_thisJoints.length = 0;
 
 			if (p_removeAttached)
 			{
-				numJoints = _attachedJoints.length;
-				for (i = 0; i < numJoints; i++)
+				while((numJoints = _attachedJoints.length) > 0)
 				{
-					_attachedJoints[i].dispose();
-					_attachedJoints[i] = null;
+					_attachedJoints[numJoints-1].dispose();
+				}
+			}
+
+			if (_initJointList)
+			{
+				while((numJoints = _initJointList.length) > 0)
+				{
+					_initJointList[numJoints-1].dispose();
 				}
 
-				_attachedJoints.length = 0;
+				_initJointList = null;
 			}
 		}
 
@@ -675,9 +679,7 @@ package bb.components.physics
 		 */
 		override public function dispose():void
 		{
-			super.dispose();
-
-			removeAllJoints();
+			removeAllJoints(true);
 			removeShapes();
 
 			_transform = null;
@@ -698,7 +700,8 @@ package bb.components.physics
 				_body.angularVel = 0;
 				_body.kinAngVel = 0;
 			}
-			else rid();
+
+			super.dispose();
 		}
 
 		/**

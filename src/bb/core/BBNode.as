@@ -914,7 +914,6 @@ package bb.core
 
 		/**
 		 * Unlink and disposes all components attached to this node.
-		 * p_rid - if 'true' components disposed independent on component.cacheable value.
 		 */
 		private function disposeComponents():void
 		{
@@ -1302,6 +1301,8 @@ package bb.core
 
 			_headPool = p_node;
 			++_numInPool;
+
+			trace("Node was added to pool. Num nodes in pool: " + _numInPool);
 		}
 
 		/**

@@ -171,24 +171,23 @@ package bb.components.physics.joints
 		{
 			if (!_isDisposed)
 			{
-				if (_joint)
-				{
-					if (_joint.userData.bb_joint) _joint.userData.bb_joint = null;
-					_joint.space = null;
-					thisBody.constraints.remove(_joint);
-					jointedBody.constraints.remove(_joint);
-					_joint = null;
-				}
-
 				var physicsBody1:BBPhysicsBody = thisBodyComponent;
-				thisBody = null;
-
 				var physicsBody2:BBPhysicsBody = jointedBodyComponent;
-				jointedBody = null;
 
 				if (physicsBody1) physicsBody1.removeJoint(this);
 				if (physicsBody2) physicsBody2.removeJoint(this);
 
+				if (_joint)
+				{
+					if (_joint.userData.bb_joint) _joint.userData.bb_joint = null;
+					_joint.space = null;
+//					thisBody.constraints.remove(_joint);       // ConstraintList is immutable
+//					jointedBody.constraints.remove(_joint);    // ConstraintList is immutable
+					_joint = null;
+				}
+
+				thisBody = null;
+				jointedBody = null;
 				_hasAnchors = false;
 				_thisAnchor = null;
 				_jointedAnchor = null;
@@ -199,22 +198,22 @@ package bb.components.physics.joints
 				jointedActorName = "";
 
 				_jointMax = Number.POSITIVE_INFINITY;
-				 _jointMin = Number.NEGATIVE_INFINITY;
-				 _ratio = 1;
-				 _rate = 0;
-				 _phase = 0;
+				_jointMin = Number.NEGATIVE_INFINITY;
+				_ratio = 1;
+				_rate = 0;
+				_phase = 0;
 
 				// common props
-				 _active = true;
-				 _ignore = true;
-				 _stiff = true;
-				 _breakUnderError = false;
-				 _breakUnderForce = false;
-				 _removeOnBreak = true;
+				_active = true;
+				_ignore = true;
+				_stiff = true;
+				_breakUnderError = false;
+				_breakUnderForce = false;
+				_removeOnBreak = true;
 
-				 _damping = 1;
-				 _frequency = 10;
-				 _maxError = Number.POSITIVE_INFINITY;
+				_damping = 1;
+				_frequency = 10;
+				_maxError = Number.POSITIVE_INFINITY;
 				_maxForce = Number.POSITIVE_INFINITY;
 
 				_isDisposed = true;
