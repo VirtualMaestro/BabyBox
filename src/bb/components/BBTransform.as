@@ -618,6 +618,7 @@ package bb.components
 			isColorInvalidated = false;
 			isPositionInvalidated = false;
 			isRotationInvalidated = false;
+			independentUpdateWorldParameters = false;
 		}
 
 		/**

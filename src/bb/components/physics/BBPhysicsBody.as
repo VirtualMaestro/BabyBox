@@ -105,7 +105,6 @@ package bb.components.physics
 		private function addedToNodeHandler(p_signal:BBSignal):void
 		{
 			_transform = node.transform;
-			_transform.independentUpdateWorldParameters = true;
 
 			if (!_space) _space = (BabyBox.getInstance().getModule(BBPhysicsModule) as BBPhysicsModule).space;
 
@@ -133,6 +132,8 @@ package bb.components.physics
 		 */
 		private function addToStage():void
 		{
+			_transform.independentUpdateWorldParameters = true;
+
 			node.onUpdated.add(initBody);
 			node.onUpdated.add(initJoints);
 		}
@@ -881,10 +882,10 @@ package bb.components.physics
 			addPrototypeProperty("allowMovement", _body.allowMovement, "Boolean");
 			addPrototypeProperty("angularVel", _body.angularVel, "Number");
 			addPrototypeProperty("disableCCD", _body.disableCCD, "Boolean");
-			addPrototypeProperty("gravMass", _body.gravMass, "Number");
 			addPrototypeProperty("kinAngVel", _body.kinAngVel, "Number");
 			addPrototypeProperty("kinematicVel", _body.kinematicVel.x + "," + _body.kinematicVel.y, "point");
-			addPrototypeProperty("mass", _body.mass, "Number");
+//			addPrototypeProperty("gravMass", _body.gravMass, "Number");
+//			addPrototypeProperty("mass", _body.mass, "Number");
 			addPrototypeProperty("surfaceVel", _body.surfaceVel.x + "," + _body.surfaceVel.y, "point");
 			addPrototypeProperty("torque", _body.torque, "Number");
 			addPrototypeProperty("velocity", _body.velocity.x + "," + _body.velocity.y, "point");
@@ -1026,8 +1027,8 @@ package bb.components.physics
 			_body.allowRotation = properties.elements("allowRotation") == "true";
 			_body.angularVel = properties.elements("angularVel");
 			_body.disableCCD = properties.elements("disableCCD") == "true";
-			_body.gravMass = properties.elements("gravMass");
-			_body.mass = properties.elements("mass");
+//			_body.gravMass = properties.elements("gravMass");
+//			_body.mass = properties.elements("mass");
 			_body.kinAngVel = properties.elements("kinAngVel");
 			var kinemVel:Array = String(properties.elements("kinematicVel")).split(",");
 			_body.kinematicVel.setxy(kinemVel[0], kinemVel[1]);
