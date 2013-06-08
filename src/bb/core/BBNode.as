@@ -1306,13 +1306,13 @@ package bb.core
 		/**
 		 * Returns number of instances in pool.
 		 */
-		static public function get numInPool():int
+		static bb_private function get numInPool():int
 		{
 			return _numInPool;
 		}
 
 		/**
-		 * Remove pool with all components in it.
+		 * Remove pool of nodes.
 		 */
 		static public function rid():void
 		{
@@ -1377,8 +1377,22 @@ package bb.core
 				Assert.isTrue(_cache[p_alias] != null, "Cache with given alias '" + p_alias + "' doesn't exist", "BBNode.preCache");
 			}
 
-			var pool:BBCache = _cache[p_alias];
-			pool.preCache(p_preCache);
+			var cache:BBCache = _cache[p_alias];
+			cache.preCache(p_preCache);
+		}
+
+		/**
+		 * Number of actors related to given alias in cache.
+		 */
+		static public function numInCache(p_alias:String):int
+		{
+			CONFIG::debug
+			{
+				Assert.isTrue(_cache[p_alias] != null, "Cache with given alias '" + p_alias + "' doesn't exist", "BBNode.numInCache");
+			}
+
+			var cache:BBCache = _cache[p_alias];
+			return cache.numInCache;
 		}
 
 		/**
@@ -1470,6 +1484,7 @@ internal class BBCache
 	 * Returns actor if its instance exist in cache, else returns null.
 	 * @return BBNode
 	 */
+	[Inline]
 	private function getIfExist():BBNode
 	{
 		var actor:BBNode;
@@ -1502,6 +1517,13 @@ internal class BBCache
 
 		_cache.length = 0;
 		_inCache = 0;
+	}
+
+	/**
+	 */
+	public function get numInCache():int
+	{
+		return _inCache;
 	}
 
 	/**
