@@ -2,7 +2,6 @@ package bb.core
 {
 	import bb.assets.BBAssetsManager;
 	import bb.bb_spaces.bb_private;
-	import bb.components.BBComponent;
 	import bb.constants.render.BBRenderMode;
 	import bb.signals.BBSignal;
 
@@ -51,7 +50,6 @@ package bb.core
 		 */
 		public var broadphaseSweepAndPrune:Boolean = true;
 
-
 		/**
 		 * After engine is initialized this value contains param render mode engine was launched.
 		 * There are three possible values:
@@ -69,6 +67,11 @@ package bb.core
 		 * [startup]
 		 */
 		public var physicsEnable:Boolean = false;
+
+		/**
+		 * If 'true' physic time step changes depend on frame rate.
+		 */
+		public var autoPhysicTimeStep:Boolean = true;
 
 		/**
 		 * Set frame rate for animations by default.
@@ -106,6 +109,14 @@ package bb.core
 		private var _canvasRect:Rectangle = null;
 
 		//
+		private var _gravity:Vec2;
+		private var _physicTimeStep:Number = 0;
+
+		//
+		private var _mouseSettings:int = 0;
+		private var _mouseNodeSettings:int = 0;
+
+		//
 		private var _z_changed:BBSignal;
 		private var _param:Object;
 
@@ -120,9 +131,6 @@ package bb.core
 		private var _gameHeight:int = 0;
 		private var _handEnable:Boolean = false;
 
-//		private var _transparentBitmap:Boolean = true;
-//		private var _disposeBitmap:Boolean = false;
-
 		/**
 		 */
 		public function BBConfig(p_appWidth:int, p_appHeight:int, p_frameRate:int = 30, p_gameWidth:int = 0, p_gameHeight:int = 0)
@@ -133,7 +141,7 @@ package bb.core
 			_gameWidth = p_gameWidth < 2 ? _appWidth : p_gameWidth;
 			_gameHeight = p_gameHeight < 2 ? _appHeight : p_gameHeight;
 
-			setCanvasRect(0,0, _appWidth, _appHeight);
+			setCanvasRect(0, 0, _appWidth, _appHeight);
 
 			_z_changed = BBSignal.get(this);
 			_param = {};
@@ -255,9 +263,6 @@ package bb.core
 			return BBAssetsManager.INITIALIZATION_TIME_STEP;
 		}
 
-		//
-		private var _gravity:Vec2;
-
 		/**
 		 * Sets gravity for physics engine.
 		 *
@@ -278,9 +283,6 @@ package bb.core
 			return _gravity;
 		}
 
-		//
-		private var _physicTimeStep:Number = 0;
-
 		/**
 		 * Set time step for physic simulation.
 		 * If this method was used, property 'autoPhysicTimeStep' automatically set to 'false'.
@@ -298,12 +300,6 @@ package bb.core
 		{
 			return _physicTimeStep;
 		}
-
-
-		/**
-		 * If 'true' physic time step changes depend on frame rate.
-		 */
-		public var autoPhysicTimeStep:Boolean = true;
 
 		/**
 		 * Returns genome's config object.
@@ -324,9 +320,9 @@ package bb.core
 			if (_canvasRect == null) _canvasRect = new Rectangle();
 
 			if (p_x < 0) p_x = 0;
-			if (p_x > _appWidth-2) p_x = _appWidth-2;
+			if (p_x > _appWidth - 2) p_x = _appWidth - 2;
 			if (p_y < 0) p_y = 0;
-			if (p_y > _appHeight-2) p_y = _appHeight-2;
+			if (p_y > _appHeight - 2) p_y = _appHeight - 2;
 
 			if (p_width < 2) p_width = _appWidth;
 			if (p_height < 2) p_height = _appHeight;
@@ -362,11 +358,8 @@ package bb.core
 			sendChanges("fixedTimeStep", p_value);
 		}
 
-		//
-		private var _mouseSettings:int = 0;
-
 		/**
-		 * Set which mouse events will dispatches module BBMouseModule.
+		 * Set which mouse's events will dispatches module BBMouseModule.
 		 * If need dispatch events like: click, move should to set like that:
 		 * <code>
 		 *     mouseSettings(BBMouseFlags.CLICK | BBMouseFlags.MOVE);
@@ -384,9 +377,6 @@ package bb.core
 		{
 			return _mouseSettings;
 		}
-
-		//
-		private var _mouseNodeSettings:int = 0;
 
 		/**
 		 * Set which mouse events will receive and dispatches node.
@@ -452,6 +442,5 @@ package bb.core
 		{
 			return _z_changed;
 		}
-
 	}
 }
