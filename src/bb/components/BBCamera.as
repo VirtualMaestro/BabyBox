@@ -31,6 +31,9 @@ package bb.components
 	 */
 	public class BBCamera extends BBComponent
 	{
+		//
+		private const MIN_ZOOM:Number = 0.05;
+
 		/**
 		 * Color of filling background.
 		 */
@@ -196,7 +199,7 @@ package bb.components
 		 */
 		public function set zoom(val:Number):void
 		{
-			_zoom = val < 0.1 ? 0.1 : val;
+			_zoom = val < MIN_ZOOM ? MIN_ZOOM : val;
 			if (node) node.transform.setScale(val, val);
 		}
 
@@ -208,7 +211,7 @@ package bb.components
 			if (node)
 			{
 				_zoom = node.transform.scaleX;
-				if (_zoom < 0.1) node.transform.scaleX = _zoom = 0.1;
+				if (_zoom < MIN_ZOOM) node.transform.scaleX = _zoom = MIN_ZOOM;
 			}
 
 			return _zoom;
@@ -284,7 +287,7 @@ package bb.components
 
 			// total scale
 			var cameraZoom:Number = transform.worldScaleX;
-			cameraZoom = cameraZoom < 0.1 ? 0.1 : cameraZoom;
+			cameraZoom = cameraZoom < MIN_ZOOM ? MIN_ZOOM : cameraZoom;
 			totalScaleX = cameraZoom * _viewPortScaleX;
 			totalScaleY = cameraZoom * _viewPortScaleY;
 
