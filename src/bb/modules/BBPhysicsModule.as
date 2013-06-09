@@ -11,9 +11,8 @@ package bb.modules
 	import bb.components.physics.joints.BBJoint;
 	import bb.core.BBConfig;
 	import bb.core.BabyBox;
+	import bb.events.BBMouseEvent;
 	import bb.signals.BBSignal;
-
-	import flash.events.MouseEvent;
 
 	import nape.callbacks.CbEvent;
 	import nape.callbacks.CbType;
@@ -48,6 +47,10 @@ package bb.modules
 		private var _onPickup:BBSignal;
 		private var _onDrop:BBSignal;
 
+		private var _mouseModule:BBMouseModule;
+		private var _mouseX:Number = 0;
+		private var _mouseY:Number = 0;
+
 		/**
 		 */
 		public function BBPhysicsModule()
@@ -61,8 +64,9 @@ package bb.modules
 		private function readyToUseHandler(p_signal:BBSignal):void
 		{
 			_config = (engine as BabyBox).config;
+			_mouseModule = getModule(BBMouseModule) as BBMouseModule;
 
-			if (_config.autoPhysicTimeStep) timeStep = 1/Number(_config.frameRate);
+			if (_config.autoPhysicTimeStep) timeStep = 1 / Number(_config.frameRate);
 
 			_gravity = _config.getGravity();
 			_space = new Space(_gravity, (_config.broadphaseSweepAndPrune ? Broadphase.SWEEP_AND_PRUNE : Broadphase.DYNAMIC_AABB_TREE));
@@ -90,7 +94,7 @@ package bb.modules
 		override public function update(p_deltaTime:Number):void
 		{
 			_space.step(timeStep, velocityIterations, positionIterations);
-			if (_isHandEnable) _hand.anchor1.setxy(stage.mouseX, stage.mouseY);
+			if (_isHandEnable) _hand.anchor1.setxy(_mouseX, _mouseY);
 		}
 
 		/**
@@ -159,8 +163,8 @@ package bb.modules
 			_hand.active = false;
 			_hand.stiff = false;
 
-			stage.addEventListener(MouseEvent.MOUSE_DOWN, mouseDownHandler);
-			stage.addEventListener(MouseEvent.MOUSE_UP, mouseUpHandler);
+			_mouseModule.onDown.add(mouseDownHandler);
+			_mouseModule.onUp.add(mouseUpHandler);
 		}
 
 		/**
@@ -171,18 +175,23 @@ package bb.modules
 			_hand.space = null;
 			_hand = null;
 
-			stage.removeEventListener(MouseEvent.MOUSE_DOWN, mouseDownHandler);
-			stage.removeEventListener(MouseEvent.MOUSE_UP, mouseUpHandler);
+			_mouseModule.onDown.remove(mouseDownHandler);
+			_mouseModule.onUp.remove(mouseUpHandler);
 		}
 
 		/**
 		 */
-		private function mouseDownHandler(event:MouseEvent):void
+		private function mouseDownHandler(p_signal:BBSignal):void
 		{
 			if (_space.bodies.length < 1) return;
 
-			//
-			var mp:Vec2 = Vec2.get(event.stageX, event.stageY);
+			_mouseModule.onMove.add(mouseMoveHandler);
+
+			var event:BBMouseEvent = p_signal.params as BBMouseEvent;
+			_mouseX = event.cameraX;
+			_mouseY = event.cameraY;
+
+			var mp:Vec2 = Vec2.get(_mouseX, _mouseY);
 			var bodies:BodyList = _space.bodiesUnderPoint(mp);
 			var iterator:BodyIterator = bodies.iterator();
 			var body:Body;
@@ -199,6 +208,7 @@ package bb.modules
 						if (_hand.space == null) _hand.space = _space;
 						_hand.body2 = body;
 						_hand.anchor2.set(body.worldPointToLocal(mp, true));
+						_hand.anchor1.setxy(_mouseX, _mouseY);
 						_hand.active = true;
 						physicsComp.handJoint = _hand;
 
@@ -214,8 +224,19 @@ package bb.modules
 
 		/**
 		 */
-		private function mouseUpHandler(event:MouseEvent):void
+		private function mouseMoveHandler(p_signal:BBSignal):void
 		{
+			var event:BBMouseEvent = p_signal.params as BBMouseEvent;
+			_mouseX = event.cameraX;
+			_mouseY = event.cameraY;
+		}
+
+		/**
+		 */
+		private function mouseUpHandler(p_signal:BBSignal):void
+		{
+			_mouseModule.onMove.remove(mouseMoveHandler);
+
 			var physicsComp:BBPhysicsBody = _hand.body2.userData.bb_component;
 			if (physicsComp)
 			{

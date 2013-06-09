@@ -86,6 +86,7 @@ package bb.modules
 					var cameraBack:BBCamera = BBCamera.get(BBLayerNames.BACKEND);
 					var cameraFront:BBCamera = BBCamera.get(BBLayerNames.FRONTEND);
 
+					main.mouseEnable = true;
 					main.node.transform.setPosition(_config.appWidth/2, _config.appHeight/2);
 					cameraBack.node.transform.setPosition(_config.appWidth/2, _config.appHeight/2);
 					cameraFront.node.transform.setPosition(_config.appWidth/2, _config.appHeight/2);
