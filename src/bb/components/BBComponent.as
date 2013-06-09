@@ -232,11 +232,11 @@ package bb.components
 		{
 			_isDisposed = true;
 
+			if (_node) _node.removeComponent(_lookupClass);
+
 			onUpdate.removeAllListeners();
 			_onAdded.removeAllListeners();
 			_onRemoved.removeAllListeners();
-
-			if (_node) _node.removeComponent(_lookupClass);
 
 			_node = null;
 			_updateEnable = false;

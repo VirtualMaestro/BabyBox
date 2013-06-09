@@ -177,6 +177,10 @@ package bb.components.physics
 			node.onRemoved.remove(unlinkedFromStageHandler);
 			node.onActive.remove(onNodeActiveHandler);
 
+			///
+			activateJoints = false;
+			_transform.independentUpdateWorldParameters = false;
+			_body.space = null;
 			_lock = true;
 		}
 
@@ -691,6 +695,8 @@ package bb.components.physics
 			removeAllJoints(true);
 			removeShapes();
 
+			super.dispose();
+
 			_transform = null;
 			_scale = 1.0;
 			_lock = true;
@@ -709,8 +715,6 @@ package bb.components.physics
 				_body.angularVel = 0;
 				_body.kinAngVel = 0;
 			}
-
-			super.dispose();
 		}
 
 		/**
