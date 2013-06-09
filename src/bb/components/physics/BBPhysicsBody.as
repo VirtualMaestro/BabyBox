@@ -727,6 +727,7 @@ package bb.components.physics
 			_attachedJoints = null;
 			_initJointList = null;
 			_space = null;
+			delete _body.userData.bb_component;
 			_body = null;
 			_bodyPosition = null;
 		}
