@@ -51,7 +51,7 @@ package bb.components
 		/**
 		 * Enable mouse interaction with this camera.
 		 */
-		public var mouseEnable:Boolean = true;
+		public var mouseEnable:Boolean = false;
 
 		// viewport
 		private var _viewPort:Rectangle = null;
@@ -73,8 +73,8 @@ package bb.components
 		bb_private var isCaptured:Boolean = false;
 		bb_private var viewportCenterX:Number = 0;
 		bb_private var viewportCenterY:Number = 0;
-		bb_private var viewPortScaleX:Number = 1;
-		bb_private var viewPortScaleY:Number = 1;
+		private var _viewPortScaleX:Number = 1;
+		private var _viewPortScaleY:Number = 1;
 
 		//
 		bb_private var rotation:Number = 0;
@@ -164,7 +164,7 @@ package bb.components
 		 */
 		private function cameraAddedToNode(p_signal:BBSignal):void
 		{
-			node.transform.lockInvalidation = false;
+//			node.transform.lockInvalidation = false;
 			node.transform.setScale(_zoom, _zoom);
 			setViewport(0, 0, _config.getViewRect().width, _config.getViewRect().height);
 
@@ -229,10 +229,10 @@ package bb.components
 
 			if (_fitContentToViewport)
 			{
-				viewPortScaleX = p_width / _config.gameWidth;
-				viewPortScaleY = p_height / _config.gameHeight;
+				_viewPortScaleX = p_width / _config.gameWidth;
+				_viewPortScaleY = p_height / _config.gameHeight;
 			}
-			else viewPortScaleX = viewPortScaleY = 1.0;
+			else _viewPortScaleX = _viewPortScaleY = 1.0;
 		}
 
 		/**
@@ -251,10 +251,10 @@ package bb.components
 
 			if (_fitContentToViewport)
 			{
-				viewPortScaleX = _viewPort.width  / _config.gameWidth;
-				viewPortScaleY = _viewPort.height / _config.gameHeight;
+				_viewPortScaleX = _viewPort.width  / _config.gameWidth;
+				_viewPortScaleY = _viewPort.height / _config.gameHeight;
 			}
-			else viewPortScaleX = viewPortScaleY = 1.0;
+			else _viewPortScaleX = _viewPortScaleY = 1.0;
 
 			//
 //			node.transform.isTransformChanged = true;
@@ -285,8 +285,8 @@ package bb.components
 			// total scale
 			var cameraZoom:Number = transform.worldScaleX;
 			cameraZoom = cameraZoom < 0.1 ? 0.1 : cameraZoom;
-			totalScaleX = cameraZoom * viewPortScaleX;
-			totalScaleY = cameraZoom * viewPortScaleY;
+			totalScaleX = cameraZoom * _viewPortScaleX;
+			totalScaleY = cameraZoom * _viewPortScaleY;
 
 			// camera position
 			cameraX = transform.worldX;

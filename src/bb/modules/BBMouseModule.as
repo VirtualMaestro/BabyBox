@@ -92,14 +92,13 @@ package bb.modules
 				// set mouse position
 				var mousePosition:Point = BBNativePool.getPoint(event.viewRectX, event.viewRectY);
 
-				var numCameras:int = _camerasList.length;
 				var eventSent:Boolean = false;
 				var camera:BBCamera;
 				var cameraViewport:Rectangle;
 				var tMouseX:Number;
 				var tMouseY:Number;
 
-				for (var i:int = numCameras - 1; i >= 0; i--)
+				for (var i:int = _camerasList.length - 1; i >= 0; i--)
 				{
 					camera = _camerasList[i];
 					if (camera.mouseEnable && camera.node.active)
