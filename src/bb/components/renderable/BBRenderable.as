@@ -28,6 +28,12 @@ package bb.components.renderable
 		 */
 		public var mousePixelEnabled:Boolean = false;
 
+		/**
+		 * Disallow rotating of renderable components. Could be useful with physical component.
+		 * If 'false' ignores any self rotation.
+		 */
+		public var allowRotation:Boolean = true;
+
 		//
 //		private var _worldBounds:Rectangle = null;
 

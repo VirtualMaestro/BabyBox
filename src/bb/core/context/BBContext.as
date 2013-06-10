@@ -286,7 +286,7 @@ package bb.core.context
 			var textureY:Number = textureTransform.worldY;
 			var textureScaleX:Number = textureTransform.worldScaleX;
 			var textureScaleY:Number = textureTransform.worldScaleY;
-			var textureRotation:Number = textureTransform.worldRotation;
+			var textureRotation:Number = p_renderableComponent.allowRotation ? textureTransform.worldRotation : 0;
 
 			if (_isStage3d)
 			{
@@ -304,15 +304,13 @@ package bb.core.context
 				var newTextureX:Number = (dx * cos - sin * dy) * _currentCameraTotalScaleX + _currentCameraViewportCenterX;
 				var newTextureY:Number = (dx * sin + cos * dy) * _currentCameraTotalScaleY + _currentCameraViewportCenterY;
 
-				var totalRotation:Number = textureRotation - _currentCameraRotation;
+				var totalRotation:Number = (textureRotation - _currentCameraRotation) % PI2;
 				var totalScaleX:Number = textureScaleX * _currentCameraTotalScaleX;
 				var totalScaleY:Number = textureScaleY * _currentCameraTotalScaleY;
 				var totalScale:Number = totalScaleX * totalScaleY;
 
 				texturePivotX *= totalScaleX;
 				texturePivotY *= totalScaleY;
-
-				totalRotation %= PI2;
 
 				///  Test for getting into the viewport /////////////
 				if (isFrustum)
