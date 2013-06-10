@@ -1338,18 +1338,18 @@ package bb.core
 		static private var _cache:Array = [];
 
 		/**
-		 * Adds cache with given alias which stores prototype of node (with all components and children) and instances created from prototype.
-		 * When using getFromCache creates and returns instance of BBNode by its prototype.
-		 * It is possible to pre cache some number of instances by setting third parameter 'preCache'.
+		 * Adds cache with given alias which stores pattern of node (with all components and children) and instances copied from it.
+		 * To get instance of given pattern need to invoke getFromCache method.
+		 * There is possible to pre cache some number of instances by setting third parameter 'preCache'.
 		 */
-		static public function addCache(p_prototype:XML, p_alias:String, p_preCache:int = 0):void
+		static public function addCache(p_pattern:BBNode, p_alias:String, p_preCache:int = 0):void
 		{
 			CONFIG::debug
 			{
 				Assert.isTrue(_cache[p_alias] == null, "Cache with given alias '" + p_alias + "' already added", "BBNode.addToCache");
 			}
 
-			_cache[p_alias] = new BBCache(p_prototype, p_alias, p_preCache);
+			_cache[p_alias] = new BBCache(p_pattern, p_alias, p_preCache);
 		}
 
 		/**
@@ -1379,6 +1379,13 @@ package bb.core
 
 			var cache:BBCache = _cache[p_alias];
 			cache.preCache(p_preCache);
+		}
+
+		/**
+		 */
+		static public function isCacheExist(p_alias:String):Boolean
+		{
+			return _cache[p_alias] != null;
 		}
 
 		/**
@@ -1436,7 +1443,6 @@ import bb.core.BBNode;
  */
 internal class BBCache
 {
-	private var _prototype:XML;
 	private var _pattern:BBNode;
 	private var _cache:Vector.<BBNode>;
 	private var _alias:String;
@@ -1445,11 +1451,10 @@ internal class BBCache
 
 	/**
 	 */
-	public function BBCache(p_prototype:XML, p_alias:String, p_preCache:int = 0)
+	public function BBCache(p_pattern:BBNode, p_alias:String, p_preCache:int = 0)
 	{
-		_prototype = p_prototype;
 		_alias = p_alias;
-		_pattern = BBNode.getFromPrototype(p_prototype);
+		_pattern = p_pattern;
 		_preCache = p_preCache;
 		_cache = new <BBNode>[];
 
@@ -1533,7 +1538,6 @@ internal class BBCache
 	{
 		clear();
 		_cache = null;
-		_prototype = null;
 		_pattern.dispose();
 		_pattern = null;
 		_alias = null;
