@@ -5,6 +5,7 @@
  */
 package bb.modules
 {
+	import bb.components.physics.BBPhysicsBody;
 	import bb.core.BBNode;
 	import bb.parsers.BBLevelParser;
 	import bb.signals.BBSignal;
@@ -60,12 +61,14 @@ package bb.modules
 			var actorLayer:String;
 			var actorInternalCollision:Boolean;
 			var actorCache:Boolean;
+			var actorType:String;
 			var numActors:int = actorsList.length();
 			for (var i:int = 0; i < numActors; i++)
 			{
 				actorXML = actorsList[i];
 
 				actorAlias = actorXML.elements("alias");
+				actorType = actorXML.elements("type");
 				actorPosition = String(actorXML.elements("position")).split(",");
 				actorRotation = actorXML.elements("rotation");
 				actorScale = String(actorXML.elements("scale")).split(",");
@@ -76,6 +79,8 @@ package bb.modules
 				actor = BBNode.getFromCache(actorAlias);
 				actor.transform.setPositionAndRotation(actorPosition[0], actorPosition[1], actorRotation);
 				actor.transform.setScale(actorScale[0], actorScale[1]);
+				if (actor.isComponentExist(BBPhysicsBody)) (actor.getComponent(BBPhysicsBody) as BBPhysicsBody).type = BBLevelParser.bodyTypeTable[actorType];
+
 				_world.add(actor, actorLayer);
 
 				if (!actorCache) BBNode.removeCache(actorAlias);

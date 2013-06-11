@@ -366,6 +366,13 @@ package bb.core
 		}
 
 		/**
+		 */
+		public function isComponentExist(p_componentLookupClass:Class):Boolean
+		{
+			return _lookupComponentTable[p_componentLookupClass] != null;
+		}
+
+		/**
 		 * Unlink component from this node.
 		 * p_componentLookupClass - lookup class that is looking component in table.
 		 */

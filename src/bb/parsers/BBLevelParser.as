@@ -32,7 +32,7 @@ package bb.parsers
 	 */
 	public class BBLevelParser
 	{
-		static private var bodyTypeTable:Array = [];
+		static public var bodyTypeTable:Array = [];
 		bodyTypeTable["STATIC"] = BodyType.STATIC;
 		bodyTypeTable["DYNAMIC"] = BodyType.DYNAMIC;
 		bodyTypeTable["KINEMATIC"] = BodyType.KINEMATIC;
@@ -69,6 +69,7 @@ package bb.parsers
 
 						var actorXML:XML = <actor/>;
 						actorXML.alias = childClassName;
+						actorXML.type = child.actorType;
 						actorXML.position = child.x + "," + child.y;
 						actorXML.rotation = child.rotation * TrigUtil.DEG_TO_RAD;
 						actorXML.scale = child.scaleX + "," + child.scaleY;
@@ -193,6 +194,9 @@ package bb.parsers
 
 			renderComponent.scaleX = p_graphics.scaleX;
 			renderComponent.scaleY = p_graphics.scaleY;
+			renderComponent.offsetX = p_graphics.x;
+			renderComponent.offsetY = p_graphics.y;
+			renderComponent.offsetRotation = p_graphics.rotation * TrigUtil.DEG_TO_RAD;
 
 			return renderComponent;
 		}
