@@ -39,7 +39,7 @@ package bb.parsers
 
 		/**
 		 */
-		static public function parseLevelSWF(p_levelSWF:MovieClip):void
+		static public function parseLevelSWF(p_levelSWF:MovieClip):XML
 		{
 			var levelAlias:String = getQualifiedClassName(p_levelSWF);
 			var numChildren:int = p_levelSWF.numChildren;
@@ -72,7 +72,7 @@ package bb.parsers
 						actorXML.position = child.x + "," + child.y;
 						actorXML.rotation = child.rotation * TrigUtil.DEG_TO_RAD;
 						actorXML.scale = child.scaleX + "," + child.scaleY;
-						actorXML.layer = child.layerName;
+						actorXML.layer = String(child.layerName).toLowerCase();
 						actorXML.internalCollision = child.isCollisionInternalActors;
 						actorXML.cache = child.cache;
 						actorsListXML.appendChild(actorXML);
@@ -94,6 +94,8 @@ package bb.parsers
 
 			levelXML.appendChild(actorsListXML);
 			trace(levelXML.toXMLString());
+
+			return levelXML;
 		}
 
 		/**
@@ -127,6 +129,8 @@ package bb.parsers
 					}
 
 					case "shapes::BaseShapeScheme":
+					case "shapes::BoxShapeScheme":
+					case "shapes::CircleShapeScheme":
 					{
 						if (body == null)
 						{
@@ -134,6 +138,7 @@ package bb.parsers
 							body.body.allowMovement = p_actor.allowMovement;
 							body.body.allowRotation = p_actor.allowRotation;
 							body.allowHand = p_actor.useHand;
+							node.addComponent(body);
 						}
 
 						body.addShape(parseShape(child));
@@ -162,7 +167,7 @@ package bb.parsers
 				}
 			}
 
-			return null;
+			return node;
 		}
 
 		/**
@@ -185,6 +190,9 @@ package bb.parsers
 				movie.frameRate = p_graphics.frameRate;
 				p_graphics.playFrom > 0 ? movie.gotoAndPlay(p_graphics.playFrom) : movie.stop();
 			}
+
+			renderComponent.scaleX = p_graphics.scaleX;
+			renderComponent.scaleY = p_graphics.scaleY;
 
 			return renderComponent;
 		}
