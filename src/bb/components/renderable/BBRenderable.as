@@ -37,6 +37,10 @@ package bb.components.renderable
 		public var scaleX:Number = 1.0;
 		public var scaleY:Number = 1.0;
 
+		public var offsetX:Number = 0.0;
+		public var offsetY:Number = 0.0;
+		public var offsetRotation:Number = 0.0;
+
 		//
 //		private var _worldBounds:Rectangle = null;
 
@@ -143,6 +147,13 @@ package bb.components.renderable
 		override public function dispose():void
 		{
 			z_texture = null;
+			allowRotation = true;
+			scaleX = 1.0;
+			scaleY = 1.0;
+			offsetX = 0.0;
+			offsetY = 0.0;
+			offsetRotation = 0.0;
+
 			super.dispose();
 		}
 
@@ -151,7 +162,7 @@ package bb.components.renderable
 		override public function toString():String
 		{
 			var output:String = super.toString();
-			output += "{allowRotation: "+allowRotation+"}-{scaleX: "+scaleX+"}-{scaleY: "+scaleY+"}\n";
+			output += "{allowRotation: "+allowRotation+"}-{scaleX: "+scaleX+"}-{scaleY: "+scaleY+"}-{offsetX: "+offsetX+"}-{offsetY: "+offsetY+"}-{offsetRotation: "+offsetRotation+"}\n";
 
 			return output;
 		}
@@ -164,6 +175,9 @@ package bb.components.renderable
 			renderable.allowRotation = allowRotation;
 			renderable.scaleX = scaleX;
 			renderable.scaleY = scaleY;
+			renderable.offsetX = offsetX;
+			renderable.offsetY = offsetY;
+			renderable.offsetRotation = offsetRotation;
 
 			return renderable;
 		}

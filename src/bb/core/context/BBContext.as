@@ -301,10 +301,10 @@ package bb.core.context
 				var cos:Number = _currentCameraCOS;
 				var dx:Number = textureX - _currentCameraX;
 				var dy:Number = textureY - _currentCameraY;
-				var newTextureX:Number = (dx * cos - sin * dy) * _currentCameraTotalScaleX + _currentCameraViewportCenterX;
-				var newTextureY:Number = (dx * sin + cos * dy) * _currentCameraTotalScaleY + _currentCameraViewportCenterY;
+				var newTextureX:Number = (dx * cos - sin * dy) * _currentCameraTotalScaleX + _currentCameraViewportCenterX + p_renderableComponent.offsetX;
+				var newTextureY:Number = (dx * sin + cos * dy) * _currentCameraTotalScaleY + _currentCameraViewportCenterY + p_renderableComponent.offsetY;
 
-				var totalRotation:Number = (textureRotation - _currentCameraRotation) % PI2;
+				var totalRotation:Number = (textureRotation - _currentCameraRotation + p_renderableComponent.offsetRotation) % PI2;
 				var totalScaleX:Number = textureScaleX * _currentCameraTotalScaleX * p_renderableComponent.scaleX;
 				var totalScaleY:Number = textureScaleY * _currentCameraTotalScaleY * p_renderableComponent.scaleY;
 				var totalScale:Number = totalScaleX * totalScaleY;
