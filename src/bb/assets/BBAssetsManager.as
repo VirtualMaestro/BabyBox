@@ -57,10 +57,11 @@ package bb.assets
 
 		/**
 		 * Adds asset to manager.
+		 * p_asset - Class or instance of asset (Bitmap, MovieClip, Sprite...)
 		 * p_assetXML - could be either XML class or XML instance.
 		 * @return - assetId. If p_assetId wasn't set it generates id for asset and returns it.
 		 */
-		static public function add(p_assetClass:Class, p_assetId:String = "", p_assetXML:* = null):String
+		static public function add(p_asset:*, p_assetId:String = "", p_assetXML:* = null):String
 		{
 			var assetXML:XML;
 			if (p_assetXML != null && p_assetXML is Class) assetXML = XML(new p_assetXML());
@@ -69,7 +70,17 @@ package bb.assets
 			p_assetId = StringUtil.trim(p_assetId);
 			if (p_assetId == "") p_assetId = BBTextureBase.getId();
 
-			_initList.push(new BBAsset(p_assetClass, p_assetId, assetXML));
+			var assetClass:Class;
+			var assetInstance:DisplayObject;
+
+			if (p_asset is Class) assetClass = p_asset;
+			else
+			{
+				assetInstance = p_asset;
+				assetClass = ClassUtil.getDefinitionForInstance(assetInstance);
+			}
+
+			_initList.push(new BBAsset(assetClass, p_assetId, assetXML, assetInstance));
 
 			return p_assetId;
 		}
@@ -137,7 +148,8 @@ package bb.assets
 			var assetClass:Class = p_asset.assetClass;
 			var assetId:String = p_asset.assetId;
 			var assetXML:XML = p_asset.assetXML;
-			var textureBase:BBTextureBase;
+			var assetInstance:DisplayObject = p_asset.assetInstance ? p_asset.assetInstance : new assetClass();
+			p_asset.assetInstance = null;
 
 			CONFIG::debug
 			{
@@ -145,15 +157,14 @@ package bb.assets
 				Assert.isTrue(!isAssetExist(assetId), "Asset with id '" + assetId + "' already exist. Choose another unique id", "BBAssetManager.initAsset");
 			}
 
-			var asset:Object = new assetClass();
-
-			if (asset is Bitmap) // texture or atlas (if p_assetXML is exist)
+			var textureBase:BBTextureBase;
+			if (assetInstance is Bitmap) // texture or atlas (if p_assetXML is exist)
 			{
-				if (assetXML) textureBase = BBTextureAtlas.createFromBitmapDataAndXML((asset as Bitmap).bitmapData, assetXML, assetId);
-				else textureBase = BBTexture.createFromBitmapData((asset as Bitmap).bitmapData, assetId);
+				if (assetXML) textureBase = BBTextureAtlas.createFromBitmapDataAndXML((assetInstance as Bitmap).bitmapData, assetXML, assetId);
+				else textureBase = BBTexture.createFromBitmapData((assetInstance as Bitmap).bitmapData, assetId);
 			}
-			else if (asset is MovieClip) textureBase = BBTextureAtlas.createFromMovieClip(asset as MovieClip, assetId);
-			else textureBase = BBTexture.createFromVector(asset as DisplayObject, assetId);
+			else if (assetInstance is MovieClip) textureBase = BBTextureAtlas.createFromMovieClip(assetInstance as MovieClip, assetId);
+			else textureBase = BBTexture.createFromVector(assetInstance as DisplayObject, assetId);
 
 			_assetIdList[assetClass] = textureBase.id;
 
@@ -255,8 +266,8 @@ package bb.assets
 			var textureBase:BBTextureBase = getById(p_assetId);
 			if (textureBase)
 			{
-				textureBase.dispose();
 				var classDef:Class = ClassUtil.getDefinitionForInstance(textureBase);
+				textureBase.dispose();
 				delete _assetIdList[classDef];
 
 				return true;
@@ -299,18 +310,22 @@ package bb.assets
 	}
 }
 
+import flash.display.DisplayObject;
+
 internal class BBAsset
 {
 	public var assetClass:Class;
 	public var assetXML:XML;
 	public var assetId:String;
+	public var assetInstance:DisplayObject;
 
 	/**
 	 */
-	public function BBAsset(p_assetClass:Class, p_assetId:String = "", p_assetXML:XML = null)
+	public function BBAsset(p_assetClass:Class, p_assetId:String = "", p_assetXML:XML = null, p_instance:DisplayObject = null)
 	{
 		assetClass = p_assetClass;
 		assetId = p_assetId;
 		assetXML = p_assetXML;
+		assetInstance = p_instance;
 	}
 }
