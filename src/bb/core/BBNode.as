@@ -1347,6 +1347,7 @@ package bb.core
 			CONFIG::debug
 			{
 				Assert.isTrue(_cache[p_alias] == null, "Cache with given alias '" + p_alias + "' already added", "BBNode.addToCache");
+				Assert.isTrue(p_pattern != null, "Pattern can't be null. Pattern alias '" + p_alias + "'", "BBNode.addToCache");
 			}
 
 			_cache[p_alias] = new BBCache(p_pattern, p_alias, p_preCache);
