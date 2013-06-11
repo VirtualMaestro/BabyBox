@@ -34,6 +34,9 @@ package bb.components.renderable
 		 */
 		public var allowRotation:Boolean = true;
 
+		public var scaleX:Number = 1.0;
+		public var scaleY:Number = 1.0;
+
 		//
 //		private var _worldBounds:Rectangle = null;
 
@@ -145,10 +148,37 @@ package bb.components.renderable
 
 		/**
 		 */
+		override public function toString():String
+		{
+			var output:String = super.toString();
+			output += "{allowRotation: "+allowRotation+"}-{scaleX: "+scaleX+"}-{scaleY: "+scaleY+"}\n";
+
+			return output;
+		}
+
+		/**
+		 */
+		override public function copy():BBComponent
+		{
+			var renderable:BBRenderable = super.copy() as BBRenderable;
+			renderable.allowRotation = allowRotation;
+			renderable.scaleX = scaleX;
+			renderable.scaleY = scaleY;
+
+			return renderable;
+		}
+
+		/**
+		 */
 		override public function getPrototype():XML
 		{
 			var renderableXML:XML = super.getPrototype();
 			if (z_texture) addPrototypeProperty("asset", z_texture.id, "string");
+
+			// no need because public properties, they are automatically added to prototype
+//			addPrototypeProperty("allowRotation", allowRotation, "boolean");
+//			addPrototypeProperty("scaleX", scaleX, "number");
+//			addPrototypeProperty("scaleY", scaleY, "number");
 
 			return renderableXML;
 		}

@@ -305,8 +305,8 @@ package bb.core.context
 				var newTextureY:Number = (dx * sin + cos * dy) * _currentCameraTotalScaleY + _currentCameraViewportCenterY;
 
 				var totalRotation:Number = (textureRotation - _currentCameraRotation) % PI2;
-				var totalScaleX:Number = textureScaleX * _currentCameraTotalScaleX;
-				var totalScaleY:Number = textureScaleY * _currentCameraTotalScaleY;
+				var totalScaleX:Number = textureScaleX * _currentCameraTotalScaleX * p_renderableComponent.scaleX;
+				var totalScaleY:Number = textureScaleY * _currentCameraTotalScaleY * p_renderableComponent.scaleY;
 				var totalScale:Number = totalScaleX * totalScaleY;
 
 				texturePivotX *= totalScaleX;
