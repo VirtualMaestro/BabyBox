@@ -11,6 +11,7 @@ package bb.core
 	import bb.modules.BBDebugModule;
 	import bb.modules.BBGraphModule;
 	import bb.modules.BBLayerModule;
+	import bb.modules.BBLevelsModule;
 	import bb.modules.BBMouseModule;
 	import bb.modules.BBPhysicsModule;
 	import bb.modules.BBWorldModule;
@@ -94,6 +95,7 @@ package bb.core
 			addModule(BBConfigModule);
 			addModule(BBMouseModule);
 			addModule(BBDebugModule);
+			addModule(BBLevelsModule);
 
 			//
 			_isInitialized = true;
