@@ -60,9 +60,9 @@ package bb.modules
 			var actorScale:Array;
 			var actorLayer:String;
 			var actorInternalCollision:Boolean;
-			var actorCache:Boolean;
 			var actorType:String;
 			var numActors:int = actorsList.length();
+
 			for (var i:int = 0; i < numActors; i++)
 			{
 				actorXML = actorsList[i];
@@ -73,17 +73,20 @@ package bb.modules
 				actorRotation = actorXML.elements("rotation");
 				actorScale = String(actorXML.elements("scale")).split(",");
 				actorLayer = actorXML.elements("layer");
-				actorInternalCollision = actorXML.elements("internalCollision") == "true";    // TODO: implement
-				actorCache = actorXML.elements("cache") == "true";
+				actorInternalCollision = actorXML.elements("internalCollision") == "true";
 
 				actor = BBNode.getFromCache(actorAlias);
 				actor.transform.setPositionAndRotation(actorPosition[0], actorPosition[1], actorRotation);
 				actor.transform.setScale(actorScale[0], actorScale[1]);
-				if (actor.isComponentExist(BBPhysicsBody)) (actor.getComponent(BBPhysicsBody) as BBPhysicsBody).type = BBLevelParser.bodyTypeTable[actorType];
+
+				if (actor.isComponentExist(BBPhysicsBody))
+				{
+					var physicsComponent:BBPhysicsBody = actor.getComponent(BBPhysicsBody) as BBPhysicsBody;
+					physicsComponent.type = BBLevelParser.bodyTypeTable[actorType];
+					physicsComponent.childrenCollision = actorInternalCollision;
+				}
 
 				_world.add(actor, actorLayer);
-
-				if (!actorCache) BBNode.removeCache(actorAlias);
 			}
 		}
 	}

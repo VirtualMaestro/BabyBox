@@ -75,16 +75,10 @@ package bb.parsers
 						actorXML.scale = child.scaleX + "," + child.scaleY;
 						actorXML.layer = String(child.layerName).toLowerCase();
 						actorXML.internalCollision = child.isCollisionInternalActors;
-						actorXML.cache = child.cache;
 						actorsListXML.appendChild(actorXML);
 
 						break;
 					}
-
-//					case "":
-//					{
-//						break;
-//					}
 
 //					case "worlds::WorldScheme":
 //					{
@@ -98,6 +92,13 @@ package bb.parsers
 
 			return levelXML;
 		}
+
+		//
+		static private var parserHandlersTable:Array = [];
+		parserHandlersTable["graphics::GraphicsScheme"] = graphicsHandler;
+		parserHandlersTable["shapes::BaseShapeScheme"] = shapesHandler;
+		parserHandlersTable["shapes::BoxShapeScheme"] = shapesHandler;
+		parserHandlersTable["shapes::CircleShapeScheme"] = shapesHandler;
 
 		/**
 		 */
@@ -173,6 +174,33 @@ package bb.parsers
 
 		/**
 		 */
+		static private function graphicsHandler(p_graphics:MovieClip, p_actorScheme:MovieClip, p_actor:BBNode):void
+		{
+			var renderableComponent:BBRenderable = parseGraphics(p_graphics);
+			renderableComponent.allowRotation = p_actorScheme.graphicsRotation;
+			p_actor.addComponent(renderableComponent);
+		}
+
+		/**
+		 */
+		static private function shapesHandler(p_shape:MovieClip, p_actorScheme:MovieClip, p_actor:BBNode):void
+		{
+			var body:BBPhysicsBody;
+			if (!p_actor.isComponentExist(BBPhysicsBody))
+			{
+				body = BBPhysicsBody.get(bodyTypeTable[p_actorScheme.actorType]);
+				body.body.allowMovement = p_actorScheme.allowMovement;
+				body.body.allowRotation = p_actorScheme.allowRotation;
+				body.allowHand = p_actorScheme.useHand;
+				p_actor.addComponent(body);
+			}
+			else body = p_actor.getComponent(BBPhysicsBody) as BBPhysicsBody;
+
+			body.addShape(parseShape(p_shape));
+		}
+
+		/**
+		 */
 		[Inline]
 		static private function parseGraphics(p_graphics:MovieClip):BBRenderable
 		{
@@ -203,6 +231,7 @@ package bb.parsers
 
 		/**
 		 */
+		[Inline]
 		static private function parseShape(p_shape:MovieClip):Shape
 		{
 			// init material
