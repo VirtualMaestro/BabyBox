@@ -19,6 +19,7 @@ package bb.components.physics
 	import nape.constraint.PivotJoint;
 
 	import nape.dynamics.InteractionFilter;
+	import nape.dynamics.InteractionGroup;
 	import nape.geom.Vec2;
 	import nape.geom.Vec2Iterator;
 	import nape.geom.Vec2List;
@@ -80,6 +81,11 @@ package bb.components.physics
 		private var _thisJoints:Vector.<BBJoint>;
 		private var _attachedJoints:Vector.<BBJoint>;
 		private var _initJointList:Vector.<BBJoint>;
+
+		/**
+		 */
+		private var _childrenCollision:Boolean = true;
+		private var _group:InteractionGroup;
 
 		/**
 		 */
@@ -153,6 +159,14 @@ package bb.components.physics
 				_body.rotation = _transform.worldRotation;
 				_body.space = _space;
 				_lock = false;
+
+				// if parent has physics component, add to it group
+				var parentNode:BBNode = node.parent;
+				if (parentNode && parentNode.isComponentExist(BBPhysicsBody))
+				{
+					var physicsComponent:BBPhysicsBody = parentNode.getComponent(BBPhysicsBody) as BBPhysicsBody;
+					if (!physicsComponent.childrenCollision) _body.group = physicsComponent._group;
+				}
 			}
 		}
 
@@ -181,6 +195,7 @@ package bb.components.physics
 			activateJoints = false;
 			_transform.independentUpdateWorldParameters = false;
 			_body.space = null;
+			_body.group = null;
 			_lock = true;
 		}
 
@@ -189,6 +204,49 @@ package bb.components.physics
 		private function onNodeActiveHandler(p_signal:BBSignal):void
 		{
 			active = p_signal.params;
+		}
+
+		/**
+		 * if 'false' this component and children physics components are not collided.
+		 * By default 'true'.
+		 */
+		public function set childrenCollision(p_val:Boolean):void
+		{
+			if (_childrenCollision == p_val) return;
+			_childrenCollision = p_val;
+
+			if (_childrenCollision) _group.ignore = false;
+			else
+			{
+				if (!_group)
+				{
+					_group = new InteractionGroup(true);
+					_body.group = _group;
+					addChildrenToGroup();
+				}
+			}
+		}
+
+		/**
+		 */
+		public function get childrenCollision():Boolean
+		{
+			return _childrenCollision;
+		}
+
+		/**
+		 */
+		private function addChildrenToGroup():void
+		{
+			if (node)
+			{
+				var child:BBNode = node.childrenHead;
+				while(child)
+				{
+					if (child.isComponentExist(BBPhysicsBody)) (child.getComponent(BBPhysicsBody) as BBPhysicsBody).body.group = _group;
+					child = child.next;
+				}
+			}
 		}
 
 		/**
