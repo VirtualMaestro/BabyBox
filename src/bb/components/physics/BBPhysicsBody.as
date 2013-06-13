@@ -164,8 +164,9 @@ package bb.components.physics
 				var parentNode:BBNode = node.parent;
 				if (parentNode && parentNode.isComponentExist(BBPhysicsBody))
 				{
-					var physicsComponent:BBPhysicsBody = parentNode.getComponent(BBPhysicsBody) as BBPhysicsBody;
-					if (!physicsComponent.childrenCollision) _body.group = physicsComponent._group;
+					var parentPhysicsComponent:BBPhysicsBody = parentNode.getComponent(BBPhysicsBody) as BBPhysicsBody;
+					if (!parentPhysicsComponent.childrenCollision) _body.group = parentPhysicsComponent._group;
+					_body.isBullet = parentPhysicsComponent.isBullet;
 				}
 			}
 		}
@@ -247,6 +248,31 @@ package bb.components.physics
 					child = child.next;
 				}
 			}
+		}
+
+		/**
+		 */
+		public function set isBullet(p_val:Boolean):void
+		{
+			if (_body.isBullet == p_val) return;
+			_body.isBullet = p_val;
+
+			if (node && node.isOnStage)
+			{
+				var child:BBNode = node.childrenHead;
+				while(child)
+				{
+					if (child.isComponentExist(BBPhysicsBody)) (child.getComponent(BBPhysicsBody) as BBPhysicsBody).isBullet = p_val;
+					child = child.next;
+				}
+			}
+		}
+
+		/**
+		 */
+		public function get isBullet():Boolean
+		{
+			return _body.isBullet;
 		}
 
 		/**

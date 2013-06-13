@@ -81,7 +81,7 @@ package bb.parsers
 				childSuperClassName = getQualifiedSuperclassName(child);
 
 				handler = externalHandlersTable[childSuperClassName];
-				if (handler) handler(child);
+				if (handler != null) handler(child);
 			}
 
 			return _currentLevel;
@@ -136,6 +136,7 @@ package bb.parsers
 				body.body.allowMovement = p_actorScheme.allowMovement;
 				body.body.allowRotation = p_actorScheme.allowRotation;
 				body.allowHand = p_actorScheme.useHand;
+				body.isBullet = p_actorScheme.isBullet;
 				p_actor.addComponent(body);
 			}
 			else body = p_actor.getComponent(BBPhysicsBody) as BBPhysicsBody;
@@ -184,7 +185,7 @@ package bb.parsers
 				child = p_actorScheme.getChildAt(i) as MovieClip;
 				childSuperClassName = getQualifiedSuperclassName(child);
 				handler = internalHandlersTable[childSuperClassName];
-				if (handler) handler(child, p_actorScheme, node);
+				if (handler != null) handler(child, p_actorScheme, node);
 			}
 
 			return node;
