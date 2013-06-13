@@ -166,7 +166,7 @@ package bb.components.physics
 				{
 					var parentPhysicsComponent:BBPhysicsBody = parentNode.getComponent(BBPhysicsBody) as BBPhysicsBody;
 					if (!parentPhysicsComponent.childrenCollision) _body.group = parentPhysicsComponent._group;
-					_body.isBullet = parentPhysicsComponent.isBullet;
+					if (parentPhysicsComponent.isBullet) _body.isBullet = parentPhysicsComponent.isBullet;
 				}
 			}
 		}
