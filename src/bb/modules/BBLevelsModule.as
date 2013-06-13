@@ -19,6 +19,9 @@ package bb.modules
 	public class BBLevelsModule extends BBModule
 	{
 		//
+		private var _onLevelComplete:BBSignal;
+
+		//
 		private var _levelsCache:Dictionary;
 		private var _world:BBWorldModule;
 
@@ -88,6 +91,18 @@ package bb.modules
 
 				_world.add(actor, actorLayer);
 			}
+
+			//
+			if (_onLevelComplete) _onLevelComplete.dispatch();
+		}
+
+		/**
+		 * Dispatches when level constructed.
+		 */
+		public function get onLevelComplete():BBSignal
+		{
+			if (!_onLevelComplete) _onLevelComplete = BBSignal.get(this);
+			return _onLevelComplete;
 		}
 	}
 }
