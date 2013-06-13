@@ -5,14 +5,18 @@
  */
 package bb.modules
 {
+	import bb.bb_spaces.bb_private;
 	import bb.common.BBLayer;
 	import bb.components.BBCamera;
 	import bb.constants.layers.BBLayerNames;
 	import bb.constants.profiles.BBGameType;
 	import bb.core.BBConfig;
 	import bb.core.BBNode;
+	import bb.core.BBNode;
 	import bb.core.BabyBox;
 	import bb.signals.BBSignal;
+
+	use namespace bb_private;
 
 	CONFIG::debug
 	{
@@ -72,6 +76,14 @@ package bb.modules
 		public function remove(p_actor:BBNode):void
 		{
 			// TODO:
+		}
+
+		/**
+		 */
+		public function getActorByName(p_actorName:String, p_layerName:String = ""):BBNode
+		{
+			var node:BBNode = p_layerName == "" ? _layerManager.root : _layerManager.get(p_layerName).node;
+			return node.getChildByName(p_actorName);
 		}
 
 		/**

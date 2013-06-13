@@ -145,5 +145,12 @@ package bb.modules
 			_layersTable = null;
 			_graph = null;
 		}
+
+		/**
+		 */
+		bb_private function get root():BBNode
+		{
+			return _root;
+		}
 	}
 }
