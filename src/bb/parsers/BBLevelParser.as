@@ -32,10 +32,25 @@ package bb.parsers
 	 */
 	public class BBLevelParser
 	{
+		//
 		static public var bodyTypeTable:Array = [];
 		bodyTypeTable["STATIC"] = BodyType.STATIC;
 		bodyTypeTable["DYNAMIC"] = BodyType.DYNAMIC;
 		bodyTypeTable["KINEMATIC"] = BodyType.KINEMATIC;
+
+		//
+		static private var externalHandlersTable:Array = [];
+		externalHandlersTable["actors::ActorScheme"] = externalActorHandler;
+
+		//
+		static private var internalHandlersTable:Array = [];
+		internalHandlersTable["graphics::GraphicsScheme"] = internalGraphicsHandler;
+		internalHandlersTable["shapes::BoxShapeScheme"] = internalShapesHandler;
+		internalHandlersTable["shapes::CircleShapeScheme"] = internalShapesHandler;
+		internalHandlersTable["actors::ActorScheme"] = internalActorHandler;
+
+		//
+		static private var _currentLevel:XML;
 
 		/**
 		 */
@@ -44,137 +59,49 @@ package bb.parsers
 			var levelAlias:String = getQualifiedClassName(p_levelSWF);
 			var numChildren:int = p_levelSWF.numChildren;
 
-			var levelXML:XML = <level alias={levelAlias}/>;
-			var actorsListXML:XML = <actors/>;
+			_currentLevel = <level alias={levelAlias}/>;
 
 			var child:MovieClip;
-			var childClassName:String;
 			var childSuperClassName:String;
 
 			for (var i:int = 0; i < numChildren; i++)
 			{
 				child = p_levelSWF.getChildAt(i) as MovieClip;
-				childClassName = getQualifiedClassName(child);
 				childSuperClassName = getQualifiedSuperclassName(child);
 
-				switch (childSuperClassName)
-				{
-					case "actors::ActorScheme":
-					{
-						if (!BBNode.isCacheExist(childClassName))
-						{
-							var actorPattern:BBNode = parseActor(child);
-							BBNode.addCache(actorPattern, childClassName);
-						}
-
-						var actorXML:XML = <actor/>;
-						actorXML.alias = childClassName;
-						actorXML.type = child.actorType;
-						actorXML.position = child.x + "," + child.y;
-						actorXML.rotation = child.rotation * TrigUtil.DEG_TO_RAD;
-						actorXML.scale = child.scaleX + "," + child.scaleY;
-						actorXML.layer = String(child.layerName).toLowerCase();
-						actorXML.internalCollision = child.isCollisionInternalActors;
-						actorsListXML.appendChild(actorXML);
-
-						break;
-					}
-
-//					case "worlds::WorldScheme":
-//					{
-//						break;
-//					}
-				}
+				externalHandlersTable[childSuperClassName](child);
 			}
 
-			levelXML.appendChild(actorsListXML);
-			trace(levelXML.toXMLString());
-
-			return levelXML;
+			return _currentLevel;
 		}
-
-		//
-		static private var parserHandlersTable:Array = [];
-		parserHandlersTable["graphics::GraphicsScheme"] = graphicsHandler;
-		parserHandlersTable["shapes::BaseShapeScheme"] = shapesHandler;
-		parserHandlersTable["shapes::BoxShapeScheme"] = shapesHandler;
-		parserHandlersTable["shapes::CircleShapeScheme"] = shapesHandler;
 
 		/**
 		 */
-		static private function parseActor(p_actor:MovieClip):BBNode
+		static private function externalActorHandler(p_actorScheme:MovieClip):void
 		{
-			var numChildren:int = p_actor.numChildren;
-			var child:MovieClip;
-			var childSuperClassName:String;
-			var node:BBNode = BBNode.get(p_actor.actorName);
-			node.transform.setPositionAndRotation(p_actor.x, p_actor.y, p_actor.rotation * TrigUtil.DEG_TO_RAD);
-			node.transform.setScale(p_actor.scaleX, p_actor.scaleY);
+			var className:String = getQualifiedClassName(p_actorScheme);
+			if (!BBNode.isCacheExist(className)) BBNode.addCache(internalActorHandler(p_actorScheme, null, null), className);
 
-			var sameTypeForChildren:Boolean = p_actor.sameTypeForChildren;
-			var body:BBPhysicsBody;
-			var bodyType:BodyType = bodyTypeTable[p_actor.actorType];
+			var actorXML:XML = <actor/>;
+			actorXML.alias = className;
+			actorXML.type = p_actorScheme.actorType;
+			actorXML.position = p_actorScheme.x + "," + p_actorScheme.y;
+			actorXML.rotation = p_actorScheme.rotation * TrigUtil.DEG_TO_RAD;
+			actorXML.scale = p_actorScheme.scaleX + "," + p_actorScheme.scaleY;
+			actorXML.layer = String(p_actorScheme.layerName).toLowerCase();
+			actorXML.internalCollision = p_actorScheme.isCollisionInternalActors;
 
-			for (var i:int = 0; i < numChildren; i++)
+			if (!_currentLevel.hasOwnProperty("actors"))
 			{
-				child = p_actor.getChildAt(i) as MovieClip;
-				childSuperClassName = getQualifiedSuperclassName(child);
-
-				switch (childSuperClassName)
-				{
-					case "graphics::GraphicsScheme":
-					{
-						var renderableComponent:BBRenderable = parseGraphics(child);
-						renderableComponent.allowRotation = p_actor.graphicsRotation;
-						node.addComponent(renderableComponent);
-						break;
-					}
-
-					case "shapes::BaseShapeScheme":
-					case "shapes::BoxShapeScheme":
-					case "shapes::CircleShapeScheme":
-					{
-						if (body == null)
-						{
-							body = BBPhysicsBody.get(bodyType);
-							body.body.allowMovement = p_actor.allowMovement;
-							body.body.allowRotation = p_actor.allowRotation;
-							body.allowHand = p_actor.useHand;
-							node.addComponent(body);
-						}
-
-						body.addShape(parseShape(child));
-						break;
-					}
-
-					case "actors::ActorScheme":
-					{
-						if (sameTypeForChildren)
-						{
-							child.sameTypeForChildren = true;
-							child.actorType = p_actor.actorType;
-						}
-
-						node.addChild(parseActor(child));
-						break;
-					}
-
-					default :
-					{
-						if (childSuperClassName.indexOf("joint"))
-						{
-
-						}
-					}
-				}
+				_currentLevel.actors = <actors/>;
 			}
 
-			return node;
+			_currentLevel.actors.appendChild(actorXML);
 		}
 
 		/**
 		 */
-		static private function graphicsHandler(p_graphics:MovieClip, p_actorScheme:MovieClip, p_actor:BBNode):void
+		static private function internalGraphicsHandler(p_graphics:MovieClip, p_actorScheme:MovieClip, p_actor:BBNode):void
 		{
 			var renderableComponent:BBRenderable = parseGraphics(p_graphics);
 			renderableComponent.allowRotation = p_actorScheme.graphicsRotation;
@@ -183,7 +110,7 @@ package bb.parsers
 
 		/**
 		 */
-		static private function shapesHandler(p_shape:MovieClip, p_actorScheme:MovieClip, p_actor:BBNode):void
+		static private function internalShapesHandler(p_shape:MovieClip, p_actorScheme:MovieClip, p_actor:BBNode):void
 		{
 			var body:BBPhysicsBody;
 			if (!p_actor.isComponentExist(BBPhysicsBody))
@@ -197,6 +124,51 @@ package bb.parsers
 			else body = p_actor.getComponent(BBPhysicsBody) as BBPhysicsBody;
 
 			body.addShape(parseShape(p_shape));
+		}
+
+		/**
+		 */
+		static private function internalActorHandler(p_actorScheme:MovieClip, p_parentActorScheme:MovieClip, p_parentActor:BBNode):BBNode
+		{
+			var childActor:BBNode;
+			if (p_parentActor)
+			{
+				var sameType:Boolean = p_parentActorScheme.sameTypeForChildren;
+				if (sameType)
+				{
+					(p_actorScheme as Object).sameTypeForChildren = sameType;
+					(p_actorScheme as Object).actorType = p_parentActorScheme.actorType;
+				}
+
+				childActor = parseActor(p_actorScheme);
+				p_parentActor.addChild(childActor);
+			}
+			else childActor = parseActor(p_actorScheme);
+
+			return childActor;
+		}
+
+		/**
+		 */
+		[Inline]
+		static private function parseActor(p_actorScheme:MovieClip):BBNode
+		{
+			var node:BBNode = BBNode.get(p_actorScheme.actorName);
+			node.transform.setPositionAndRotation(p_actorScheme.x, p_actorScheme.y, p_actorScheme.rotation * TrigUtil.DEG_TO_RAD);
+			node.transform.setScale(p_actorScheme.scaleX, p_actorScheme.scaleY);
+
+			var numChildren:int = p_actorScheme.numChildren;
+			var child:MovieClip;
+			var childSuperClassName:String;
+
+			for (var i:int = 0; i < numChildren; i++)
+			{
+				child = p_actorScheme.getChildAt(i) as MovieClip;
+				childSuperClassName = getQualifiedSuperclassName(child);
+				internalHandlersTable[childSuperClassName](child, p_actorScheme, node);
+			}
+
+			return node;
 		}
 
 		/**
