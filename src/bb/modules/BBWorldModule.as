@@ -12,16 +12,10 @@ package bb.modules
 	import bb.constants.profiles.BBGameType;
 	import bb.core.BBConfig;
 	import bb.core.BBNode;
-	import bb.core.BBNode;
 	import bb.core.BabyBox;
 	import bb.signals.BBSignal;
 
 	use namespace bb_private;
-
-	CONFIG::debug
-	{
-		import vm.debug.Assert;
-	}
 
 	/**
 	 * Module represent world - main point to add actors (nodes) to world (scene).
@@ -99,9 +93,9 @@ package bb.modules
 					var cameraFront:BBCamera = BBCamera.get(BBLayerNames.FRONTEND);
 
 					main.mouseEnable = true;
-					main.node.transform.setPosition(_config.appWidth/2, _config.appHeight/2);
-					cameraBack.node.transform.setPosition(_config.appWidth/2, _config.appHeight/2);
-					cameraFront.node.transform.setPosition(_config.appWidth/2, _config.appHeight/2);
+					main.node.transform.setPosition(_config.appWidth / 2, _config.appHeight / 2);
+					cameraBack.node.transform.setPosition(_config.appWidth / 2, _config.appHeight / 2);
+					cameraFront.node.transform.setPosition(_config.appWidth / 2, _config.appHeight / 2);
 
 					cameraBack.dependOnCamera(main, 0.5, 0.5, 0.5);
 					cameraFront.dependOnCamera(main, 1.5, 1.5, 0.8);
