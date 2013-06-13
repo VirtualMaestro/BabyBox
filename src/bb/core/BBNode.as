@@ -483,25 +483,23 @@ package bb.core
 		 */
 		public function getChildByName(p_childName:String):BBNode
 		{
-			var child:BBNode;
 			if (_numChildren > 0)
 			{
+				var child:BBNode;
 				var node:BBNode = childrenHead;
 				while (node)
 				{
-					if (node._name == p_childName)
-					{
-						child = node;
-						break;
-					}
+					if (node._name == p_childName) return node;
 
+					// find in children
 					child = node.getChildByName(p_childName);
+					if (child) return child;
 
 					node = node.next;
 				}
 			}
 
-			return child;
+			return null;
 		}
 
 		/**
