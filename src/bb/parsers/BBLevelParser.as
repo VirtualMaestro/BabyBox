@@ -162,12 +162,14 @@ package bb.parsers
 			var numChildren:int = p_actorScheme.numChildren;
 			var child:MovieClip;
 			var childSuperClassName:String;
+			var handler:Function;
 
 			for (var i:int = 0; i < numChildren; i++)
 			{
 				child = p_actorScheme.getChildAt(i) as MovieClip;
 				childSuperClassName = getQualifiedSuperclassName(child);
-				internalHandlersTable[childSuperClassName](child, p_actorScheme, node);
+				handler = internalHandlersTable[childSuperClassName];
+				if (handler) handler(child, p_actorScheme, node);
 			}
 
 			return node;
