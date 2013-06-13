@@ -10,6 +10,7 @@ package bb.parsers
 	import bb.components.renderable.BBMovieClip;
 	import bb.components.renderable.BBRenderable;
 	import bb.core.BBNode;
+	import bb.signals.BBSignal;
 	import bb.tools.physics.BBPhysicalMaterials;
 
 	import flash.display.MovieClip;
@@ -32,6 +33,15 @@ package bb.parsers
 	 */
 	public class BBLevelParser
 	{
+		/**
+		 * Signal dispatches when some type of actor was parsed.
+		 * It could be useful when need make some modifications for current type of actor (e.g. add additional components).
+		 * Sends two parameters: class name of actor and actor itself (BBNode):
+		 *  - signal.params.className;
+		 *  - signal.params.actor;
+		 */
+		static public var onActorParsed:BBSignal = BBSignal.get();
+
 		//
 		static public var bodyTypeTable:Array = [];
 		bodyTypeTable["STATIC"] = BodyType.STATIC;
@@ -82,7 +92,12 @@ package bb.parsers
 		static private function externalActorHandler(p_actorScheme:MovieClip):void
 		{
 			var className:String = getQualifiedClassName(p_actorScheme);
-			if (!BBNode.isCacheExist(className)) BBNode.addCache(internalActorHandler(p_actorScheme, null, null), className);
+			if (!BBNode.isCacheExist(className))
+			{
+				var actor:BBNode = internalActorHandler(p_actorScheme, null, null);
+				onActorParsed.dispatch({className: className, actor: actor});
+				BBNode.addCache(actor, className);
+			}
 
 			var actorXML:XML = <actor/>;
 			actorXML.alias = className;
