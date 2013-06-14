@@ -55,8 +55,8 @@ package bb.components.physics.joints
 		static private function distanceJoint(p_joint:BBJoint):DistanceJoint
 		{
 			var distanceJoint:DistanceJoint = new DistanceJoint(p_joint.thisBody, p_joint.jointedBody, p_joint.thisAnchor, p_joint.jointedAnchor, p_joint.jointMin, p_joint.jointMax);
-			distanceJoint.jointMin = p_joint.jointMin;
-			distanceJoint.jointMax = p_joint.jointMax;
+//			distanceJoint.jointMin = p_joint.jointMin;
+//			distanceJoint.jointMax = p_joint.jointMax;
 			setBaseSettings(distanceJoint, p_joint);
 			p_joint.joint = distanceJoint;
 
@@ -68,9 +68,9 @@ package bb.components.physics.joints
 		static private function lineJoint(p_joint:BBJoint):LineJoint
 		{
 			var lineJoint:LineJoint = new LineJoint(p_joint.thisBody, p_joint.jointedBody, p_joint.thisAnchor, p_joint.jointedAnchor, p_joint.direction, p_joint.jointMin, p_joint.jointMax);
-			lineJoint.jointMin = p_joint.jointMin;
-			lineJoint.jointMax = p_joint.jointMax;
-			lineJoint.direction = p_joint.direction;
+//			lineJoint.jointMin = p_joint.jointMin;
+//			lineJoint.jointMax = p_joint.jointMax;
+//			lineJoint.direction = p_joint.direction;
 			setBaseSettings(lineJoint, p_joint);
 			p_joint.joint = lineJoint;
 
@@ -82,7 +82,7 @@ package bb.components.physics.joints
 		static private function weldJoint(p_joint:BBJoint):WeldJoint
 		{
 			var weldJoint:WeldJoint = new WeldJoint(p_joint.thisBody, p_joint.jointedBody, p_joint.thisAnchor, p_joint.jointedAnchor, p_joint.phase);
-			weldJoint.phase = p_joint.phase;
+//			weldJoint.phase = p_joint.phase;
 			setBaseSettings(weldJoint, p_joint);
 			p_joint.joint = weldJoint;
 
@@ -94,9 +94,9 @@ package bb.components.physics.joints
 		static private function angleJoint(p_joint:BBJoint):AngleJoint
 		{
 			var angleJoint:AngleJoint = new AngleJoint(p_joint.thisBody, p_joint.jointedBody, p_joint.jointMin, p_joint.jointMax, p_joint.ratio);
-			angleJoint.jointMin = p_joint.jointMin;
-			angleJoint.jointMax = p_joint.jointMax;
-			angleJoint.ratio = p_joint.ratio;
+//			angleJoint.jointMin = p_joint.jointMin;
+//			angleJoint.jointMax = p_joint.jointMax;
+//			angleJoint.ratio = p_joint.ratio;
 			setBaseSettings(angleJoint, p_joint);
 			p_joint.joint = angleJoint;
 
@@ -108,8 +108,8 @@ package bb.components.physics.joints
 		static private function motorJoint(p_joint:BBJoint):MotorJoint
 		{
 			var motorJoint:MotorJoint = new MotorJoint(p_joint.thisBody, p_joint.jointedBody, p_joint.rate, p_joint.ratio);
-			motorJoint.rate = p_joint.rate;
-			motorJoint.ratio = p_joint.ratio;
+//			motorJoint.rate = p_joint.rate;
+//			motorJoint.ratio = p_joint.ratio;
 			setBaseSettings(motorJoint, p_joint);
 			p_joint.joint = motorJoint;
 
