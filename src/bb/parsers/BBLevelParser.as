@@ -67,8 +67,8 @@ package bb.parsers
 		internalHandlersTable["joints::PivotJointScheme"] = internalPivotHandler;
 		internalHandlersTable["joints::DistanceJointScheme"] = internalDistanceHandler;
 		internalHandlersTable["joints::WeldJointScheme"] = internalWeldHandler;
+		internalHandlersTable["joints::LineJointScheme"] = internalLineHandler;
 //		internalHandlersTable["joints::AngleJointScheme"] = internalActorHandler;
-//		internalHandlersTable["joints::LineJointScheme"] = internalActorHandler;
 //		internalHandlersTable["joints::MotorJointScheme"] = internalActorHandler;
 
 		//
@@ -220,6 +220,33 @@ package bb.parsers
 			var jointMinMax:Array = p_distanceScheme.jointMinMax;
 			var distanceJoint:BBJoint = BBJoint.distanceJoint(jointedActorName, ownerAnchor, jointedAnchor, jointMinMax[0], jointMinMax[1]);
 			parseBaseJointProps(p_distanceScheme, distanceJoint);
+
+			(p_parentActor.getComponent(BBPhysicsBody) as BBPhysicsBody).addJoint(distanceJoint);
+		}
+
+		/**
+		 */
+		static private function internalLineHandler(p_lineScheme:MovieClip, p_actorScheme:MovieClip, p_parentActor:BBNode):void
+		{
+			var jointName:String = p_lineScheme.jointName;
+			var jointedActorName:String = StringUtil.trim(p_lineScheme.jointedActorName);
+
+			var ownerAnchor:Vec2 = Vec2.weak(p_lineScheme.x, p_lineScheme.y);
+			var jointedActor:MovieClip = findInternalActor(jointedActorName, p_actorScheme);
+			var endJoint:MovieClip = findEndJoint(jointName, p_actorScheme);
+
+			CONFIG::debug
+			{
+				Assert.isTrue(jointedActor != null, "Internal actor with name '" + jointedActorName + "' doesn't exist. Error in joint's options", "BBLevelParser.internalDistanceHandler");
+				Assert.isTrue(endJoint != null, "End joint with name '" + jointName + "' couldn't find. Maybe forgotten to put it", "BBLevelParser.internalDistanceHandler");
+			}
+
+			var jointedAnchor:Vec2 = jointedActorName == "" ? null : getLocalPosition(endJoint, jointedActor);
+			var jointMinMax:Array = p_lineScheme.jointMinMax;
+			var radRotation:Number = p_lineScheme.rotation*TrigUtil.DEG_TO_RAD;
+			var direction:Vec2 = Vec2.weak(Math.cos(radRotation), Math.sin(radRotation));
+			var distanceJoint:BBJoint = BBJoint.lineJoint(jointedActorName, ownerAnchor, jointedAnchor, direction, jointMinMax[0], jointMinMax[1]);
+			parseBaseJointProps(p_lineScheme, distanceJoint);
 
 			(p_parentActor.getComponent(BBPhysicsBody) as BBPhysicsBody).addJoint(distanceJoint);
 		}
