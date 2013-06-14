@@ -7,15 +7,18 @@ package bb.parsers
 {
 	import bb.assets.BBAssetsManager;
 	import bb.components.physics.BBPhysicsBody;
+	import bb.components.physics.joints.BBJoint;
 	import bb.components.renderable.BBMovieClip;
 	import bb.components.renderable.BBRenderable;
 	import bb.core.BBNode;
+	import bb.pools.BBNativePool;
 	import bb.signals.BBSignal;
 	import bb.tools.physics.BBPhysicalMaterials;
 
+	import flash.display.DisplayObject;
 	import flash.display.MovieClip;
+	import flash.geom.Point;
 	import flash.utils.getQualifiedClassName;
-	import flash.utils.getQualifiedSuperclassName;
 
 	import nape.dynamics.InteractionFilter;
 	import nape.geom.Vec2;
@@ -27,7 +30,9 @@ package bb.parsers
 	import nape.shape.Shape;
 
 	import vm.classes.ClassUtil;
+	import vm.debug.Assert;
 	import vm.math.trigonometry.TrigUtil;
+	import vm.str.StringUtil;
 
 	/**
 	 */
@@ -59,6 +64,13 @@ package bb.parsers
 		internalHandlersTable["shapes::CircleShapeScheme"] = internalShapesHandler;
 		internalHandlersTable["actors::ActorScheme"] = internalActorHandler;
 
+		internalHandlersTable["joints::PivotJointScheme"] = internalPivotHandler;
+		internalHandlersTable["joints::DistanceJointScheme"] = internalDistanceHandler;
+//		internalHandlersTable["joints::AngleJointScheme"] = internalActorHandler;
+//		internalHandlersTable["joints::LineJointScheme"] = internalActorHandler;
+//		internalHandlersTable["joints::MotorJointScheme"] = internalActorHandler;
+//		internalHandlersTable["joints::WeldJointScheme"] = internalActorHandler;
+
 		//
 		static private var _currentLevel:XML;
 
@@ -78,7 +90,7 @@ package bb.parsers
 			for (var i:int = 0; i < numChildren; i++)
 			{
 				child = p_levelSWF.getChildAt(i) as MovieClip;
-				childSuperClassName = getQualifiedSuperclassName(child);
+				childSuperClassName = child.className; //getQualifiedSuperclassName(child);
 
 				handler = externalHandlersTable[childSuperClassName];
 				if (handler != null) handler(child);
@@ -168,6 +180,116 @@ package bb.parsers
 
 		/**
 		 */
+		static private function internalPivotHandler(p_pivotScheme:MovieClip, p_actorScheme:MovieClip, p_parentActor:BBNode):void
+		{
+			var jointedActorName:String = StringUtil.trim(p_pivotScheme.jointedActorName);
+			var ownerAnchor:Vec2 = Vec2.weak(p_pivotScheme.x, p_pivotScheme.y);
+			var jointedActor:MovieClip = findInternalActor(jointedActorName, p_actorScheme);
+
+			CONFIG::debug
+			{
+				Assert.isTrue(jointedActor != null, "Internal actor with name '" + jointedActorName + "' doesn't exist. Error in joint's options", "BBLevelParser.internalPivotHandler");
+			}
+
+			var jointedAnchor:Vec2 = jointedActorName == "" ? null : getLocalPosition(p_pivotScheme, jointedActor);
+
+			var pivotJoint:BBJoint = BBJoint.pivotJoint(jointedActorName, ownerAnchor, jointedAnchor);
+			parseBaseJointProps(p_pivotScheme, pivotJoint);
+
+			(p_parentActor.getComponent(BBPhysicsBody) as BBPhysicsBody).addJoint(pivotJoint);
+		}
+
+		/**
+		 */
+		static private function internalDistanceHandler(p_distanceScheme:MovieClip, p_actorScheme:MovieClip, p_parentActor:BBNode):void
+		{
+			var jointName:String = p_distanceScheme.jointName;
+			var jointedActorName:String = StringUtil.trim(p_distanceScheme.jointedActorName);
+
+			var ownerAnchor:Vec2 = Vec2.weak(p_distanceScheme.x, p_distanceScheme.y);
+			var jointedActor:MovieClip = findInternalActor(jointedActorName, p_actorScheme);
+			var endJoint:MovieClip = findEndJoint(jointName, p_actorScheme);
+
+			var jointedAnchor:Vec2 = jointedActorName == "" ? null : getLocalPosition(endJoint, jointedActor);
+			var jointMinMax:Array = p_distanceScheme.jointMinMax;
+			var distanceJoint:BBJoint = BBJoint.distanceJoint(jointedActorName, ownerAnchor, jointedAnchor, jointMinMax[0], jointMinMax[1]);
+			parseBaseJointProps(p_distanceScheme, distanceJoint);
+
+			(p_parentActor.getComponent(BBPhysicsBody) as BBPhysicsBody).addJoint(distanceJoint);
+		}
+
+		/**
+		 */
+		static private function parseBaseJointProps(p_jointScheme:MovieClip, p_joint:BBJoint):void
+		{
+			p_joint.name = p_jointScheme.jointName;
+			p_joint.ignore = p_jointScheme.ignore;
+			p_joint.active = p_jointScheme.active;
+			p_joint.stiff = p_jointScheme.stiff;
+			p_joint.frequency = p_jointScheme.frequency;
+			p_joint.damping = p_jointScheme.damping;
+			p_joint.maxForce = p_jointScheme.maxForce;
+			p_joint.maxError = p_jointScheme.maxError;
+			p_joint.removeOnBreak = p_jointScheme.removeOnBreak;
+			p_joint.breakUnderForce = p_jointScheme.breakUnderForce;
+			p_joint.breakUnderError = p_jointScheme.breakUnderError;
+		}
+
+		/**
+		 */
+		static private function findInternalActor(p_actorName:String, p_parentActor:MovieClip):MovieClip
+		{
+			var numChildren:int = p_parentActor.numChildren;
+			var child:DisplayObject;
+			for (var i:int = 0; i < numChildren; i++)
+			{
+				child = p_parentActor.getChildAt(i);
+				if (child.hasOwnProperty("actorName"))
+				{
+					var actor:MovieClip = child as MovieClip;
+					if (actor.actorName == p_actorName) return actor;
+				}
+			}
+
+			return null;
+		}
+
+		/**
+		 */
+		static private function findEndJoint(p_endJointName:String, p_parentActor:MovieClip):MovieClip
+		{
+			var numChildren:int = p_parentActor.numChildren;
+			var child:DisplayObject;
+			for (var i:int = 0; i < numChildren; i++)
+			{
+				child = p_parentActor.getChildAt(i);
+				if (child.hasOwnProperty("jointName") && !child.hasOwnProperty("stiff"))
+				{
+					var actor:MovieClip = child as MovieClip;
+					if (actor.jointName == p_endJointName) return actor;
+				}
+			}
+
+			return null;
+		}
+
+		/**
+		 */
+		static private function getLocalPosition(p_joint:MovieClip, p_actor:MovieClip):Vec2
+		{
+			var localPoint:Point = BBNativePool.getPoint(p_joint.x, p_joint.y);
+			var globalPoint:Point = p_joint.parent.localToGlobal(localPoint);
+			BBNativePool.putPoint(localPoint);
+			localPoint = p_actor.globalToLocal(globalPoint);
+			var localPosition:Vec2 = Vec2.fromPoint(localPoint, true);
+			BBNativePool.putPoint(localPoint);
+			BBNativePool.putPoint(globalPoint);
+
+			return localPosition;
+		}
+
+		/**
+		 */
 		[Inline]
 		static private function parseActor(p_actorScheme:MovieClip):BBNode
 		{
@@ -175,6 +297,7 @@ package bb.parsers
 			node.transform.setPositionAndRotation(p_actorScheme.x, p_actorScheme.y, p_actorScheme.rotation * TrigUtil.DEG_TO_RAD);
 			node.transform.setScale(p_actorScheme.scaleX, p_actorScheme.scaleY);
 
+			var internalJoints:Array;
 			var numChildren:int = p_actorScheme.numChildren;
 			var child:MovieClip;
 			var childSuperClassName:String;
@@ -183,9 +306,30 @@ package bb.parsers
 			for (var i:int = 0; i < numChildren; i++)
 			{
 				child = p_actorScheme.getChildAt(i) as MovieClip;
-				childSuperClassName = getQualifiedSuperclassName(child);
+				childSuperClassName = child.className; //getQualifiedSuperclassName(child);
+
+				if (childSuperClassName.indexOf("joints::") != -1)
+				{
+					if (internalJoints == null) internalJoints = [];
+					internalJoints.push(child);
+					continue;
+				}
+
 				handler = internalHandlersTable[childSuperClassName];
 				if (handler != null) handler(child, p_actorScheme, node);
+			}
+
+			// if internal joints exist
+			if (internalJoints)
+			{
+				var numJoints:int = internalJoints.length;
+				for (i = 0; i < numJoints; i++)
+				{
+					child = internalJoints[i];
+					childSuperClassName = child.className; //getQualifiedSuperclassName(child);
+					handler = internalHandlersTable[childSuperClassName];
+					if (handler != null) handler(child, p_actorScheme, node);
+				}
 			}
 
 			return node;
