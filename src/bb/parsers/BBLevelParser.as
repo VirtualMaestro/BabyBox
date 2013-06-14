@@ -66,10 +66,10 @@ package bb.parsers
 
 		internalHandlersTable["joints::PivotJointScheme"] = internalPivotHandler;
 		internalHandlersTable["joints::DistanceJointScheme"] = internalDistanceHandler;
+		internalHandlersTable["joints::WeldJointScheme"] = internalWeldHandler;
 //		internalHandlersTable["joints::AngleJointScheme"] = internalActorHandler;
 //		internalHandlersTable["joints::LineJointScheme"] = internalActorHandler;
 //		internalHandlersTable["joints::MotorJointScheme"] = internalActorHandler;
-//		internalHandlersTable["joints::WeldJointScheme"] = internalActorHandler;
 
 		//
 		static private var _currentLevel:XML;
@@ -210,12 +210,39 @@ package bb.parsers
 			var jointedActor:MovieClip = findInternalActor(jointedActorName, p_actorScheme);
 			var endJoint:MovieClip = findEndJoint(jointName, p_actorScheme);
 
+			CONFIG::debug
+			{
+				Assert.isTrue(jointedActor != null, "Internal actor with name '" + jointedActorName + "' doesn't exist. Error in joint's options", "BBLevelParser.internalDistanceHandler");
+				Assert.isTrue(endJoint != null, "End jointwith name '" + jointName + "' couldn't find. Maybe forgotten to put it", "BBLevelParser.internalDistanceHandler");
+			}
+
 			var jointedAnchor:Vec2 = jointedActorName == "" ? null : getLocalPosition(endJoint, jointedActor);
 			var jointMinMax:Array = p_distanceScheme.jointMinMax;
 			var distanceJoint:BBJoint = BBJoint.distanceJoint(jointedActorName, ownerAnchor, jointedAnchor, jointMinMax[0], jointMinMax[1]);
 			parseBaseJointProps(p_distanceScheme, distanceJoint);
 
 			(p_parentActor.getComponent(BBPhysicsBody) as BBPhysicsBody).addJoint(distanceJoint);
+		}
+
+		/**
+		 */
+		static private function internalWeldHandler(p_weldScheme:MovieClip, p_actorScheme:MovieClip, p_parentActor:BBNode):void
+		{
+			var jointedActorName:String = StringUtil.trim(p_weldScheme.jointedActorName);
+			var ownerAnchor:Vec2 = Vec2.weak(p_weldScheme.x, p_weldScheme.y);
+			var jointedActor:MovieClip = findInternalActor(jointedActorName, p_actorScheme);
+
+			CONFIG::debug
+			{
+				Assert.isTrue(jointedActor != null, "Internal actor with name '" + jointedActorName + "' doesn't exist. Error in joint's options", "BBLevelParser.internalWeldHandler");
+			}
+
+			var jointedAnchor:Vec2 = jointedActorName == "" ? null : getLocalPosition(p_weldScheme, jointedActor);
+
+			var pivotJoint:BBJoint = BBJoint.weldJoint(jointedActorName, ownerAnchor, jointedAnchor, p_weldScheme.phase*TrigUtil.DEG_TO_RAD);
+			parseBaseJointProps(p_weldScheme, pivotJoint);
+
+			(p_parentActor.getComponent(BBPhysicsBody) as BBPhysicsBody).addJoint(pivotJoint);
 		}
 
 		/**
