@@ -68,8 +68,8 @@ package bb.parsers
 		internalHandlersTable["joints::DistanceJointScheme"] = internalDistanceHandler;
 		internalHandlersTable["joints::WeldJointScheme"] = internalWeldHandler;
 		internalHandlersTable["joints::LineJointScheme"] = internalLineHandler;
+		internalHandlersTable["joints::MotorJointScheme"] = internalMotorHandler;
 //		internalHandlersTable["joints::AngleJointScheme"] = internalActorHandler;
-//		internalHandlersTable["joints::MotorJointScheme"] = internalActorHandler;
 
 		//
 		static private var _currentLevel:XML;
@@ -245,10 +245,10 @@ package bb.parsers
 			var jointMinMax:Array = p_lineScheme.jointMinMax;
 			var radRotation:Number = p_lineScheme.rotation*TrigUtil.DEG_TO_RAD;
 			var direction:Vec2 = Vec2.weak(Math.cos(radRotation), Math.sin(radRotation));
-			var distanceJoint:BBJoint = BBJoint.lineJoint(jointedActorName, ownerAnchor, jointedAnchor, direction, jointMinMax[0], jointMinMax[1]);
-			parseBaseJointProps(p_lineScheme, distanceJoint);
+			var lineJoint:BBJoint = BBJoint.lineJoint(jointedActorName, ownerAnchor, jointedAnchor, direction, jointMinMax[0], jointMinMax[1]);
+			parseBaseJointProps(p_lineScheme, lineJoint);
 
-			(p_parentActor.getComponent(BBPhysicsBody) as BBPhysicsBody).addJoint(distanceJoint);
+			(p_parentActor.getComponent(BBPhysicsBody) as BBPhysicsBody).addJoint(lineJoint);
 		}
 
 		/**
@@ -266,10 +266,21 @@ package bb.parsers
 
 			var jointedAnchor:Vec2 = jointedActorName == "" ? null : getLocalPosition(p_weldScheme, jointedActor);
 
-			var pivotJoint:BBJoint = BBJoint.weldJoint(jointedActorName, ownerAnchor, jointedAnchor, p_weldScheme.phase*TrigUtil.DEG_TO_RAD);
-			parseBaseJointProps(p_weldScheme, pivotJoint);
+			var weldJoint:BBJoint = BBJoint.weldJoint(jointedActorName, ownerAnchor, jointedAnchor, p_weldScheme.phase*TrigUtil.DEG_TO_RAD);
+			parseBaseJointProps(p_weldScheme, weldJoint);
 
-			(p_parentActor.getComponent(BBPhysicsBody) as BBPhysicsBody).addJoint(pivotJoint);
+			(p_parentActor.getComponent(BBPhysicsBody) as BBPhysicsBody).addJoint(weldJoint);
+		}
+
+		/**
+		 */
+		static private function internalMotorHandler(p_motorScheme:MovieClip, p_actorScheme:MovieClip, p_parentActor:BBNode):void
+		{
+			var jointedActorName:String = StringUtil.trim(p_motorScheme.jointedActorName);
+			var motorJoint:BBJoint = BBJoint.motorJoint(jointedActorName, p_motorScheme.rate, p_motorScheme.ratio);
+			parseBaseJointProps(p_motorScheme, motorJoint);
+
+			(p_parentActor.getComponent(BBPhysicsBody) as BBPhysicsBody).addJoint(motorJoint);
 		}
 
 		/**
@@ -293,15 +304,18 @@ package bb.parsers
 		 */
 		static private function findInternalActor(p_actorName:String, p_parentActor:MovieClip):MovieClip
 		{
-			var numChildren:int = p_parentActor.numChildren;
-			var child:DisplayObject;
-			for (var i:int = 0; i < numChildren; i++)
+			if (p_actorName != "")
 			{
-				child = p_parentActor.getChildAt(i);
-				if (child.hasOwnProperty("actorName"))
+				var numChildren:int = p_parentActor.numChildren;
+				var child:DisplayObject;
+				for (var i:int = 0; i < numChildren; i++)
 				{
-					var actor:MovieClip = child as MovieClip;
-					if (actor.actorName == p_actorName) return actor;
+					child = p_parentActor.getChildAt(i);
+					if (child.hasOwnProperty("actorName"))
+					{
+						var actor:MovieClip = child as MovieClip;
+						if (actor.actorName == p_actorName) return actor;
+					}
 				}
 			}
 
