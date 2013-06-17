@@ -69,7 +69,7 @@ package bb.parsers
 		internalHandlersTable["joints::WeldJointScheme"] = internalWeldHandler;
 		internalHandlersTable["joints::LineJointScheme"] = internalLineHandler;
 		internalHandlersTable["joints::MotorJointScheme"] = internalMotorHandler;
-//		internalHandlersTable["joints::AngleJointScheme"] = internalActorHandler;
+		internalHandlersTable["joints::AngleJointScheme"] = internalAngleHandler;
 
 		//
 		static private var _currentLevel:XML;
@@ -270,6 +270,25 @@ package bb.parsers
 			parseBaseJointProps(p_weldScheme, weldJoint);
 
 			(p_parentActor.getComponent(BBPhysicsBody) as BBPhysicsBody).addJoint(weldJoint);
+		}
+
+		/**
+		 */
+		static private function internalAngleHandler(p_angleScheme:MovieClip, p_actorScheme:MovieClip, p_parentActor:BBNode):void
+		{
+			var jointedActorName:String = StringUtil.trim(p_angleScheme.jointedActorName);
+//			var jointedActor:MovieClip = findInternalActor(jointedActorName, p_actorScheme);
+
+//			CONFIG::debug
+//			{
+//				Assert.isTrue(jointedActor != null, "Internal actor with name '" + jointedActorName + "' doesn't exist. Error in joint's options", "BBLevelParser.internalWeldHandler");
+//			}
+
+			var jointMinMax:Array = p_angleScheme.jointMinMax;
+			var angleJoint:BBJoint = BBJoint.angleJoint(jointedActorName, jointMinMax[0], jointMinMax[1], p_angleScheme.ratio);
+			parseBaseJointProps(p_angleScheme, angleJoint);
+
+			(p_parentActor.getComponent(BBPhysicsBody) as BBPhysicsBody).addJoint(angleJoint);
 		}
 
 		/**
