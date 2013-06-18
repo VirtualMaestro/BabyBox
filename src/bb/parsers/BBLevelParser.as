@@ -33,6 +33,9 @@ package bb.parsers
 	import vm.debug.Assert;
 	import vm.math.trigonometry.TrigUtil;
 	import vm.str.StringUtil;
+	import vm.str.StringUtil;
+	import vm.str.StringUtil;
+	import vm.str.StringUtil;
 
 	/**
 	 */
@@ -56,6 +59,12 @@ package bb.parsers
 		//
 		static private var externalHandlersTable:Array = [];
 		externalHandlersTable["actors::ActorScheme"] = externalActorHandler;
+		externalHandlersTable["joints::PivotJointScheme"] = externalJointHandler;
+		externalHandlersTable["joints::DistanceJointScheme"] = externalJointHandler;
+		externalHandlersTable["joints::WeldJointScheme"] = externalJointHandler;
+		externalHandlersTable["joints::LineJointScheme"] = externalJointHandler;
+		externalHandlersTable["joints::MotorJointScheme"] = externalJointHandler;
+		externalHandlersTable["joints::AngleJointScheme"] = externalJointHandler;
 
 		//
 		static private var internalHandlersTable:Array = [];
@@ -71,8 +80,18 @@ package bb.parsers
 		internalHandlersTable["joints::MotorJointScheme"] = internalMotorHandler;
 		internalHandlersTable["joints::AngleJointScheme"] = internalAngleHandler;
 
+		static private var jointsParsersXMLTable:Array = [];
+		jointsParsersXMLTable["joints::PivotJointScheme"] = pivotJointXMLParser;
+//		jointsParsersXMLTable["joints::DistanceJointScheme"] = internalDistanceHandler;
+//		jointsParsersXMLTable["joints::WeldJointScheme"] = internalWeldHandler;
+//		jointsParsersXMLTable["joints::LineJointScheme"] = internalLineHandler;
+//		jointsParsersXMLTable["joints::MotorJointScheme"] = internalMotorHandler;
+//		jointsParsersXMLTable["joints::AngleJointScheme"] = internalAngleHandler;
+
 		//
 		static private var _currentLevel:XML;
+		static private var _externalJoints:Array;
+		static private var _externalActorsSchemes:Array;
 
 		/**
 		 */
@@ -81,7 +100,11 @@ package bb.parsers
 			var levelAlias:String = getQualifiedClassName(p_levelSWF);
 			var numChildren:int = p_levelSWF.numChildren;
 
+			_externalJoints = [];
+			_externalActorsSchemes = [];
+
 			_currentLevel = <level alias={levelAlias}/>;
+			_currentLevel.actors = <actors/>;
 
 			var child:MovieClip;
 			var childSuperClassName:String;
@@ -96,7 +119,85 @@ package bb.parsers
 				if (handler != null) handler(child);
 			}
 
+			// parse external joints
+			var numJoints:int = _externalJoints.length;
+			if (numJoints > 0)
+			{
+				var externalJoints:XML = <externalJoints/>;
+				_currentLevel.appendChild(externalJoints);
+
+				var jointScheme:MovieClip;
+
+				for (i = 0; i < numJoints; i++)
+				{
+					jointScheme = _externalJoints[i];
+					externalJoints.appendChild(jointsParsersXMLTable[jointScheme.className](jointScheme));
+				}
+			}
+
+			_externalJoints.length = 0;
+			_externalJoints = null;
+			_externalActorsSchemes.length = 0;
+			_externalActorsSchemes = null;
+
 			return _currentLevel;
+		}
+
+		/**
+		 */
+		static private function externalJointHandler(p_joint:MovieClip):void
+		{
+			_externalJoints.push(p_joint);
+		}
+
+		/**
+		 */
+		static private function pivotJointXMLParser(p_jointScheme:MovieClip):XML
+		{
+			var ownerActorName:String = StringUtil.trim(p_jointScheme.ownerActorName);
+
+			CONFIG::debug
+			{
+				Assert.isTrue(ownerActorName != "", "owner actor name can't be empty string", "BBLevelParser.pivotJointXMLParser");
+				Assert.isTrue(_externalActorsSchemes[ownerActorName] != null, "owner actor with name '"+ownerActorName+"' doesn't exist", "BBLevelParser.pivotJointXMLParser");
+			}
+
+			var ownerAnchor:Vec2 = getLocalPosition(p_jointScheme, _externalActorsSchemes[ownerActorName]);
+
+			var jointedActorName:String = StringUtil.trim(p_jointScheme.jointedActorName);
+			var jointedAnchor:Vec2;
+
+			// mean world
+			if (jointedActorName == "") jointedAnchor = Vec2.weak(p_jointScheme.x, p_jointScheme.y);
+			else jointedAnchor = getLocalPosition(p_jointScheme, _externalActorsSchemes[jointedActorName]);
+
+			var bbJoint:BBJoint = BBJoint.pivotJoint(p_jointScheme.jointedActorName, ownerAnchor, jointedAnchor);
+			baseJointParser(p_jointScheme, bbJoint);
+
+			//
+			var jointXML:XML = bbJoint.getPrototype();
+			jointXML.appendChild(<ownerActorName type="string">{ownerActorName}</ownerActorName>);
+
+			bbJoint.dispose();
+
+			return jointXML;
+		}
+
+		/**
+		 */
+		static private function baseJointParser(p_jointScheme:MovieClip, p_bbJoint:BBJoint):void
+		{
+			p_bbJoint.name = p_jointScheme.jointName;
+			p_bbJoint.active = p_jointScheme.active;
+			p_bbJoint.ignore = p_jointScheme.ignore;
+			p_bbJoint.stiff = p_jointScheme.stiff;
+			p_bbJoint.breakUnderError = p_jointScheme.breakUnderError;
+			p_bbJoint.breakUnderForce = p_jointScheme.breakUnderForce;
+			p_bbJoint.removeOnBreak = p_jointScheme.removeOnBreak;
+			p_bbJoint.damping = p_jointScheme.damping;
+			p_bbJoint.frequency = p_jointScheme.frequency;
+			p_bbJoint.maxError = p_jointScheme.maxError;
+			p_bbJoint.maxForce = p_jointScheme.maxForce;
 		}
 
 		/**
@@ -111,19 +212,18 @@ package bb.parsers
 				BBNode.addCache(actor, className);
 			}
 
+			var actorName:String = StringUtil.trim(p_actorScheme.actorName);
+			if (actorName != "") _externalActorsSchemes[actorName] = p_actorScheme;
+
 			var actorXML:XML = <actor/>;
 			actorXML.alias = className;
+			actorXML.name = actorName;
 			actorXML.type = p_actorScheme.actorType;
 			actorXML.position = p_actorScheme.x + "," + p_actorScheme.y;
 			actorXML.rotation = p_actorScheme.rotation * TrigUtil.DEG_TO_RAD;
 			actorXML.scale = p_actorScheme.scaleX + "," + p_actorScheme.scaleY;
 			actorXML.layer = String(p_actorScheme.layerName).toLowerCase();
 			actorXML.internalCollision = p_actorScheme.isCollisionInternalActors;
-
-			if (!_currentLevel.hasOwnProperty("actors"))
-			{
-				_currentLevel.actors = <actors/>;
-			}
 
 			_currentLevel.actors.appendChild(actorXML);
 		}

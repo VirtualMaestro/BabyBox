@@ -380,7 +380,7 @@ package bb.components.physics
 						{
 							if (isNeedToScale)
 							{
-								joint.thisAnchor.muleq(_scale);
+								joint.ownerAnchor.muleq(_scale);
 								joint.jointedAnchor.muleq(_scale);
 							}
 
@@ -421,7 +421,7 @@ package bb.components.physics
 				Assert.isTrue(jointedBody != null, "jointed actor wasn't found ('" + jointedActorName +"')", "BBPhysicsBody.createJoint");
 			}
 
-			p_joint.thisBody = _body;
+			p_joint.ownerBody = _body;
 			p_joint.jointedBody = jointedBody;
 
 			BBConstraintFactory.createJoint(p_joint).space = _space;
@@ -672,7 +672,7 @@ package bb.components.physics
 
 						if (joint.hasAnchors)
 						{
-							joint.thisAnchor.muleq(nScale);
+							joint.ownerAnchor.muleq(nScale);
 							joint.jointedAnchor.muleq(nScale);
 						}
 					}

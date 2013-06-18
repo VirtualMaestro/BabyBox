@@ -25,7 +25,7 @@ package bb.components.physics.joints
 		private var _name:String = "";
 		private var _id:int;
 
-		public var thisBody:Body;
+		public var ownerBody:Body;
 		public var jointedBody:Body;
 
 		public var jointedActorName:String = "";
@@ -33,7 +33,7 @@ package bb.components.physics.joints
 		//
 		private var _type:String = "";
 
-		private var _thisAnchor:Vec2;
+		private var _ownerAnchor:Vec2;
 		private var _jointedAnchor:Vec2;
 
 		private var _joint:Constraint;
@@ -99,7 +99,7 @@ package bb.components.physics.joints
 		 */
 		public function get thisBodyComponent():BBPhysicsBody
 		{
-			return thisBody ? thisBody.userData.bb_component : null;
+			return ownerBody ? ownerBody.userData.bb_component : null;
 		}
 
 		/**
@@ -119,9 +119,9 @@ package bb.components.physics.joints
 
 		/**
 		 */
-		public function get thisAnchor():Vec2
+		public function get ownerAnchor():Vec2
 		{
-			return _thisAnchor;
+			return _ownerAnchor;
 		}
 
 		/**
@@ -149,7 +149,7 @@ package bb.components.physics.joints
 
 			if (_hasAnchors)
 			{
-				_thisAnchor = _joint["anchor1"];
+				_ownerAnchor = _joint["anchor1"];
 				_jointedAnchor = _joint["anchor2"];
 			}
 
@@ -186,10 +186,10 @@ package bb.components.physics.joints
 					_joint = null;
 				}
 
-				thisBody = null;
+				ownerBody = null;
 				jointedBody = null;
 				_hasAnchors = false;
-				_thisAnchor = null;
+				_ownerAnchor = null;
 				_jointedAnchor = null;
 				_direction = null;
 
@@ -231,7 +231,7 @@ package bb.components.physics.joints
 			var joint:BBJoint = get(type);
 			joint._name = _name;
 			joint.jointedActorName = jointedActorName;
-			joint._thisAnchor = _thisAnchor ? _thisAnchor.copy(true) : Vec2.weak();
+			joint._ownerAnchor = _ownerAnchor ? _ownerAnchor.copy(true) : Vec2.weak();
 			joint._jointedAnchor = _jointedAnchor ? _jointedAnchor.copy(true) : Vec2.weak();
 			joint._hasAnchors = _hasAnchors;
 			joint.jointMax = _jointMax;
@@ -260,9 +260,9 @@ package bb.components.physics.joints
 		 */
 		public function toString():String
 		{
-			var thisAnchorTrace:String = "<" + (thisAnchor ? thisAnchor.x + ", " + thisAnchor.y : "0, 0") + ">";
+			var ownerAnchorTrace:String = "<" + (ownerAnchor ? ownerAnchor.x + ", " + ownerAnchor.y : "0, 0") + ">";
 			var jointedAnchorTrace:String = "<" + (jointedAnchor ? jointedAnchor.x + ", " + jointedAnchor.y : "0, 0") + ">";
-			var anchorsTrace:String = "{thisAnchor: "+thisAnchorTrace+"}-{jointedAnchor: "+jointedAnchorTrace+"}\n";
+			var anchorsTrace:String = "{ownerAnchor: "+ownerAnchorTrace+"}-{jointedAnchor: "+jointedAnchorTrace+"}\n";
 			var jointTrace:String = "";
 			jointTrace += "[Joint {id: "+_id+"}-{type: "+type+"}-{name: "+_name+"}-{jointedActorName: "+jointedActorName+"}\n";
 
@@ -358,7 +358,7 @@ package bb.components.physics.joints
 			}
 			else
 			{
-				addProperty("thisAnchor", _thisAnchor.x + "," + _thisAnchor.y, "point");
+				addProperty("ownerAnchor", _ownerAnchor.x + "," + _ownerAnchor.y, "point");
 				addProperty("jointedAnchor", _jointedAnchor.x + "," + _jointedAnchor.y, "point");
 
 				switch (_type)
@@ -416,16 +416,16 @@ package bb.components.physics.joints
 			function(p_jointPrototype:XML):BBJoint
 			{
 				var position:Array;
-				var thisAnchor:Vec2;
+				var ownerAnchor:Vec2;
 				var jointedAnchor:Vec2;
 
-				position = String(p_jointPrototype.elements("thisAnchor")).split(",");
-				thisAnchor = Vec2.weak(position[0], position[1]);
+				position = String(p_jointPrototype.elements("ownerAnchor")).split(",");
+				ownerAnchor = Vec2.weak(position[0], position[1]);
 
 				position = String(p_jointPrototype.elements("jointedAnchor")).split(",");
 				jointedAnchor = Vec2.weak(position[0], position[1]);
 
-				var joint:BBJoint = pivotJoint(String(p_jointPrototype.elements("jointedActorName")), thisAnchor, jointedAnchor);
+				var joint:BBJoint = pivotJoint(String(p_jointPrototype.elements("jointedActorName")), ownerAnchor, jointedAnchor);
 				setCommonProps(joint, p_jointPrototype);
 
 				return joint;
@@ -435,11 +435,11 @@ package bb.components.physics.joints
 			function(p_jointPrototype:XML):BBJoint
 			{
 				var position:Array;
-				var thisAnchor:Vec2;
+				var ownerAnchor:Vec2;
 				var jointedAnchor:Vec2;
 
-				position = String(p_jointPrototype.elements("thisAnchor")).split(",");
-				thisAnchor = Vec2.weak(position[0], position[1]);
+				position = String(p_jointPrototype.elements("ownerAnchor")).split(",");
+				ownerAnchor = Vec2.weak(position[0], position[1]);
 
 				position = String(p_jointPrototype.elements("jointedAnchor")).split(",");
 				jointedAnchor = Vec2.weak(position[0], position[1]);
@@ -447,7 +447,7 @@ package bb.components.physics.joints
 				var jointMin:Number = p_jointPrototype.elements("jointMin");
 				var jointMax:Number = p_jointPrototype.elements("jointMax");
 
-				var joint:BBJoint = distanceJoint(String(p_jointPrototype.elements("jointedActorName")), thisAnchor, jointedAnchor, jointMin, jointMax);
+				var joint:BBJoint = distanceJoint(String(p_jointPrototype.elements("jointedActorName")), ownerAnchor, jointedAnchor, jointMin, jointMax);
 				setCommonProps(joint, p_jointPrototype);
 
 				return joint;
@@ -457,11 +457,11 @@ package bb.components.physics.joints
 			function(p_jointPrototype:XML):BBJoint
 			{
 				var position:Array;
-				var thisAnchor:Vec2;
+				var ownerAnchor:Vec2;
 				var jointedAnchor:Vec2;
 
-				position = String(p_jointPrototype.elements("thisAnchor")).split(",");
-				thisAnchor = Vec2.weak(position[0], position[1]);
+				position = String(p_jointPrototype.elements("ownerAnchor")).split(",");
+				ownerAnchor = Vec2.weak(position[0], position[1]);
 
 				position = String(p_jointPrototype.elements("jointedAnchor")).split(",");
 				jointedAnchor = Vec2.weak(position[0], position[1]);
@@ -472,7 +472,7 @@ package bb.components.physics.joints
 				position = String(p_jointPrototype.elements("direction")).split(",");
 				var direction:Vec2 = Vec2.weak(position[0], position[1]);
 
-				var joint:BBJoint = lineJoint(String(p_jointPrototype.elements("jointedActorName")), thisAnchor, jointedAnchor, direction, jointMin, jointMax);
+				var joint:BBJoint = lineJoint(String(p_jointPrototype.elements("jointedActorName")), ownerAnchor, jointedAnchor, direction, jointMin, jointMax);
 				setCommonProps(joint, p_jointPrototype);
 
 				return joint;
@@ -482,18 +482,18 @@ package bb.components.physics.joints
 			function(p_jointPrototype:XML):BBJoint
 			{
 				var position:Array;
-				var thisAnchor:Vec2;
+				var ownerAnchor:Vec2;
 				var jointedAnchor:Vec2;
 
-				position = String(p_jointPrototype.elements("thisAnchor")).split(",");
-				thisAnchor = Vec2.weak(position[0], position[1]);
+				position = String(p_jointPrototype.elements("ownerAnchor")).split(",");
+				ownerAnchor = Vec2.weak(position[0], position[1]);
 
 				position = String(p_jointPrototype.elements("jointedAnchor")).split(",");
 				jointedAnchor = Vec2.weak(position[0], position[1]);
 
 				var phase:Number = p_jointPrototype.elements("phase");
 
-				var joint:BBJoint = weldJoint(String(p_jointPrototype.elements("jointedActorName")), thisAnchor, jointedAnchor, phase);
+				var joint:BBJoint = weldJoint(String(p_jointPrototype.elements("jointedActorName")), ownerAnchor, jointedAnchor, phase);
 				setCommonProps(joint, p_jointPrototype);
 
 				return joint;
@@ -547,21 +547,21 @@ package bb.components.physics.joints
 		/**
 		 * Returns BBJoint with settings of pivot joint.
 		 */
-		static public function pivotJoint(p_jointedActorName:String = "", p_thisAnchor:Vec2 = null, p_jointedAnchor:Vec2 = null):BBJoint
+		static public function pivotJoint(p_jointedActorName:String = "", p_ownerAnchor:Vec2 = null, p_jointedAnchor:Vec2 = null):BBJoint
 		{
-			var pivotJoint:BBJoint = getBaseJointWithAnchors("pivot", p_jointedActorName, p_thisAnchor, p_jointedAnchor);
+			var pivotJoint:BBJoint = getBaseJointWithAnchors("pivot", p_jointedActorName, p_ownerAnchor, p_jointedAnchor);
 			return pivotJoint;
 		}
 
 		/**
 		 * Returns BBJoint with settings of distance joint.
 		 */
-		static public function distanceJoint(p_jointedActorName:String = "", p_thisAnchor:Vec2 = null, p_jointedAnchor:Vec2 = null,
+		static public function distanceJoint(p_jointedActorName:String = "", p_ownerAnchor:Vec2 = null, p_jointedAnchor:Vec2 = null,
 											 p_jointMin:Number = 0, p_jointMax:Number = 1):BBJoint
 		{
 			if (p_jointMin > p_jointMax) throw new Error("BBJoint.distanceJoint: jointMin should be less or equal jointMax");
 
-			var distanceJoint:BBJoint = getBaseJointWithAnchors("distance", p_jointedActorName, p_thisAnchor, p_jointedAnchor);
+			var distanceJoint:BBJoint = getBaseJointWithAnchors("distance", p_jointedActorName, p_ownerAnchor, p_jointedAnchor);
 			distanceJoint._jointMin = p_jointMin;
 			distanceJoint._jointMax = p_jointMax;
 
@@ -571,13 +571,13 @@ package bb.components.physics.joints
 		/**
 		 * Returns BBJoint with settings of line joint.
 		 */
-		static public function lineJoint(p_jointedActorName:String = "", p_thisAnchor:Vec2 = null, p_jointedAnchor:Vec2 = null,
+		static public function lineJoint(p_jointedActorName:String = "", p_ownerAnchor:Vec2 = null, p_jointedAnchor:Vec2 = null,
 										 p_direction:Vec2 = null, p_jointMin:Number = 0, p_jointMax:Number = 1):BBJoint
 		{
 			if (p_jointMin > p_jointMax) throw new Error("BBJoint.lineJoint: jointMin should be less or equal jointMax");
 			if (p_direction && Math.abs(p_direction.length) > 1) throw new Error("BBJoint.lineJoint: direction should be normalize");
 
-			var lineJoint:BBJoint = getBaseJointWithAnchors("line", p_jointedActorName, p_thisAnchor, p_jointedAnchor);
+			var lineJoint:BBJoint = getBaseJointWithAnchors("line", p_jointedActorName, p_ownerAnchor, p_jointedAnchor);
 			lineJoint._direction = p_direction ? p_direction : Vec2.weak(0,1);
 			lineJoint._jointMin = p_jointMin;
 			lineJoint._jointMax = p_jointMax;
@@ -588,9 +588,9 @@ package bb.components.physics.joints
 		/**
 		 * Returns BBJoint with settings of weld joint.
 		 */
-		static public function weldJoint(p_jointedActorName:String = "", p_thisAnchor:Vec2 = null, p_jointedAnchor:Vec2 = null, p_phase:Number = 0):BBJoint
+		static public function weldJoint(p_jointedActorName:String = "", p_ownerAnchor:Vec2 = null, p_jointedAnchor:Vec2 = null, p_phase:Number = 0):BBJoint
 		{
-			var weldJoint:BBJoint = getBaseJointWithAnchors("weld", p_jointedActorName, p_thisAnchor, p_jointedAnchor);
+			var weldJoint:BBJoint = getBaseJointWithAnchors("weld", p_jointedActorName, p_ownerAnchor, p_jointedAnchor);
 			weldJoint._phase = p_phase;
 
 			return weldJoint;
@@ -598,11 +598,11 @@ package bb.components.physics.joints
 
 		/**
 		 */
-		static private function getBaseJointWithAnchors(p_type:String, p_jointedActorName:String = "", p_thisAnchor:Vec2 = null, p_jointedAnchor:Vec2 = null):BBJoint
+		static private function getBaseJointWithAnchors(p_type:String, p_jointedActorName:String = "", p_ownerAnchor:Vec2 = null, p_jointedAnchor:Vec2 = null):BBJoint
 		{
 			var joint:BBJoint = get(p_type);
 			joint.jointedActorName = StringUtil.trim(p_jointedActorName);
-			joint._thisAnchor = p_thisAnchor ? p_thisAnchor : Vec2.weak();
+			joint._ownerAnchor = p_ownerAnchor ? p_ownerAnchor : Vec2.weak();
 			joint._jointedAnchor = p_jointedAnchor ? p_jointedAnchor : Vec2.weak();
 			joint._hasAnchors = true;
 
@@ -649,7 +649,7 @@ package bb.components.physics.joints
 
 			if (_joint)
 			{
-				if (p_val) _active = thisBody.space && jointedBody.space;
+				if (p_val) _active = ownerBody.space && jointedBody.space;
 				_active = _active && p_val;
 				_joint.active = _active;
 			}

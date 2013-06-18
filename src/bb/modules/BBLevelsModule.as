@@ -6,6 +6,7 @@
 package bb.modules
 {
 	import bb.components.physics.BBPhysicsBody;
+	import bb.components.physics.joints.BBJoint;
 	import bb.core.BBNode;
 	import bb.parsers.BBLevelParser;
 	import bb.signals.BBSignal;
@@ -52,18 +53,21 @@ package bb.modules
 				var levelMC:MovieClip = new p_level();
 				level = BBLevelParser.parseLevelSWF(levelMC);
 				levelMC = null;
+				_levelsCache[p_level] = level;
 			}
 
 			var actorsList:XMLList = level.actors.children();
 			var actorXML:XML;
 			var actor:BBNode;
 			var actorAlias:String;
+			var actorName:String;
 			var actorPosition:Array;
 			var actorRotation:Number;
 			var actorScale:Array;
 			var actorLayer:String;
 			var actorInternalCollision:Boolean;
 			var actorType:String;
+			var actorsWithNameTable:Array = [];
 			var numActors:int = actorsList.length();
 
 			for (var i:int = 0; i < numActors; i++)
@@ -71,6 +75,7 @@ package bb.modules
 				actorXML = actorsList[i];
 
 				actorAlias = actorXML.elements("alias");
+				actorName = actorXML.elements("name");
 				actorType = actorXML.elements("type");
 				actorPosition = String(actorXML.elements("position")).split(",");
 				actorRotation = actorXML.elements("rotation");
@@ -79,6 +84,8 @@ package bb.modules
 				actorInternalCollision = actorXML.elements("internalCollision") == "true";
 
 				actor = BBNode.getFromCache(actorAlias);
+				actor.name = actorName;
+				if (actorName != "") actorsWithNameTable[actorName] = actor;
 				actor.transform.setPositionAndRotation(actorPosition[0], actorPosition[1], actorRotation);
 				actor.transform.setScale(actorScale[0], actorScale[1]);
 
@@ -90,6 +97,21 @@ package bb.modules
 				}
 
 				_world.add(actor, actorLayer);
+			}
+
+			//
+			var externalJointList:XMLList = level.externalJoints.children();
+			var externalJoint:XML;
+			var ownerActorName:String;
+			var joint:BBJoint;
+			var numExternalJoints:int = externalJointList.length();
+			for (i = 0; i < numExternalJoints; i++)
+			{
+				externalJoint = externalJointList[i];
+				joint = BBJoint.getFromPrototype(externalJoint);
+				ownerActorName = externalJoint.ownerActorName;
+				actor = actorsWithNameTable[ownerActorName];
+				(actor.getComponent(BBPhysicsBody) as BBPhysicsBody).addJoint(joint);
 			}
 
 			//
