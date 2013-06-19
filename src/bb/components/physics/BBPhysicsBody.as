@@ -421,8 +421,20 @@ package bb.components.physics
 				Assert.isTrue(jointedBody != null, "jointed actor wasn't found ('" + jointedActorName +"')", "BBPhysicsBody.createJoint");
 			}
 
-			p_joint.ownerBody = _body;
-			p_joint.jointedBody = jointedBody;
+			if (p_joint.swapActors)
+			{
+				p_joint.ownerBody = jointedBody;
+				p_joint.jointedBody = _body;
+
+				var tOwnerAnchor:Vec2 = p_joint.ownerAnchor.copy(true);
+				p_joint.ownerAnchor.setxy(p_joint.jointedAnchor.x, p_joint.jointedAnchor.y);
+				p_joint.jointedAnchor.set(tOwnerAnchor);
+			}
+			else
+			{
+				p_joint.ownerBody = _body;
+				p_joint.jointedBody = jointedBody;
+			}
 
 			BBConstraintFactory.createJoint(p_joint).space = _space;
 		}

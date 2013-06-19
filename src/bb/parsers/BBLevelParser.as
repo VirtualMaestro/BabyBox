@@ -81,8 +81,8 @@ package bb.parsers
 		static private var jointsParsersXMLTable:Array = [];
 		jointsParsersXMLTable["joints::PivotJointScheme"] = pivotJointXMLParser;
 		jointsParsersXMLTable["joints::DistanceJointScheme"] = distanceJointXMLParser;
+		jointsParsersXMLTable["joints::LineJointScheme"] = lineJointXMLParser;
 //		jointsParsersXMLTable["joints::WeldJointScheme"] = internalWeldHandler;
-//		jointsParsersXMLTable["joints::LineJointScheme"] = internalLineHandler;
 //		jointsParsersXMLTable["joints::MotorJointScheme"] = internalMotorHandler;
 //		jointsParsersXMLTable["joints::AngleJointScheme"] = internalAngleHandler;
 
@@ -218,6 +218,49 @@ package bb.parsers
 			var jointMinMax:Array = p_jointScheme.jointMinMax;
 			var bbJoint:BBJoint = BBJoint.distanceJoint(p_jointScheme.jointedActorName, ownerAnchor, jointedAnchor, jointMinMax[0], jointMinMax[1]);
 			baseJointParser(p_jointScheme, bbJoint);
+
+			//
+			var jointXML:XML = bbJoint.getPrototype();
+			jointXML.appendChild(<ownerActorName type="string">{ownerActorName}</ownerActorName>);
+
+			bbJoint.dispose();
+
+			return jointXML;
+		}
+
+		/**
+		 */
+		static private function lineJointXMLParser(p_jointScheme:MovieClip):XML
+		{
+			var ownerActorName:String = StringUtil.trim(p_jointScheme.ownerActorName);
+			var jointedActorName:String = StringUtil.trim(p_jointScheme.jointedActorName);
+			var endJointScheme:MovieClip = _externalEndJoints[p_jointScheme.jointName];
+
+			CONFIG::debug
+			{
+				Assert.isTrue(ownerActorName != "", "owner actor name can't be empty string", "BBLevelParser.lineJointXMLParser");
+				Assert.isTrue(_externalActorsSchemes[ownerActorName] != null, "owner actor with name '" + ownerActorName + "' doesn't exist", "BBLevelParser.lineJointXMLParser");
+				Assert.isTrue(endJointScheme != null, "endJoint with name '" + p_jointScheme.jointName + "' doesn't exist. Maybe forgot to add end joint to scene", "BBLevelParser.lineJointXMLParser");
+				Assert.isTrue((ownerActorName != "" || jointedActorName != ""), "trouble in line joint with name '" + p_jointScheme.jointName + "' - both actor names are empty string ", "BBLevelParser.lineJointXMLParser");
+			}
+
+			//
+			var radRotation:Number = p_jointScheme.rotation * TrigUtil.DEG_TO_RAD;
+			var direction:Vec2 = Vec2.weak(Math.cos(radRotation), Math.sin(radRotation));
+			var jointMinMax:Array = p_jointScheme.jointMinMax;
+
+			//
+			var ownerAnchor:Vec2 = getLocalPosition(p_jointScheme, _externalActorsSchemes[ownerActorName]);
+			var jointedAnchor:Vec2;
+
+			// mean world
+			if (jointedActorName == "") jointedAnchor = Vec2.weak(endJointScheme.x, endJointScheme.y);
+			else jointedAnchor = getLocalPosition(endJointScheme, _externalActorsSchemes[jointedActorName]);
+
+			//
+			var bbJoint:BBJoint = BBJoint.lineJoint(jointedActorName, ownerAnchor, jointedAnchor, direction, jointMinMax[0], jointMinMax[1]);
+			baseJointParser(p_jointScheme, bbJoint);
+			bbJoint.swapActors = p_jointScheme.swapActors;
 
 			//
 			var jointXML:XML = bbJoint.getPrototype();
@@ -513,6 +556,7 @@ package bb.parsers
 			var globalPoint:Point = p_joint.parent.localToGlobal(localPoint);
 			BBNativePool.putPoint(localPoint);
 			localPoint = p_actor.globalToLocal(globalPoint);
+
 			var localPosition:Vec2 = Vec2.fromPoint(localPoint, true);
 			BBNativePool.putPoint(localPoint);
 			BBNativePool.putPoint(globalPoint);

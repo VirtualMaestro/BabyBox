@@ -30,6 +30,8 @@ package bb.components.physics.joints
 
 		public var jointedActorName:String = "";
 
+		public var swapActors:Boolean = false;
+
 		//
 		private var _type:String = "";
 
@@ -344,6 +346,7 @@ package bb.components.physics.joints
 			addProperty("frequency", _frequency, "number");
 			addProperty("maxError", _maxError, "number");
 			addProperty("maxForce", _maxForce, "number");
+			addProperty("swapActors", swapActors, "boolean");
 
 			if (_type == "angle" || _type == "motor")
 			{
@@ -542,6 +545,7 @@ package bb.components.physics.joints
 			p_joint._frequency = p_prototype.elements("frequency");
 			p_joint._maxError = p_prototype.elements("maxError");
 			p_joint._maxForce = p_prototype.elements("maxForce");
+			p_joint.swapActors = p_prototype.elements("swapActors") == "true";
 		}
 
 		/**
