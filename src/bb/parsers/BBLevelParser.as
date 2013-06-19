@@ -84,7 +84,7 @@ package bb.parsers
 		jointsParsersXMLTable["joints::LineJointScheme"] = lineJointXMLParser;
 		jointsParsersXMLTable["joints::WeldJointScheme"] = weldJointXMLParser;
 		jointsParsersXMLTable["joints::MotorJointScheme"] = motorJointXMLParser;
-//		jointsParsersXMLTable["joints::AngleJointScheme"] = internalAngleHandler;
+		jointsParsersXMLTable["joints::AngleJointScheme"] = angleJointXMLParser;
 
 		//
 		static private var _currentLevel:XML;
@@ -242,6 +242,32 @@ package bb.parsers
 			var rate:Number = p_jointScheme.rate;
 			var ratio:Number = p_jointScheme.ratio;
 			var bbJoint:BBJoint = BBJoint.motorJoint(jointedActorName, rate, ratio);
+			baseJointParser(p_jointScheme, bbJoint);
+
+			//
+			var jointXML:XML = bbJoint.getPrototype();
+			jointXML.appendChild(<ownerActorName type="string">{ownerActorName}</ownerActorName>);
+
+			bbJoint.dispose();
+
+			return jointXML;
+		}
+
+		/**
+		 */
+		static private function angleJointXMLParser(p_jointScheme:MovieClip):XML
+		{
+			var ownerActorName:String = StringUtil.trim(p_jointScheme.ownerActorName);
+
+			CONFIG::debug
+			{
+				Assert.isTrue(ownerActorName != "", "owner actor name can't be empty string", "BBLevelParser.angleJointXMLParser");
+			}
+
+			var jointedActorName:String = StringUtil.trim(p_jointScheme.jointedActorName);
+			var minMax:Array = p_jointScheme.jointMinMax;
+			var ratio:Number = p_jointScheme.ratio;
+			var bbJoint:BBJoint = BBJoint.angleJoint(jointedActorName, minMax[0]*TrigUtil.DEG_TO_RAD, minMax[1]*TrigUtil.DEG_TO_RAD, ratio);
 			baseJointParser(p_jointScheme, bbJoint);
 
 			//
@@ -528,7 +554,7 @@ package bb.parsers
 		{
 			var jointedActorName:String = StringUtil.trim(p_angleScheme.jointedActorName);
 			var jointMinMax:Array = p_angleScheme.jointMinMax;
-			var angleJoint:BBJoint = BBJoint.angleJoint(jointedActorName, jointMinMax[0], jointMinMax[1], p_angleScheme.ratio);
+			var angleJoint:BBJoint = BBJoint.angleJoint(jointedActorName, jointMinMax[0]*TrigUtil.DEG_TO_RAD, jointMinMax[1]*TrigUtil.DEG_TO_RAD, p_angleScheme.ratio);
 			parseBaseJointProps(p_angleScheme, angleJoint);
 
 			(p_parentActor.getComponent(BBPhysicsBody) as BBPhysicsBody).addJoint(angleJoint);
