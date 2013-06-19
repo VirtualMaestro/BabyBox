@@ -83,7 +83,7 @@ package bb.parsers
 		jointsParsersXMLTable["joints::DistanceJointScheme"] = distanceJointXMLParser;
 		jointsParsersXMLTable["joints::LineJointScheme"] = lineJointXMLParser;
 		jointsParsersXMLTable["joints::WeldJointScheme"] = weldJointXMLParser;
-//		jointsParsersXMLTable["joints::MotorJointScheme"] = internalMotorHandler;
+		jointsParsersXMLTable["joints::MotorJointScheme"] = motorJointXMLParser;
 //		jointsParsersXMLTable["joints::AngleJointScheme"] = internalAngleHandler;
 
 		//
@@ -215,7 +215,33 @@ package bb.parsers
 			else jointedAnchor = getLocalPosition(p_jointScheme, jointedActor);
 
 			var totalPhase:Number = -(ownerActor.rotation-jointedActor.rotation)*TrigUtil.DEG_TO_RAD + p_jointScheme.phase*TrigUtil.DEG_TO_RAD;
-			var bbJoint:BBJoint = BBJoint.weldJoint(p_jointScheme.jointedActorName, ownerAnchor, jointedAnchor, totalPhase);
+			var bbJoint:BBJoint = BBJoint.weldJoint(jointedActorName, ownerAnchor, jointedAnchor, totalPhase);
+			baseJointParser(p_jointScheme, bbJoint);
+
+			//
+			var jointXML:XML = bbJoint.getPrototype();
+			jointXML.appendChild(<ownerActorName type="string">{ownerActorName}</ownerActorName>);
+
+			bbJoint.dispose();
+
+			return jointXML;
+		}
+
+		/**
+		 */
+		static private function motorJointXMLParser(p_jointScheme:MovieClip):XML
+		{
+			var ownerActorName:String = StringUtil.trim(p_jointScheme.ownerActorName);
+
+			CONFIG::debug
+			{
+				Assert.isTrue(ownerActorName != "", "owner actor name can't be empty string", "BBLevelParser.motorJointXMLParser");
+			}
+
+			var jointedActorName:String = StringUtil.trim(p_jointScheme.jointedActorName);
+			var rate:Number = p_jointScheme.rate;
+			var ratio:Number = p_jointScheme.ratio;
+			var bbJoint:BBJoint = BBJoint.motorJoint(jointedActorName, rate, ratio);
 			baseJointParser(p_jointScheme, bbJoint);
 
 			//
