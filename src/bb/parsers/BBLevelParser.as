@@ -82,7 +82,7 @@ package bb.parsers
 		jointsParsersXMLTable["joints::PivotJointScheme"] = pivotJointXMLParser;
 		jointsParsersXMLTable["joints::DistanceJointScheme"] = distanceJointXMLParser;
 		jointsParsersXMLTable["joints::LineJointScheme"] = lineJointXMLParser;
-//		jointsParsersXMLTable["joints::WeldJointScheme"] = internalWeldHandler;
+		jointsParsersXMLTable["joints::WeldJointScheme"] = weldJointXMLParser;
 //		jointsParsersXMLTable["joints::MotorJointScheme"] = internalMotorHandler;
 //		jointsParsersXMLTable["joints::AngleJointScheme"] = internalAngleHandler;
 
@@ -180,6 +180,42 @@ package bb.parsers
 			else jointedAnchor = getLocalPosition(p_jointScheme, _externalActorsSchemes[jointedActorName]);
 
 			var bbJoint:BBJoint = BBJoint.pivotJoint(p_jointScheme.jointedActorName, ownerAnchor, jointedAnchor);
+			baseJointParser(p_jointScheme, bbJoint);
+
+			//
+			var jointXML:XML = bbJoint.getPrototype();
+			jointXML.appendChild(<ownerActorName type="string">{ownerActorName}</ownerActorName>);
+
+			bbJoint.dispose();
+
+			return jointXML;
+		}
+
+		/**
+		 */
+		static private function weldJointXMLParser(p_jointScheme:MovieClip):XML
+		{
+			var ownerActorName:String = StringUtil.trim(p_jointScheme.ownerActorName);
+			var ownerActor:MovieClip = _externalActorsSchemes[ownerActorName];
+
+			CONFIG::debug
+			{
+				Assert.isTrue(ownerActorName != "", "owner actor name can't be empty string", "BBLevelParser.weldJointXMLParser");
+				Assert.isTrue(ownerActor != null, "owner actor with name '" + ownerActorName + "' doesn't exist", "BBLevelParser.weldJointXMLParser");
+			}
+
+			var ownerAnchor:Vec2 = getLocalPosition(p_jointScheme, ownerActor);
+
+			var jointedActorName:String = StringUtil.trim(p_jointScheme.jointedActorName);
+			var jointedActor:MovieClip = _externalActorsSchemes[jointedActorName];
+			var jointedAnchor:Vec2;
+
+			// mean world
+			if (jointedActorName == "") jointedAnchor = Vec2.weak(p_jointScheme.x, p_jointScheme.y);
+			else jointedAnchor = getLocalPosition(p_jointScheme, jointedActor);
+
+			var totalPhase:Number = -(ownerActor.rotation-jointedActor.rotation)*TrigUtil.DEG_TO_RAD + p_jointScheme.phase*TrigUtil.DEG_TO_RAD;
+			var bbJoint:BBJoint = BBJoint.weldJoint(p_jointScheme.jointedActorName, ownerAnchor, jointedAnchor, totalPhase);
 			baseJointParser(p_jointScheme, bbJoint);
 
 			//
@@ -465,13 +501,6 @@ package bb.parsers
 		static private function internalAngleHandler(p_angleScheme:MovieClip, p_actorScheme:MovieClip, p_parentActor:BBNode):void
 		{
 			var jointedActorName:String = StringUtil.trim(p_angleScheme.jointedActorName);
-//			var jointedActor:MovieClip = findInternalActor(jointedActorName, p_actorScheme);
-
-//			CONFIG::debug
-//			{
-//				Assert.isTrue(jointedActor != null, "Internal actor with name '" + jointedActorName + "' doesn't exist. Error in joint's options", "BBLevelParser.internalWeldHandler");
-//			}
-
 			var jointMinMax:Array = p_angleScheme.jointMinMax;
 			var angleJoint:BBJoint = BBJoint.angleJoint(jointedActorName, jointMinMax[0], jointMinMax[1], p_angleScheme.ratio);
 			parseBaseJointProps(p_angleScheme, angleJoint);
