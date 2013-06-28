@@ -88,24 +88,26 @@ package bb.modules
 			{
 				case BBGameType.PLATFORMER:
 				{
-					var main:BBCamera = BBCamera.get(BBLayerNames.MAIN);
+					var cameraMain:BBCamera = BBCamera.get(BBLayerNames.MAIN);
 					var cameraBack:BBCamera = BBCamera.get(BBLayerNames.BACKEND);
 					var cameraFront:BBCamera = BBCamera.get(BBLayerNames.FRONTEND);
+					var cameraMenu:BBCamera = BBCamera.get(BBLayerNames.MENU);
 
-					main.mouseEnable = true;
-					main.node.transform.setPosition(_config.appWidth / 2, _config.appHeight / 2);
+					cameraMain.mouseEnable = true;
+					cameraMain.node.transform.setPosition(_config.appWidth / 2, _config.appHeight / 2);
 					cameraBack.node.transform.setPosition(_config.appWidth / 2, _config.appHeight / 2);
 					cameraFront.node.transform.setPosition(_config.appWidth / 2, _config.appHeight / 2);
+					cameraMenu.node.transform.setPosition(_config.appWidth / 2, _config.appHeight / 2);
 
-					cameraBack.dependOnCamera(main, 0.5, 0.5, 0.5);
-					cameraFront.dependOnCamera(main, 1.5, 1.5, 0.8);
+					cameraBack.dependOnCamera(cameraMain, 0.5, 0.5);
+					cameraFront.dependOnCamera(cameraMain, 1.5, 1.5);
 
 					_layerManager.add(BBLayerNames.BACKEND, true).attachCamera(cameraBack);
+					_layerManager.add(BBLayerNames.MAIN, true).attachCamera(cameraMain);
 					_layerManager.add(BBLayerNames.FRONTEND, true).attachCamera(cameraFront);
+					_layerManager.add(BBLayerNames.MENU, true).attachCamera(cameraMenu);
 
-					// main layers
-					var mainLayer:BBLayer = _layerManager.add(BBLayerNames.MAIN, true);
-					mainLayer.attachCamera(main);
+					// setup additional layers for main layer
 					_layerManager.addTo(BBLayerNames.BACKGROUND, BBLayerNames.MAIN);
 					_layerManager.addTo(BBLayerNames.MIDDLEGROUND, BBLayerNames.MAIN);
 					_layerManager.addTo(BBLayerNames.FOREGROUND, BBLayerNames.MAIN);

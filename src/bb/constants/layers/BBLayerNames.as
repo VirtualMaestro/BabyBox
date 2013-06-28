@@ -10,12 +10,12 @@ package bb.constants.layers
 	 */
 	public class BBLayerNames
 	{
-//		static public const BACKDROP:String = "backdrop";
 		static public const BACKEND:String = "backend";
 		static public const BACKGROUND:String = "background";
 		static public const MAIN:String = "main";
 		static public const MIDDLEGROUND:String = "middleground";
 		static public const FOREGROUND:String = "foreground";
 		static public const FRONTEND:String = "frontend";
+		static public const MENU:String = "menu";
 	}
 }
