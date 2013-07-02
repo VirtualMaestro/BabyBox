@@ -705,7 +705,7 @@ package bb.parsers
 				BBAssetsManager.initAssets(true);
 			}
 
-			var renderComponent:BBRenderable = BBAssetsManager.getRenderableByName(assetId);
+			var renderComponent:BBRenderable = BBAssetsManager.getRenderableById(assetId);
 			if (renderComponent is BBMovieClip)
 			{
 				var movie:BBMovieClip = renderComponent as BBMovieClip;

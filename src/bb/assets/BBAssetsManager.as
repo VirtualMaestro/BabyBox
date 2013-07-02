@@ -234,7 +234,7 @@ package bb.assets
 		/**
 		 * Returns renderable component (e.g. BBSprite, BBMovieClip) with asset corresponds to given id.
 		 */
-		static public function getRenderableByName(p_assetId:String):BBRenderable
+		static public function getRenderableById(p_assetId:String):BBRenderable
 		{
 			var textureBase:BBTextureBase = getById(p_assetId);
 			if (textureBase == null) return null;
