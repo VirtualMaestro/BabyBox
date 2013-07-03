@@ -744,7 +744,7 @@ package bb.core
 			if (_onUpdated) _onUpdated.dispatch();
 
 			///
-			transform.resetInvalidationsFlags();
+			transform.resetInvalidationFlags();
 		}
 
 		/**

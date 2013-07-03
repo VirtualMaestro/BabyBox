@@ -17,7 +17,6 @@ package bb.components.physics
 	import bb.tools.physics.BBPhysicalMaterials;
 
 	import nape.constraint.PivotJoint;
-
 	import nape.dynamics.InteractionFilter;
 	import nape.dynamics.InteractionGroup;
 	import nape.geom.Vec2;
@@ -72,7 +71,8 @@ package bb.components.physics
 		private var _body:Body = null;
 		private var _bodyPosition:Vec2 = null;
 		private var _transform:BBTransform = null;
-		private var _scale:Number = 1.0;
+		private var _scaleX:Number = 1.0;
+		private var _scaleY:Number = 1.0;
 
 		//
 		private var _isNeedInitJoints:Boolean = false;
@@ -154,7 +154,7 @@ package bb.components.physics
 
 				updateEnable = _body.type != BodyType.STATIC;
 
-				scale = _transform.worldScaleX < _transform.worldScaleY ? _transform.worldScaleX : _transform.worldScaleY;
+				setScale(_transform.worldScaleX, _transform.worldScaleY);
 				_body.position.setxy(_transform.worldX, _transform.worldY);
 				_body.rotation = _transform.worldRotation;
 				_body.space = _space;
@@ -242,7 +242,7 @@ package bb.components.physics
 			if (node)
 			{
 				var child:BBNode = node.childrenHead;
-				while(child)
+				while (child)
 				{
 					if (child.isComponentExist(BBPhysicsBody)) (child.getComponent(BBPhysicsBody) as BBPhysicsBody).body.group = _group;
 					child = child.next;
@@ -260,7 +260,7 @@ package bb.components.physics
 			if (node && node.isOnStage)
 			{
 				var child:BBNode = node.childrenHead;
-				while(child)
+				while (child)
 				{
 					if (child.isComponentExist(BBPhysicsBody)) (child.getComponent(BBPhysicsBody) as BBPhysicsBody).isBullet = p_val;
 					child = child.next;
@@ -296,8 +296,11 @@ package bb.components.physics
 			if (p_material) p_shape.material = p_material;
 			if (p_filter) p_shape.filter = p_filter;
 
-			//
-			if (Math.abs(_scale - 1.0) > 0.01) p_shape.scale(_scale, _scale);
+			// scale shape if need
+			if (Math.abs(_scaleX - 1.0) > SCALE_PRECISE || Math.abs(_scaleY - 1.0) > SCALE_PRECISE)
+			{
+				scaleShape(p_shape, _scaleX, _scaleY);
+			}
 
 			return p_shape;
 		}
@@ -367,7 +370,7 @@ package bb.components.physics
 				// creates new joints if need
 				if (_initJointList)
 				{
-					var isNeedToScale:Boolean = Math.abs(1 - _scale) >= SCALE_PRECISE;
+					var isNeedToScale:Boolean = Math.abs(1 - _scaleX) > SCALE_PRECISE || Math.abs(1 - _scaleY) > SCALE_PRECISE;
 					var currentNodeName:String = node.name;
 					var jointsNum:int = _initJointList.length;
 					var joint:BBJoint;
@@ -380,8 +383,10 @@ package bb.components.physics
 						{
 							if (isNeedToScale)
 							{
-								joint.ownerAnchor.muleq(_scale);
-								joint.jointedAnchor.muleq(_scale);
+								joint.ownerAnchor.x *= _scaleX;
+								joint.ownerAnchor.y *= _scaleY;
+								joint.jointedAnchor.x *= _scaleX;
+								joint.jointedAnchor.y *= _scaleY;
 							}
 
 							//
@@ -418,7 +423,7 @@ package bb.components.physics
 
 			CONFIG::debug
 			{
-				Assert.isTrue(jointedBody != null, "jointed actor wasn't found ('" + jointedActorName +"')", "BBPhysicsBody.createJoint");
+				Assert.isTrue(jointedBody != null, "jointed actor wasn't found ('" + jointedActorName + "')", "BBPhysicsBody.createJoint");
 			}
 
 			if (p_joint.swapActors)
@@ -503,7 +508,7 @@ package bb.components.physics
 			{
 				var wasFound:Boolean = false;
 				var numJoints:int = _thisJoints.length;
-				for (var i:int = numJoints-1; i >= 0; i--)
+				for (var i:int = numJoints - 1; i >= 0; i--)
 				{
 					if (_thisJoints[i] == p_joint)
 					{
@@ -517,7 +522,7 @@ package bb.components.physics
 				if (!wasFound)
 				{
 					numJoints = _attachedJoints.length;
-					for (i = numJoints-1; i >= 0; i--)
+					for (i = numJoints - 1; i >= 0; i--)
 					{
 						if (_attachedJoints[i] == p_joint)
 						{
@@ -532,7 +537,7 @@ package bb.components.physics
 			else if (_initJointList)
 			{
 				numJoints = _initJointList.length;
-				for (i = numJoints-1; i >= 0; i--)
+				for (i = numJoints - 1; i >= 0; i--)
 				{
 					if (_initJointList[i] == p_joint)
 					{
@@ -551,24 +556,24 @@ package bb.components.physics
 		public function removeAllJoints(p_removeAttached:Boolean = false):void
 		{
 			var numJoints:int;
-			while((numJoints = _thisJoints.length) > 0)
+			while ((numJoints = _thisJoints.length) > 0)
 			{
-				_thisJoints[numJoints-1].dispose();
+				_thisJoints[numJoints - 1].dispose();
 			}
 
 			if (p_removeAttached)
 			{
-				while((numJoints = _attachedJoints.length) > 0)
+				while ((numJoints = _attachedJoints.length) > 0)
 				{
-					_attachedJoints[numJoints-1].dispose();
+					_attachedJoints[numJoints - 1].dispose();
 				}
 			}
 
 			if (_initJointList)
 			{
-				while((numJoints = _initJointList.length) > 0)
+				while ((numJoints = _initJointList.length) > 0)
 				{
-					_initJointList[numJoints-1].dispose();
+					_initJointList[numJoints - 1].dispose();
 				}
 
 				_initJointList = null;
@@ -663,15 +668,29 @@ package bb.components.physics
 		}
 
 		/**
-		 * Set scale for physics body.
 		 */
-		private function set scale(p_scale:Number):void
+		public function getScale():Vec2
 		{
-			if (Math.abs(p_scale - _scale) >= SCALE_PRECISE)
+			return Vec2.get(_scaleX, _scaleY);
+		}
+
+		/**
+		 * Sets scale for physics body.
+		 * If scaleX and scaleY are different, for circle shape it is chosen less scale factor.
+		 */
+		public function setScale(p_scaleX:Number, p_scaleY:Number):void
+		{
+			p_scaleX = Math.abs(p_scaleX);
+			p_scaleY = Math.abs(p_scaleY);
+
+			if (Math.abs(p_scaleX - _scaleX) >= SCALE_PRECISE || Math.abs(p_scaleY - _scaleY) >= SCALE_PRECISE)
 			{
-				var nScale:Number = NumberUtil.round(1.0 / _scale) * p_scale;
-				_body.scaleShapes(nScale, nScale);
-				_scale = p_scale;
+				var nScaleX:Number = NumberUtil.round(1.0 / _scaleX) * p_scaleX;
+				var nScaleY:Number = NumberUtil.round(1.0 / _scaleY) * p_scaleY;
+				_scaleX = p_scaleX;
+				_scaleY = p_scaleY;
+
+				setScaleShapes(nScaleX, nScaleY);
 
 				// change joints position
 				var joint:BBJoint;
@@ -684,8 +703,10 @@ package bb.components.physics
 
 						if (joint.hasAnchors)
 						{
-							joint.ownerAnchor.muleq(nScale);
-							joint.jointedAnchor.muleq(nScale);
+							joint.ownerAnchor.x *= nScaleX;
+							joint.ownerAnchor.y *= nScaleY;
+							joint.jointedAnchor.x *= nScaleX;
+							joint.jointedAnchor.y *= nScaleY;
 						}
 					}
 				}
@@ -694,9 +715,30 @@ package bb.components.physics
 
 		/**
 		 */
-		public function getScale():Number
+		private function setScaleShapes(p_scaleX:Number, p_scaleY:Number):void
 		{
-			return _scale;
+			var iterator:ShapeIterator = _body.shapes.iterator();
+			while (iterator.hasNext())
+			{
+				scaleShape(iterator.next(), p_scaleX, p_scaleY);
+			}
+		}
+
+		/**
+		 */
+		static private function scaleShape(p_shape:Shape, p_scaleX:Number, p_scaleY:Number):void
+		{
+			if (p_shape.isCircle())
+			{
+				var lessScale:Number = p_scaleX < p_scaleY ? p_scaleX : p_scaleY;
+				var position:Vec2 = p_shape.localCOM.copy(true);
+				position.x *= p_scaleX;
+				position.y *= p_scaleY;
+
+				p_shape.scale(lessScale, lessScale);
+				p_shape.localCOM.set(position);
+			}
+			else p_shape.scale(p_scaleX, p_scaleY);
 		}
 
 		/**
@@ -763,7 +805,10 @@ package bb.components.physics
 		private function set activateJoints(p_val:Boolean):void
 		{
 			var numJoints:int = _thisJoints.length;
-			for (var i:int = 0; i < numJoints; i++) _thisJoints[i].active = p_val;
+			for (var i:int = 0; i < numJoints; i++)
+			{
+				_thisJoints[i].active = p_val;
+			}
 		}
 
 		/**
@@ -772,7 +817,7 @@ package bb.components.physics
 		{
 			if (_transform.isInvalidated || _lock)
 			{
-				if (_transform.isScaleInvalidated) scale = _transform.worldScaleX < _transform.worldScaleY ? _transform.worldScaleX : _transform.worldScaleY;
+				if (_transform.isScaleInvalidated) setScale(_transform.worldScaleX, _transform.worldScaleY);
 				if (_transform.isPositionInvalidated) _bodyPosition.setxy(_transform.worldX, _transform.worldY);
 				if (_transform.isRotationInvalidated) _body.rotation = _transform.worldRotation;
 			}
@@ -794,7 +839,8 @@ package bb.components.physics
 			super.dispose();
 
 			_transform = null;
-			_scale = 1.0;
+			_scaleX = 1.0;
+			_scaleY = 1.0;
 			_lock = true;
 			_isNeedInitJoints = false;
 
@@ -804,10 +850,10 @@ package bb.components.physics
 				onRemoved.add(unlinkedFromNodeHandler);
 
 				_body.rotation = 0;
-				_body.position.setxy(0,0);
-				_body.velocity.setxy(0,0);
-				_body.kinematicVel.setxy(0,0);
-				_body.surfaceVel.setxy(0,0);
+				_body.position.setxy(0, 0);
+				_body.velocity.setxy(0, 0);
+				_body.kinematicVel.setxy(0, 0);
+				_body.surfaceVel.setxy(0, 0);
 				_body.angularVel = 0;
 				_body.kinAngVel = 0;
 			}
@@ -838,7 +884,8 @@ package bb.components.physics
 			component._body = _body.copy();
 			component._body.userData.bb_component = component;
 			component._bodyPosition = component._body.position;
-			component._scale = _scale;
+			component._scaleX = _scaleX;
+			component._scaleY = _scaleY;
 
 			// copy shape names
 			var originList:ShapeList = _body.shapes;
@@ -889,7 +936,7 @@ package bb.components.physics
 
 			if (numShapes > 0)
 			{
-				while(iterator.hasNext())
+				while (iterator.hasNext())
 				{
 					shape = iterator.next();
 					material = shape.material;
@@ -897,7 +944,7 @@ package bb.components.physics
 
 					if (shape.isCircle())
 					{
-						shapeTrace += "{shape type: circle}-{radius: "+shape.castCircle.radius+"}\n";
+						shapeTrace += "{shape type: circle}-{radius: " + shape.castCircle.radius + "}\n";
 					}
 					else
 					{
@@ -905,28 +952,28 @@ package bb.components.physics
 						var vertexIterator:Vec2Iterator = shape.castPolygon.localVerts.iterator();
 						var vertex:Vec2;
 
-						while(vertexIterator.hasNext())
+						while (vertexIterator.hasNext())
 						{
 							vertex = vertexIterator.next();
-							shapeTrace += "   <"+vertex.x+" / "+vertex.y+">\n";
+							shapeTrace += "   <" + vertex.x + " / " + vertex.y + ">\n";
 						}
 
 						shapeTrace += "}\n";
 					}
 
-					shapeTrace += "{localCOM: "+shape.localCOM.x + " / "+ shape.localCOM.y + "}-{worldCOM: "+shape.worldCOM.x + " / "+ shape.worldCOM.y + "}\n" +
-							"{angDrag: "+shape.angDrag+"}-{area: "+shape.area+"}-{bounds: "+shape.bounds.x+"; "+shape.bounds.y+"; "+ shape.bounds.width+"; "+ shape.bounds.height+"}-{inertia: "+shape.inertia+"}\n" +
-							"{sensorEnabled: "+shape.sensorEnabled+"}-{fluidEnabled: "+shape.fluidEnabled+"}\n" +
-							"{material: [density: "+shape.material.density+"] [elasticity: "+shape.material.elasticity+"] [staticFriction: "+shape.material.staticFriction+
-							"] [dynamicFriction: "+shape.material.dynamicFriction+"] [rollingFriction: "+shape.material.rollingFriction+"]}\n" +
+					shapeTrace += "{localCOM: " + shape.localCOM.x + " / " + shape.localCOM.y + "}-{worldCOM: " + shape.worldCOM.x + " / " + shape.worldCOM.y + "}\n" +
+							"{angDrag: " + shape.angDrag + "}-{area: " + shape.area + "}-{bounds: " + shape.bounds.x + "; " + shape.bounds.y + "; " + shape.bounds.width + "; " + shape.bounds.height + "}-{inertia: " + shape.inertia + "}\n" +
+							"{sensorEnabled: " + shape.sensorEnabled + "}-{fluidEnabled: " + shape.fluidEnabled + "}\n" +
+							"{material: [density: " + shape.material.density + "] [elasticity: " + shape.material.elasticity + "] [staticFriction: " + shape.material.staticFriction +
+							"] [dynamicFriction: " + shape.material.dynamicFriction + "] [rollingFriction: " + shape.material.rollingFriction + "]}\n" +
 							"{filter:\n" +
-							"   [collisionGroup:"+shape.filter.collisionGroup+" collisionMask:"+shape.filter.collisionMask+"]\n" +
-							"   [sensorGroup:"+shape.filter.sensorGroup+" sensorMask:"+shape.filter.sensorMask+"]\n" +
-							"   [fluidGroup:"+shape.filter.fluidGroup+" fluidMask:"+shape.filter.fluidMask+"]\n}\n";
+							"   [collisionGroup:" + shape.filter.collisionGroup + " collisionMask:" + shape.filter.collisionMask + "]\n" +
+							"   [sensorGroup:" + shape.filter.sensorGroup + " sensorMask:" + shape.filter.sensorMask + "]\n" +
+							"   [fluidGroup:" + shape.filter.fluidGroup + " fluidMask:" + shape.filter.fluidMask + "]\n}\n";
 					if (shape.fluidProperties)
 					{
 						var gravity:Vec2 = shape.fluidProperties.gravity;
-						shapeTrace += "{fluidProperties: [viscosity:"+shape.fluidProperties.viscosity+"] [density: "+shape.fluidProperties.density+
+						shapeTrace += "{fluidProperties: [viscosity:" + shape.fluidProperties.viscosity + "] [density: " + shape.fluidProperties.density +
 								(gravity ? ("] [gravity: " + gravity.x + " / " + gravity.y) : "") + "]}\n";
 					}
 
@@ -963,8 +1010,8 @@ package bb.components.physics
 					"[BBPhysicsBody:\n" +
 					super.toString() + "\n" +
 					"{Added to space: " + (_body.space != null) + "}\n" +
-					"{position: " + _bodyPosition.x +" / "+ _bodyPosition.y+"}-{rotation: " + _body.rotation + "}-{scale: " + _scale + "}\n" +
-					"{lock: " + _lock + "}-{allowHand: " + allowHand +"}-{isNeedInitJoints: " + _isNeedInitJoints + "}]\n" +
+					"{position: " + _bodyPosition.x + " / " + _bodyPosition.y + "}-{rotation: " + _body.rotation + "}-{scaleX/Y: " + _scaleX + "/" + _scaleY + "}\n" +
+					"{lock: " + _lock + "}-{allowHand: " + allowHand + "}-{isNeedInitJoints: " + _isNeedInitJoints + "}]\n" +
 					"{Shapes num: " + numShapes + "}:\n" + shapeTrace + "\n" +
 					"{Joints num: " + numJoints + "}:\n" + jointsTrace + "\n" +
 					"------------------------------------------------------------------------------------------------------------------------";
@@ -1067,7 +1114,6 @@ package bb.components.physics
 				addPrototypeProperty("enabled", shape.fluidEnabled, "boolean", fluidPropsXML);
 				addPrototypeProperty("density", fluidProperties.density, "number", fluidPropsXML);
 				addPrototypeProperty("viscosity", fluidProperties.viscosity, "number", fluidPropsXML);
-
 
 				if (fluidProperties.gravity && fluidProperties.gravity.length > 1)
 				{
@@ -1190,13 +1236,17 @@ package bb.components.physics
 					currentFilter = new InteractionFilter(collisionGroup, collisionMask, sensorGroup, sensorMask, fluidGroup, fluidMask);
 				}
 
-				var scaleFactor:Number = 1 / _scale;
-				position.muleq(scaleFactor);
+				var scaleFactorX:Number = 1 / _scaleX;
+				var scaleFactorY:Number = 1 / _scaleY;
+
+				position.x *= scaleFactorX;
+				position.y *= scaleFactorY;
 
 				// create and add shape
 				if (shapeType == "CIRCLE")
 				{
-					currentShape = addCircle(Number(shapeXML.radius) * scaleFactor, shapeName, position, currentMaterial, currentFilter);
+					var greaterScaleFactor:Number = scaleFactorX > scaleFactorY ? scaleFactorX : scaleFactorY;
+					currentShape = addCircle(Number(shapeXML.radius) * greaterScaleFactor, shapeName, position, currentMaterial, currentFilter);
 				}
 				else
 				{
@@ -1209,7 +1259,7 @@ package bb.components.physics
 					for (var j:int = 0; j < numVertices; j++)
 					{
 						vertexData = verticesXML[j].split(",");
-						vertex = Vec2.get(Number(vertexData[0]) * scaleFactor, Number(vertexData[1]) * scaleFactor);
+						vertex = Vec2.get(Number(vertexData[0]) * scaleFactorX, Number(vertexData[1]) * scaleFactorY);
 						verticesList.push(vertex);
 					}
 

@@ -301,13 +301,13 @@ package bb.core.context
 				var cos:Number = _currentCameraCOS;
 				var dx:Number = textureX - _currentCameraX;
 				var dy:Number = textureY - _currentCameraY;
+
 				var newTextureX:Number = (dx * cos - sin * dy) * _currentCameraTotalScaleX + _currentCameraViewportCenterX + p_renderableComponent.offsetX;
 				var newTextureY:Number = (dx * sin + cos * dy) * _currentCameraTotalScaleY + _currentCameraViewportCenterY + p_renderableComponent.offsetY;
 
 				var totalRotation:Number = (textureRotation - _currentCameraRotation + p_renderableComponent.offsetRotation) % PI2;
 				var totalScaleX:Number = textureScaleX * _currentCameraTotalScaleX * p_renderableComponent.scaleX;
 				var totalScaleY:Number = textureScaleY * _currentCameraTotalScaleY * p_renderableComponent.scaleY;
-				var totalScale:Number = totalScaleX * totalScaleY;
 
 				texturePivotX *= totalScaleX;
 				texturePivotY *= totalScaleY;
@@ -315,16 +315,13 @@ package bb.core.context
 				///  Test for getting into the viewport /////////////
 				if (isFrustum)
 				{
-					var newTextureWidth:Number   = textureBitmapData.width * totalScaleX;
-					var newTextureHeight:Number  = textureBitmapData.height * totalScaleY;
+					var leftX:Number = texturePivotX;
+					var topY:Number = texturePivotY;
+					var rightX:Number = texturePivotX + textureBitmapData.width * totalScaleX;
+					var bottomY:Number = texturePivotY + textureBitmapData.height * totalScaleY;
 
 					var totalRotCos:Number = Math.cos(totalRotation);
 					var totalRotSin:Number = Math.sin(totalRotation);
-
-					var leftX:Number = texturePivotX;
-					var topY:Number = texturePivotY;
-					var rightX:Number = texturePivotX + newTextureWidth;
-					var bottomY:Number = texturePivotY + newTextureHeight;
 
 					var topLeftX:Number = (leftX * totalRotCos - totalRotSin * topY) + newTextureX;
 					var topLeftY:Number = (leftX * totalRotSin + totalRotCos * topY) + newTextureY;
@@ -352,10 +349,10 @@ package bb.core.context
 
 				var totalRotABS:Number = Math.abs(totalRotation);
 				var PI_sub_RAD:Number = PI2 - totalRotABS;
-				var totalScaleABS:Number = Math.abs(1.0 - Math.abs(totalScale));
+				var isScaleNotChanged:Boolean = totalScaleX > 0 && totalScaleY > 0 && Math.abs(1.0 - totalScaleX*totalScaleY) < PRECISE_SCALE;
 
 				//
-				if ((PI_sub_RAD < PRECISE_ROTATION || totalRotABS < PRECISE_ROTATION) && totalScaleABS < PRECISE_SCALE && (!colorTransform))
+				if ((PI_sub_RAD < PRECISE_ROTATION || totalRotABS < PRECISE_ROTATION) && isScaleNotChanged && (!colorTransform))
 				{
 					_rect.setTo(0, 0, textureBitmapData.width, textureBitmapData.height);
 					_point.setTo(newTextureX + texturePivotX, newTextureY + texturePivotY);

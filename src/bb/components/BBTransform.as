@@ -198,8 +198,11 @@ package bb.components
 			if (isTransformChanged) invalidate(true, false);
 			if (_isWorldTransformMatrixChanged)
 			{
+				var sX:Number = (worldScaleX == 0) ? 0.000001 : worldScaleX;
+				var sY:Number = (worldScaleY == 0) ? 0.000001 : worldScaleY;
+
 				if (_worldTransformMatrix == null) _worldTransformMatrix = new Matrix();
-				_worldTransformMatrix.createBox(worldScaleX, worldScaleY, worldRotation, worldX, worldY);
+				_worldTransformMatrix.createBox(sX, sY, worldRotation, worldX, worldY);
 				_isWorldTransformMatrixChanged = false;
 			}
 
@@ -351,7 +354,53 @@ package bb.components
 			isTransformChanged = true;
 			isScaleChanged = true;
 
-			//
+			keepSamePositionWhenScaled();
+		}
+
+		/**
+		 */
+		public function set scaleX(p_val:Number):void
+		{
+			_localScaleX = p_val;
+			isTransformChanged = true;
+			isScaleChanged = true;
+
+			keepSamePositionWhenScaled();
+		}
+
+		/**
+		 */
+		public function get scaleX():Number
+		{
+			calcLocalScaleWhenIndependentUpdate();
+			return _localScaleX;
+		}
+
+		/**
+		 */
+		public function set scaleY(p_val:Number):void
+		{
+			_localScaleY = p_val;
+			isTransformChanged = true;
+			isScaleChanged = true;
+
+			keepSamePositionWhenScaled();
+		}
+
+		/**
+		 */
+		public function get scaleY():Number
+		{
+			calcLocalScaleWhenIndependentUpdate();
+			return _localScaleY;
+		}
+
+		/**
+		 * if 'independentUpdateWorldParameters' is true (mostly it is related to physics component) and doing scaling, need to keep position at the same place.
+		 */
+		[Inline]
+		private function keepSamePositionWhenScaled():void
+		{
 			if (independentUpdateWorldParameters)
 			{
 				var parentNode:BBNode = node.parent;
@@ -364,61 +413,20 @@ package bb.components
 		}
 
 		/**
+		 * if 'independentUpdateWorldParameters' is true (mostly it is related to physics component) and trying to get scaleX or scaleY.
 		 */
-		public function set scaleX(val:Number):void
-		{
-			/*worldScaleX = */_localScaleX = val;
-			isTransformChanged = true;
-			isScaleChanged = true;
-
-			// if true update localX. E.g. need for physic comp. If localX won't update, after scaling position isn't correct
-			if (independentUpdateWorldParameters)
-			{
-				var parentNode:BBNode = node.parent;
-				if (parentNode) _localX = worldX - parentNode.transform.worldX;
-			}
-		}
-
-		/**
-		 */
-		public function get scaleX():Number
+		[Inline]
+		private function calcLocalScaleWhenIndependentUpdate():void
 		{
 			if (independentUpdateWorldParameters)
 			{
 				var parentNode:BBNode = node.parent;
-				if (parentNode) _localScaleX = worldScaleX - parentNode.transform.worldScaleX;
+				if (parentNode)
+				{
+					_localScaleX = worldScaleX - parentNode.transform.worldScaleX;
+					_localScaleY = worldScaleY - parentNode.transform.worldScaleY;
+				}
 			}
-
-			return _localScaleX;
-		}
-
-		/**
-		 */
-		public function set scaleY(val:Number):void
-		{
-			/*worldScaleY = */_localScaleY = val;
-			isTransformChanged = true;
-			isScaleChanged = true;
-
-			// if true update localY. E.g. need for physic comp. If localY won't update, after scaling position isn't correct
-			if (independentUpdateWorldParameters)
-			{
-				var parentNode:BBNode = node.parent;
-				if (parentNode) _localY = worldY - parentNode.transform.worldY;
-			}
-		}
-
-		/**
-		 */
-		public function get scaleY():Number
-		{
-			if (independentUpdateWorldParameters)
-			{
-				var parentNode:BBNode = node.parent;
-				if (parentNode) _localScaleY = worldScaleY - parentNode.transform.worldScaleY;
-			}
-
-			return _localScaleY;
 		}
 
 		/**
@@ -556,7 +564,7 @@ package bb.components
 		/**
 		 */
 		[Inline]
-		final bb_private function resetInvalidationsFlags():void
+		final bb_private function resetInvalidationFlags():void
 		{
 			isInvalidated = false;
 			isColorInvalidated = false;
