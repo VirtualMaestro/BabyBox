@@ -35,6 +35,7 @@ package bb.components.physics
 	import nape.space.Space;
 
 	import vm.math.numbers.NumberUtil;
+	import vm.math.trigonometry.TrigUtil;
 	import vm.str.StringUtil;
 
 	CONFIG::debug
@@ -277,7 +278,7 @@ package bb.components.physics
 
 		/**
 		 */
-		public function addShape(p_shape:Shape, p_shapeName:String = "", p_position:Vec2 = null, p_material:Material = null, p_filter:InteractionFilter = null):Shape
+		public function addShape(p_shape:Shape, p_shapeName:String = "", p_angle:Number = 0, p_position:Vec2 = null, p_material:Material = null, p_filter:InteractionFilter = null):Shape
 		{
 			CONFIG::debug
 			{
@@ -291,6 +292,7 @@ package bb.components.physics
 
 			//
 			if (p_position) p_shape.localCOM.set(p_position);
+			if (p_angle != 0) p_shape.rotate(p_angle);
 			_body.shapes.add(p_shape);
 
 			if (p_material) p_shape.material = p_material;
@@ -330,12 +332,37 @@ package bb.components.physics
 		}
 
 		/**
+		 * Adds ellipse shape to body.
+		 * NOTICE: It is just simulation of ellipse due to phys engine doesn't support ellipses.
+		 * In fact it is Polygon, so it could hit by performance.
+		 */
+		public function addEllipse(p_radiusX:Number, p_radiusY:Number, p_shapeName:String = "", p_angle:Number = 0, p_position:Vec2 = null, p_material:Material = null, p_filter:InteractionFilter = null):Polygon
+		{
+			// calc num vertices
+			var numVertices:int = TrigUtil.PI2 / Math.acos(1 - 0.6 / (Math.sqrt(p_radiusX*p_radiusX + p_radiusY*p_radiusY)));
+			var vertices:Vector.<Vec2> = new <Vec2>[];
+			var angle:Number;
+
+			// calc coordinates of vertices
+			for (var i:int = 0; i < numVertices; i++)
+			{
+				angle = TrigUtil.PI2 / numVertices * i;
+				vertices[i] = new Vec2(p_radiusX * Math.cos(angle), p_radiusY * Math.sin(angle));
+			}
+
+			var ellipse:Polygon = new Polygon(vertices, p_material, p_filter);
+			addShape(ellipse, p_shapeName, p_angle, p_position);
+
+			return ellipse;
+		}
+
+		/**
 		 * Adds box shape to body.
 		 */
-		public function addBox(p_width:int, p_height:int, p_shapeName:String = "", p_position:Vec2 = null, p_material:Material = null, p_filter:InteractionFilter = null):Polygon
+		public function addBox(p_width:int, p_height:int, p_shapeName:String = "", p_angle:Number = 0, p_position:Vec2 = null, p_material:Material = null, p_filter:InteractionFilter = null):Polygon
 		{
 			var box:Polygon = new Polygon(Polygon.box(p_width, p_height, true), p_material, p_filter);
-			addShape(box, p_shapeName, p_position);
+			addShape(box, p_shapeName, p_angle, p_position);
 
 			return box;
 		}
@@ -1264,7 +1291,7 @@ package bb.components.physics
 					}
 
 					currentShape = new Polygon(verticesList, currentMaterial, currentFilter);
-					addShape(currentShape, shapeName, position);
+					addShape(currentShape, shapeName, 0, position);
 				}
 
 				// parse fluid props

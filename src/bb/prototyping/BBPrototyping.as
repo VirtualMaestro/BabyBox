@@ -30,7 +30,7 @@ package bb.prototyping
 			var box:BBNode = BBNode.get(p_name);
 			var physics:BBPhysicsBody = BBPhysicsBody.get(p_type);
 			var material:Material = p_material ? p_material : BBPhysicalMaterials.wood;
-			physics.addBox(p_width, p_height, "", null, material);
+			physics.addBox(p_width, p_height);
 			box.addComponent(physics);
 
 			var view:BBSprite = BBSprite.get(BBTexture.createFromColorRect(p_width, p_height, "", p_color));
