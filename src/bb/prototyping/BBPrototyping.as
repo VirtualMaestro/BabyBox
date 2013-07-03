@@ -30,7 +30,7 @@ package bb.prototyping
 			var box:BBNode = BBNode.get(p_name);
 			var physics:BBPhysicsBody = BBPhysicsBody.get(p_type);
 			var material:Material = p_material ? p_material : BBPhysicalMaterials.wood;
-			physics.addBox(p_width, p_height);
+			physics.addBox(p_width, p_height, "", 0, null, material);
 			box.addComponent(physics);
 
 			var view:BBSprite = BBSprite.get(BBTexture.createFromColorRect(p_width, p_height, "", p_color));
@@ -54,6 +54,23 @@ package bb.prototyping
 			circle.addComponent(view);
 
 			return circle;
+		}
+
+		/**
+		 * Creates and returns circle with physical and graphical components.
+		 */
+		static public function getEllipse(p_radiusX:Number = 100, p_radiusY:Number = 50, p_name:String = "", p_color:uint = BBColor.GRASS, p_type:BodyType = null, p_material:Material = null):BBNode
+		{
+			var ellipse:BBNode = BBNode.get(p_name);
+			var physics:BBPhysicsBody = BBPhysicsBody.get((p_type == null ? BodyType.DYNAMIC : p_type));
+			var material:Material = p_material ? p_material : BBPhysicalMaterials.wood;
+			physics.addEllipse(p_radiusX, p_radiusY, "", 0, null, material);
+			ellipse.addComponent(physics);
+
+			var view:BBSprite = BBSprite.get(BBTexture.createFromColorEllipse(p_radiusX, p_radiusY, "", p_color));
+			ellipse.addComponent(view);
+
+			return ellipse;
 		}
 
 		/**

@@ -361,6 +361,29 @@ package bb.textures
 		}
 
 		/**
+		 * Creates texture circle with given color.
+		 */
+		static public function createFromColorEllipse(p_radiusX:int, p_radiusY:int, p_textureId:String = "", p_color:uint = 0xff9abe5e, p_alignByCenter:Boolean = true):BBTexture
+		{
+			var texture:BBTexture = getTextureById(p_textureId);
+			if (texture) return texture;
+
+			p_radiusX *= 2;
+			p_radiusY *= 2;
+
+			//
+			var bitmapData:BitmapData = new BitmapData(p_radiusX, p_radiusY, true, 0x00000000);
+			var circle:Sprite = new Sprite();
+			circle.graphics.beginFill(p_color);
+			circle.graphics.drawEllipse(0, 0, p_radiusX, p_radiusY);
+			circle.graphics.endFill();
+
+			var matrix:Matrix = new Matrix();
+			bitmapData.draw(circle, matrix, null, null, null, true);
+			return createFromBitmapData(bitmapData, p_textureId, p_alignByCenter);
+		}
+
+		/**
 		 * Returns unique texture id.
 		 */
 		static public function getTextureId():String

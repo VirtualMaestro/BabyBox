@@ -1323,6 +1323,7 @@ package bb.components.physics
 
 		/**
 		 * Returns instance of BBPhysicsBody.
+		 * If type isn't set by default it is STATIC.
 		 */
 		static public function get(p_type:BodyType = null):BBPhysicsBody
 		{
