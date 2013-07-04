@@ -103,10 +103,10 @@ package bb.debug
 						if (!coords.parent) addChild(coords);
 					}
 
-					gr.lineStyle(0, _nodeColor,_gridAlpha+0.5);
-					gr.beginFill(_nodeColor, _gridAlpha+0.5);
+					gr.lineStyle(0, _nodeColor, _gridAlpha + 0.5);
+					gr.beginFill(_nodeColor, _gridAlpha + 0.5);
 					gr.drawCircle(xp, yp, _nodeSize);
-					gr.drawCircle(xp+_cellSize/2, yp+_cellSize/2, 1);
+					gr.drawCircle(xp + _cellSize / 2, yp + _cellSize / 2, 1);
 					gr.endFill();
 
 					xp += _cellSize;

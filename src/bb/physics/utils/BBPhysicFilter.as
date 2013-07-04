@@ -24,7 +24,7 @@ package bb.physics.utils
 		 */
 		static public function getCollisionGroup():int
 		{
-			return (1 << (++currentCollisionGroup-1));
+			return (1 << (++currentCollisionGroup - 1));
 		}
 
 		/**
@@ -32,7 +32,7 @@ package bb.physics.utils
 		 */
 		static public function hasCollisionGroup():Boolean
 		{
-			return (currentCollisionGroup+1) < 33;
+			return (currentCollisionGroup + 1) < 33;
 		}
 
 		/**
@@ -51,7 +51,7 @@ package bb.physics.utils
 		 */
 		static public function getSensorGroup():int
 		{
-			return (1 << (++currentSensorGroup-1));
+			return (1 << (++currentSensorGroup - 1));
 		}
 
 		/**
@@ -59,7 +59,7 @@ package bb.physics.utils
 		 */
 		static public function hasSensorGroup():Boolean
 		{
-			return (currentSensorGroup+1) < 33;
+			return (currentSensorGroup + 1) < 33;
 		}
 
 		/**
@@ -78,7 +78,7 @@ package bb.physics.utils
 		 */
 		static public function getFluidGroup():int
 		{
-			return (1 << (++currentFluidGroup-1));
+			return (1 << (++currentFluidGroup - 1));
 		}
 
 		/**
@@ -86,7 +86,7 @@ package bb.physics.utils
 		 */
 		static public function hasFluidGroup():Boolean
 		{
-			return (currentFluidGroup+1) < 33;
+			return (currentFluidGroup + 1) < 33;
 		}
 
 		/**
@@ -140,9 +140,7 @@ package bb.physics.utils
 		 *     var filter:InteractionFilter = BBPhysicFilter.getFilter();
 		 * </code>
 		 */
-		static public function getFilter(p_collisionGroup:int = 1, p_collisionGroupInclude:Array = null, p_collisionGroupExclude:Array = null,
-		                                 p_sensorGroup:int = 1, p_sensorGroupInclude:Array = null, p_sensorGroupExclude:Array = null,
-		                                 p_fluidGroup:int = 1, p_fluidGroupInclude:Array = null, p_fluidGroupExclude:Array = null):InteractionFilter
+		static public function getFilter(p_collisionGroup:int = 1, p_collisionGroupInclude:Array = null, p_collisionGroupExclude:Array = null, p_sensorGroup:int = 1, p_sensorGroupInclude:Array = null, p_sensorGroupExclude:Array = null, p_fluidGroup:int = 1, p_fluidGroupInclude:Array = null, p_fluidGroupExclude:Array = null):InteractionFilter
 		{
 //			CONFIG::debug
 //			{
@@ -165,11 +163,7 @@ package bb.physics.utils
 		/**
 		 * Modify filter for shape.
 		 */
-		static public function modifyShapeFilter(p_shape:Shape,
-		                                         p_collisionInclude:Array = null, p_collisionExclude:Array = null,
-												 p_sensorInclude:Array = null, p_sensorExclude:Array = null,
-												 p_fluidInclude:Array = null, p_fluidExclude:Array = null):void
-
+		static public function modifyShapeFilter(p_shape:Shape, p_collisionInclude:Array = null, p_collisionExclude:Array = null, p_sensorInclude:Array = null, p_sensorExclude:Array = null, p_fluidInclude:Array = null, p_fluidExclude:Array = null):void
 		{
 			modifyFilter(p_shape.filter, p_collisionInclude, p_collisionExclude, p_sensorInclude, p_sensorExclude, p_fluidInclude, p_fluidExclude);
 		}
@@ -177,17 +171,13 @@ package bb.physics.utils
 		/**
 		 * Modify filter parameters for every shape of body.
 		 */
-		static public function modifyBodyFilter(p_body:Body,
-		                                        p_collisionInclude:Array = null, p_collisionExclude:Array = null,
-												p_sensorInclude:Array = null, p_sensorExclude:Array = null,
-												p_fluidInclude:Array = null, p_fluidExclude:Array = null):void
-
+		static public function modifyBodyFilter(p_body:Body, p_collisionInclude:Array = null, p_collisionExclude:Array = null, p_sensorInclude:Array = null, p_sensorExclude:Array = null, p_fluidInclude:Array = null, p_fluidExclude:Array = null):void
 		{
 			var shapeList:ShapeList = p_body.shapes;
 			var filter:InteractionFilter = shapeList.at(0).filter;
 			modifyFilter(filter, p_collisionInclude, p_collisionExclude, p_sensorInclude, p_sensorExclude, p_fluidInclude, p_fluidExclude);
 
-			shapeList.foreach(function(shape:Shape):void
+			shapeList.foreach(function (shape:Shape):void
 			{
 				shape.filter.collisionMask = filter.collisionMask;
 				shape.filter.sensorMask = filter.sensorMask;
@@ -200,10 +190,7 @@ package bb.physics.utils
 		 * If pair of some layer are null this layer won't changed.
 		 * E.g. if collisionInclude == null and collisionExclude == null parameters for collision layer won't changed.
 		 */
-		static public function modifyFilter(p_filter:InteractionFilter,
-		                                  p_collisionInclude:Array = null, p_collisionExclude:Array = null,
-										  p_sensorInclude:Array = null, p_sensorExclude:Array = null,
-										  p_fluidInclude:Array = null, p_fluidExclude:Array = null):void
+		static public function modifyFilter(p_filter:InteractionFilter, p_collisionInclude:Array = null, p_collisionExclude:Array = null, p_sensorInclude:Array = null, p_sensorExclude:Array = null, p_fluidInclude:Array = null, p_fluidExclude:Array = null):void
 		{
 			p_filter.collisionMask = (p_collisionInclude == null && p_collisionExclude == null) ? p_filter.collisionMask : BBGroupMask.getMask(p_collisionInclude, p_collisionExclude);
 			p_filter.sensorMask = (p_sensorInclude == null && p_sensorExclude == null) ? p_filter.sensorMask : BBGroupMask.getMask(p_sensorInclude, p_sensorExclude);

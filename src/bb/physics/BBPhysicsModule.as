@@ -5,14 +5,15 @@
  */
 package bb.physics
 {
-	import bb.modules.*;
 	import bb.bb_spaces.bb_private;
-	import bb.components.physics.BBPhysicsBody;
-	import bb.components.physics.joints.BBConstraintFactory;
-	import bb.components.physics.joints.BBJoint;
-	import bb.core.BBConfig;
+	import bb.config.BBConfig;
 	import bb.core.BabyBox;
-	import bb.events.BBMouseEvent;
+	import bb.modules.*;
+	import bb.mouse.BBMouseModule;
+	import bb.mouse.events.BBMouseEvent;
+	import bb.physics.components.BBPhysicsBody;
+	import bb.physics.joints.BBJoint;
+	import bb.physics.joints.BBJointFactory;
 	import bb.signals.BBSignal;
 
 	import nape.callbacks.CbEvent;
@@ -72,7 +73,7 @@ package bb.physics
 			_gravity = _config.getGravity();
 			_space = new Space(_gravity, (_config.broadphaseSweepAndPrune ? Broadphase.SWEEP_AND_PRUNE : Broadphase.DYNAMIC_AABB_TREE));
 			_gravity = _space.gravity;
-			BBConstraintFactory.space = _space;
+			BBJointFactory.space = _space;
 
 			// any constraints which break should go through this handler
 			var constraintListener:ConstraintListener = new ConstraintListener(CbEvent.BREAK, CbType.ANY_CONSTRAINT, function (cb:ConstraintCallback):void

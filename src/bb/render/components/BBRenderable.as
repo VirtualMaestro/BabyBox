@@ -11,7 +11,7 @@ package bb.render.components
 	import bb.core.context.BBContext;
 	import bb.mouse.events.BBMouseEvent;
 	import bb.pools.BBNativePool;
-	import bb.textures.BBTexture;
+	import bb.render.textures.BBTexture;
 
 	import flash.geom.Point;
 

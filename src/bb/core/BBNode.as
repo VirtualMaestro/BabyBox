@@ -1,14 +1,12 @@
 package bb.core
 {
 	import bb.bb_spaces.bb_private;
-	import bb.components.BBComponent;
-	import bb.components.BBTransform;
-	import bb.components.renderable.BBRenderable;
-	import bb.constants.mouse.BBMouseFlags;
 	import bb.core.context.BBContext;
-	import bb.events.BBMouseEvent;
-	import bb.modules.BBGraphModule;
+	import bb.mouse.constants.BBMouseFlags;
+	import bb.mouse.events.BBMouseEvent;
+	import bb.render.components.BBRenderable;
 	import bb.signals.BBSignal;
+	import bb.tree.BBTreeModule;
 
 	import flash.utils.Dictionary;
 	import flash.utils.getDefinitionByName;
@@ -46,7 +44,7 @@ package bb.core
 		bb_private var z_renderComponent:BBRenderable = null;
 
 		// root of tree
-		bb_private var z_core:BBGraphModule = null;
+		bb_private var z_core:BBTreeModule = null;
 
 		//
 		bb_private var mouseOver:BBNode = null;

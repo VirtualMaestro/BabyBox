@@ -41,7 +41,7 @@ package bb.physics.utils
 		{
 			CONFIG::debug
 			{
-				Assert.isTrue(_tableMaterial[materialName], "material with name '" + materialName +"' doesn't exist", "BBPhysicalMaterials.getByName");
+				Assert.isTrue(_tableMaterial[materialName], "material with name '" + materialName + "' doesn't exist", "BBPhysicalMaterials.getByName");
 			}
 
 			return _tableMaterial[materialName]();

@@ -5,12 +5,13 @@
  */
 package bb.level
 {
-	import bb.modules.*;
 	import bb.core.BBNode;
-	import bb.parsers.BBLevelParser;
+	import bb.level.parsers.BBLevelParser;
+	import bb.modules.*;
 	import bb.physics.components.BBPhysicsBody;
 	import bb.physics.joints.BBJoint;
 	import bb.signals.BBSignal;
+	import bb.world.BBWorldModule;
 
 	import flash.display.MovieClip;
 	import flash.utils.Dictionary;

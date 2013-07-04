@@ -1,7 +1,6 @@
 package bb.core
 {
 	import bb.bb_spaces.bb_private;
-	import bb.core.*;
 	import bb.signals.BBSignal;
 
 	import flash.utils.Dictionary;

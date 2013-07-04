@@ -5,12 +5,12 @@
  */
 package bb.layer
 {
-	import bb.modules.*;
 	import bb.bb_spaces.bb_private;
-	import bb.common.BBLayer;
 	import bb.core.BBNode;
+	import bb.modules.*;
 	import bb.signals.BBSignal;
 	import bb.tools.BBGroupMask;
+	import bb.tree.BBTreeModule;
 
 	CONFIG::debug
 	{
@@ -25,7 +25,7 @@ package bb.layer
 	public class BBLayerModule extends BBModule
 	{
 		private var _layersTable:Array;
-		private var _graph:BBGraphModule;
+		private var _graph:BBTreeModule;
 		private var _root:BBNode;
 
 		/**
@@ -42,7 +42,7 @@ package bb.layer
 		private function onInitHandler(p_signal:BBSignal):void
 		{
 			_layersTable = [];
-			_graph = getModule(BBGraphModule) as BBGraphModule;
+			_graph = getModule(BBTreeModule) as BBTreeModule;
 			_root = _graph.root;
 		}
 

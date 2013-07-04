@@ -2,7 +2,7 @@ package bb.config
 {
 	import bb.assets.BBAssetsManager;
 	import bb.bb_spaces.bb_private;
-	import bb.constants.render.BBRenderMode;
+	import bb.render.constants.BBRenderMode;
 	import bb.signals.BBSignal;
 
 	import flash.geom.Rectangle;

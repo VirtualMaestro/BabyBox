@@ -1,10 +1,9 @@
 package bb.config
 {
-	import bb.modules.*;
 	import bb.bb_spaces.bb_private;
-	import bb.core.BBConfig;
 	import bb.core.BabyBox;
 	import bb.debug.BBDebugModule;
+	import bb.modules.*;
 	import bb.physics.BBPhysicsModule;
 	import bb.signals.BBSignal;
 
@@ -64,7 +63,7 @@ package bb.config
 					if (config.autoPhysicTimeStep)
 					{
 						if (!_physicsModule) _physicsModule = getModule(BBPhysicsModule) as BBPhysicsModule;
-						if (_physicsModule) _physicsModule.timeStep = 1/Number(p_propertyValue);
+						if (_physicsModule) _physicsModule.timeStep = 1 / Number(p_propertyValue);
 					}
 
 					break;

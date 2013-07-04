@@ -8,7 +8,7 @@ package bb.render.components
 	import bb.bb_spaces.bb_private;
 	import bb.core.BBComponent;
 	import bb.core.BBNode;
-	import bb.textures.BBTexture;
+	import bb.render.textures.BBTexture;
 
 	CONFIG::debug
 	{

@@ -6,15 +6,15 @@
 package bb.physics.components
 {
 	import bb.bb_spaces.bb_private;
-	import bb.components.BBComponent;
-	import bb.components.BBTransform;
-	import bb.components.physics.joints.BBConstraintFactory;
-	import bb.components.physics.joints.BBJoint;
+	import bb.core.BBComponent;
 	import bb.core.BBNode;
+	import bb.core.BBTransform;
 	import bb.core.BabyBox;
 	import bb.physics.BBPhysicsModule;
+	import bb.physics.joints.BBJoint;
+	import bb.physics.joints.BBJointFactory;
+	import bb.physics.utils.BBPhysicalMaterials;
 	import bb.signals.BBSignal;
-	import bb.tools.physics.BBPhysicalMaterials;
 
 	import nape.constraint.PivotJoint;
 	import nape.dynamics.InteractionFilter;
@@ -339,7 +339,7 @@ package bb.physics.components
 		public function addEllipse(p_radiusX:Number, p_radiusY:Number, p_shapeName:String = "", p_angle:Number = 0, p_position:Vec2 = null, p_material:Material = null, p_filter:InteractionFilter = null):Polygon
 		{
 			// calc num vertices
-			var numVertices:int = TrigUtil.PI2 / Math.acos(1 - 0.6 / (Math.sqrt(p_radiusX*p_radiusX + p_radiusY*p_radiusY)));
+			var numVertices:int = TrigUtil.PI2 / Math.acos(1 - 0.6 / (Math.sqrt(p_radiusX * p_radiusX + p_radiusY * p_radiusY)));
 			var vertices:Vector.<Vec2> = new <Vec2>[];
 			var angle:Number;
 
@@ -468,7 +468,7 @@ package bb.physics.components
 				p_joint.jointedBody = jointedBody;
 			}
 
-			BBConstraintFactory.createJoint(p_joint).space = _space;
+			BBJointFactory.createJoint(p_joint).space = _space;
 		}
 
 		/**

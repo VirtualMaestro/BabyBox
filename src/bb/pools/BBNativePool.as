@@ -77,7 +77,7 @@ package bb.pools
 			if (_pointPoolCounter > 0)
 			{
 				point = _pointPool[--_pointPoolCounter];
-				point.setTo(p_x,  p_y);
+				point.setTo(p_x, p_y);
 			}
 			else point = new Point(p_x, p_y);
 

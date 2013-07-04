@@ -5,13 +5,12 @@
  */
 package bb.render.components
 {
-	import bb.components.renderable.*;
 	import bb.bb_spaces.bb_private;
 	import bb.core.BBComponent;
 	import bb.core.BBNode;
 	import bb.core.BabyBox;
+	import bb.render.textures.BBTextureAtlas;
 	import bb.signals.BBSignal;
-	import bb.textures.BBTextureAtlas;
 
 	CONFIG::debug
 	{

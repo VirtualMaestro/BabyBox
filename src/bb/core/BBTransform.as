@@ -6,7 +6,6 @@
 package bb.core
 {
 	import bb.bb_spaces.bb_private;
-	import bb.core.BBNode;
 
 	import flash.geom.Matrix;
 	import flash.geom.Point;
@@ -240,7 +239,8 @@ package bb.core
 		[Inline]
 		final public function set x(p_x:Number):void
 		{
-			/*worldX = */_localX = p_x;
+			/*worldX = */
+			_localX = p_x;
 			isTransformChanged = true;
 			isPositionChanged = true;
 
@@ -267,7 +267,8 @@ package bb.core
 		[Inline]
 		final public function set y(p_y:Number):void
 		{
-			/*worldY = */_localY = p_y;
+			/*worldY = */
+			_localY = p_y;
 			isTransformChanged = true;
 			isPositionChanged = true;
 
@@ -306,7 +307,8 @@ package bb.core
 			p_angle %= PI2;
 			if (Math.abs(p_angle) < PRECISE_ROTATION) p_angle = 0;
 
-			/*worldRotation = */_localRotation = p_angle;
+			/*worldRotation = */
+			_localRotation = p_angle;
 
 			isTransformChanged = true;
 			isRotationChanged = true;
@@ -433,7 +435,7 @@ package bb.core
 		 */
 		public function shiftScale(p_shiftScaleX:Number, p_shiftScaleY:Number):void
 		{
-			setScale(_localScaleX+p_shiftScaleX, _localScaleY+p_shiftScaleY);
+			setScale(_localScaleX + p_shiftScaleX, _localScaleY + p_shiftScaleY);
 		}
 
 		/**
@@ -441,7 +443,7 @@ package bb.core
 		 */
 		public function shiftPosition(p_offsetX:Number, p_offsetY:Number):void
 		{
-			setPosition(_localX+p_offsetX, _localY+p_offsetY);
+			setPosition(_localX + p_offsetX, _localY + p_offsetY);
 		}
 
 		/**
@@ -553,7 +555,7 @@ package bb.core
 				worldBlue = _blue * parentTransform.worldBlue;
 
 				isColorChanged = false;
-				isColorShouldBeDisplayed = (4.0 - (worldRed + worldGreen + worldBlue + worldAlpha)) > 0.02*4;  // 0.02 - precise color
+				isColorShouldBeDisplayed = (4.0 - (worldRed + worldGreen + worldBlue + worldAlpha)) > 0.02 * 4;  // 0.02 - precise color
 				isColorInvalidated = true;
 			}
 
@@ -669,12 +671,12 @@ package bb.core
 		{
 			return  "------------------------------------------------------------------------------------------------------------------------\n" +
 					"[BBTransform:\n" +
-					super.toString() +"\n"+
-					"{localX/localY: " + _localX+" / "+_localY + "}-{worldX/worldY: " + worldX+" / "+worldY + "}-{local/world rotation: " + _localRotation +" / "+ worldRotation + "}-"+
-					"{scale local: " + _localScaleX+" / " + _localScaleY + "}-{ scale world: " + worldScaleX+" / " + worldScaleY + "}" + "\n" +
-					"{isTransformChanged: " + isTransformChanged + "}-{isScaleInvalidated: "+isScaleInvalidated+"}-{isColorChanged: " + isColorChanged + "}-" +
-					"{local/world ARGB: " + _alpha+";"+_red+";"+_green+";"+_blue+" / "+ worldAlpha+";"+worldRed+";"+worldGreen+";"+worldBlue+"}] \n" +
-					"{COS: "+COS+ "}-{SIN: " + SIN + "}-{PRECISE_ROTATION: "+PRECISE_ROTATION+"}" +
+					super.toString() + "\n" +
+					"{localX/localY: " + _localX + " / " + _localY + "}-{worldX/worldY: " + worldX + " / " + worldY + "}-{local/world rotation: " + _localRotation + " / " + worldRotation + "}-" +
+					"{scale local: " + _localScaleX + " / " + _localScaleY + "}-{ scale world: " + worldScaleX + " / " + worldScaleY + "}" + "\n" +
+					"{isTransformChanged: " + isTransformChanged + "}-{isScaleInvalidated: " + isScaleInvalidated + "}-{isColorChanged: " + isColorChanged + "}-" +
+					"{local/world ARGB: " + _alpha + ";" + _red + ";" + _green + ";" + _blue + " / " + worldAlpha + ";" + worldRed + ";" + worldGreen + ";" + worldBlue + "}] \n" +
+					"{COS: " + COS + "}-{SIN: " + SIN + "}-{PRECISE_ROTATION: " + PRECISE_ROTATION + "}" +
 					"\n" + "------------------------------------------------------------------------------------------------------------------------\n";
 		}
 	}

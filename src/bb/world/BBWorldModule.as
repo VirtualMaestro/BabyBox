@@ -5,16 +5,16 @@
  */
 package bb.world
 {
-	import bb.modules.*;
 	import bb.bb_spaces.bb_private;
 	import bb.camera.components.BBCamera;
 	import bb.config.BBConfig;
-	import bb.layer.constants.BBLayerNames;
-	import bb.constants.profiles.BBGameType;
 	import bb.core.BBNode;
 	import bb.core.BabyBox;
 	import bb.layer.BBLayerModule;
+	import bb.layer.constants.BBLayerNames;
+	import bb.modules.*;
 	import bb.signals.BBSignal;
+	import bb.world.profiles.BBGameType;
 
 	use namespace bb_private;
 

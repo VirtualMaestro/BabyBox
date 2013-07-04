@@ -6,16 +6,16 @@
 package bb.camera.components
 {
 	import bb.bb_spaces.bb_private;
+	import bb.camera.BBCamerasModule;
+	import bb.config.BBConfig;
 	import bb.core.BBComponent;
-	import bb.core.BBConfig;
 	import bb.core.BBNodeStatus;
 	import bb.core.BBTransform;
 	import bb.core.BabyBox;
 	import bb.core.context.BBContext;
-	import bb.events.BBMouseEvent;
-	import bb.camera.BBCamerasModule;
-	import bb.modules.BBGraphModule;
+	import bb.mouse.events.BBMouseEvent;
 	import bb.signals.BBSignal;
+	import bb.tree.BBTreeModule;
 	import bb.vo.BBColor;
 
 	import flash.geom.Point;
@@ -71,7 +71,7 @@ package bb.camera.components
 		private var _zoom:Number = 1;
 
 		//
-		private var _core:BBGraphModule = null;
+		private var _core:BBTreeModule = null;
 		private var _config:BBConfig = null;
 
 		//
@@ -255,7 +255,7 @@ package bb.camera.components
 
 			if (_fitContentToViewport)
 			{
-				_viewPortScaleX = _viewPort.width  / _config.gameWidth;
+				_viewPortScaleX = _viewPort.width / _config.gameWidth;
 				_viewPortScaleY = _viewPort.height / _config.gameHeight;
 			}
 			else _viewPortScaleX = _viewPortScaleY = 1.0;
@@ -313,8 +313,8 @@ package bb.camera.components
 
 				if ((shiftX + shiftY + shiftR + shiftZ) != 0)
 				{
-					node.transform.shiftPositionAndRotation(shiftX * _offsetX, shiftY * _offsetY, shiftR*_offsetRotation);
-					node.transform.shiftScale(shiftZ*_offsetZoom, shiftZ*_offsetZoom);
+					node.transform.shiftPositionAndRotation(shiftX * _offsetX, shiftY * _offsetY, shiftR * _offsetRotation);
+					node.transform.shiftScale(shiftZ * _offsetZoom, shiftZ * _offsetZoom);
 					node.transform.invalidate(true, false);
 					node.transform.resetInvalidationFlags();
 					invalidate();
@@ -409,7 +409,6 @@ package bb.camera.components
 		{
 			invalidate();
 		}
-
 
 		/**
 		 * Disposes camera. Remove from render graph and from system.

@@ -27,7 +27,7 @@ package bb.tools
 		 */
 		static public function getGroup():int
 		{
-			return (1 << (++currentGroup-1));
+			return (1 << (++currentGroup - 1));
 		}
 
 		/**
@@ -35,7 +35,7 @@ package bb.tools
 		 */
 		static public function hasGroup():Boolean
 		{
-			return (currentGroup+1) < 33;
+			return (currentGroup + 1) < 33;
 		}
 
 		/**
@@ -45,7 +45,6 @@ package bb.tools
 		{
 			currentGroup = 1;
 		}
-
 
 		/**
 		 * Returns the mask by given include or exclude groups.

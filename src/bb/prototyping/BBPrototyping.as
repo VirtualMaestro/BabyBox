@@ -5,12 +5,12 @@
  */
 package bb.prototyping
 {
-	import bb.components.physics.BBPhysicsBody;
-	import bb.components.physics.joints.BBJoint;
-	import bb.components.renderable.BBSprite;
 	import bb.core.BBNode;
-	import bb.textures.BBTexture;
-	import bb.tools.physics.BBPhysicalMaterials;
+	import bb.physics.components.BBPhysicsBody;
+	import bb.physics.joints.BBJoint;
+	import bb.physics.utils.BBPhysicalMaterials;
+	import bb.render.components.BBSprite;
+	import bb.render.textures.BBTexture;
 	import bb.vo.BBColor;
 
 	import nape.geom.Vec2;

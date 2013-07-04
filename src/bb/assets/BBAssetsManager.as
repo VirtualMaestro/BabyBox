@@ -5,13 +5,13 @@
  */
 package bb.assets
 {
-	import bb.components.renderable.BBMovieClip;
-	import bb.components.renderable.BBRenderable;
-	import bb.components.renderable.BBSprite;
+	import bb.render.components.BBMovieClip;
+	import bb.render.components.BBRenderable;
+	import bb.render.components.BBSprite;
+	import bb.render.textures.BBTexture;
+	import bb.render.textures.BBTextureAtlas;
+	import bb.render.textures.BBTextureBase;
 	import bb.signals.BBSignal;
-	import bb.textures.BBTexture;
-	import bb.textures.BBTextureAtlas;
-	import bb.textures.BBTextureBase;
 
 	import flash.display.Bitmap;
 	import flash.display.DisplayObject;
@@ -281,7 +281,7 @@ package bb.assets
 		 */
 		static public function clear():void
 		{
-			for(var classDef:Object in _assetIdList)
+			for (var classDef:Object in _assetIdList)
 			{
 				removeByClass(classDef as Class);
 			}

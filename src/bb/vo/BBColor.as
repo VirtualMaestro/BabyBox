@@ -39,12 +39,12 @@ package bb.vo
 		 */
 		public function get color():uint
 		{
-			var alpha:uint = uint(z_alpha*255)<<24;
-			var red:uint = uint(z_red*255)<<16;
-			var green:uint = uint(z_green*255)<<8;
-			var blue:uint = uint(z_blue*255);
+			var alpha:uint = uint(z_alpha * 255) << 24;
+			var red:uint = uint(z_red * 255) << 16;
+			var green:uint = uint(z_green * 255) << 8;
+			var blue:uint = uint(z_blue * 255);
 
-			return alpha+red+green+blue;
+			return alpha + red + green + blue;
 		}
 
 		/**

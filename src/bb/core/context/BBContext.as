@@ -6,14 +6,14 @@
 package bb.core.context
 {
 	import bb.bb_spaces.bb_private;
-	import bb.components.BBCamera;
-	import bb.components.BBTransform;
-	import bb.components.renderable.BBRenderable;
-	import bb.constants.render.BBRenderMode;
-	import bb.core.BBConfig;
+	import bb.camera.components.BBCamera;
+	import bb.config.BBConfig;
+	import bb.core.BBTransform;
 	import bb.core.BabyBox;
+	import bb.render.components.BBRenderable;
+	import bb.render.constants.BBRenderMode;
+	import bb.render.textures.BBTexture;
 	import bb.signals.BBSignal;
-	import bb.textures.BBTexture;
 
 	import com.genome2d.context.GContext;
 	import com.genome2d.core.GConfig;
@@ -50,7 +50,6 @@ package bb.core.context
 		/**
 		 */
 		public var PRECISE_COLOR:Number = 0.1;
-
 
 		private var PI2:Number = Math.PI * 2;
 
@@ -234,7 +233,7 @@ package bb.core.context
 				_canvas.lock();
 
 				// fill whole canvas with given color
-				fillRect(0,0, _canvas.width, _canvas.height, _config.canvasColor);
+				fillRect(0, 0, _canvas.width, _canvas.height, _config.canvasColor);
 			}
 		}
 
@@ -329,8 +328,8 @@ package bb.core.context
 					var topRightX:Number = (rightX * totalRotCos - totalRotSin * topY) + newTextureX;
 					var topRightY:Number = (rightX * totalRotSin + totalRotCos * topY) + newTextureY;
 
-					var bottomRightX:Number = (rightX*totalRotCos - totalRotSin * bottomY) + newTextureX;
-					var bottomRightY:Number = (rightX*totalRotSin + totalRotCos * bottomY) + newTextureY;
+					var bottomRightX:Number = (rightX * totalRotCos - totalRotSin * bottomY) + newTextureX;
+					var bottomRightY:Number = (rightX * totalRotSin + totalRotCos * bottomY) + newTextureY;
 
 					var bottomLeftX:Number = (leftX * totalRotCos - totalRotSin * bottomY) + newTextureX;
 					var bottomLeftY:Number = (leftX * totalRotSin + totalRotCos * bottomY) + newTextureY;
@@ -342,14 +341,14 @@ package bb.core.context
 					var boundingBoxBottomRightY:Number = max(max(topLeftY, topRightY), max(bottomRightY, bottomLeftY));
 
 					if (!isIntersect(boundingBoxTopLeftX, boundingBoxTopLeftY, boundingBoxBottomRightX, boundingBoxBottomRightY,
-									 _currentCameraViewportX, _currentCameraViewportY,
-									_currentCameraViewportWidth_add_X, _currentCameraViewportHeight_add_Y)) return;
+							_currentCameraViewportX, _currentCameraViewportY,
+							_currentCameraViewportWidth_add_X, _currentCameraViewportHeight_add_Y)) return;
 				}
 				////////////////////////////////
 
 				var totalRotABS:Number = Math.abs(totalRotation);
 				var PI_sub_RAD:Number = PI2 - totalRotABS;
-				var isScaleNotChanged:Boolean = totalScaleX > 0 && totalScaleY > 0 && Math.abs(1.0 - totalScaleX*totalScaleY) < PRECISE_SCALE;
+				var isScaleNotChanged:Boolean = totalScaleX > 0 && totalScaleY > 0 && Math.abs(1.0 - totalScaleX * totalScaleY) < PRECISE_SCALE;
 
 				//
 				if ((PI_sub_RAD < PRECISE_ROTATION || totalRotABS < PRECISE_ROTATION) && isScaleNotChanged && (!colorTransform))
@@ -392,8 +391,7 @@ package bb.core.context
 		/**
 		 */
 		[Inline]
-		final private function isIntersect(p_leftTopX:Number, p_leftTopY:Number, p_rightBottomX:Number, p_rightBottomY:Number,
-		                            p_leftTopX_1:Number, p_leftTopY_1:Number, p_rightBottomX_1:Number, p_rightBottomY_1:Number):Boolean
+		final private function isIntersect(p_leftTopX:Number, p_leftTopY:Number, p_rightBottomX:Number, p_rightBottomY:Number, p_leftTopX_1:Number, p_leftTopY_1:Number, p_rightBottomX_1:Number, p_rightBottomY_1:Number):Boolean
 		{
 			var exp:Boolean = false;
 
@@ -423,7 +421,6 @@ package bb.core.context
 
 			return false;
 		}
-
 
 		/**
 		 * Render texture.

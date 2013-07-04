@@ -2,22 +2,22 @@ package bb.core
 {
 	import bb.BBModuleEngine;
 	import bb.assets.BBAssetsManager;
-	import bb.components.BBComponent;
-	import bb.components.physics.joints.BBJoint;
+	import bb.camera.BBCamerasModule;
+	import bb.config.BBConfig;
+	import bb.config.BBConfigModule;
 	import bb.core.context.BBContext;
-	import bb.events.BBMouseEvent;
-	import bb.modules.BBCamerasModule;
-	import bb.modules.BBConfigModule;
-	import bb.modules.BBDebugModule;
-	import bb.modules.BBGraphModule;
-	import bb.modules.BBLayerModule;
-	import bb.modules.BBLevelsModule;
-	import bb.modules.BBMouseModule;
-	import bb.modules.BBPhysicsModule;
-	import bb.modules.BBWorldModule;
+	import bb.debug.BBDebugModule;
+	import bb.layer.BBLayerModule;
+	import bb.level.BBLevelsModule;
+	import bb.mouse.BBMouseModule;
+	import bb.mouse.events.BBMouseEvent;
+	import bb.physics.BBPhysicsModule;
+	import bb.physics.joints.BBJoint;
 	import bb.pools.BBMasterPool;
 	import bb.pools.BBNativePool;
 	import bb.signals.BBSignal;
+	import bb.tree.BBTreeModule;
+	import bb.world.BBWorldModule;
 
 	import flash.display.Stage;
 
@@ -88,7 +88,7 @@ package bb.core
 		private function initSystemModules():void
 		{
 			addModule(BBCamerasModule);
-			addModule(BBGraphModule);
+			addModule(BBTreeModule);
 			addModule(BBWorldModule);
 			addModule(BBLayerModule);
 			if (_config.physicsEnable) addModule(BBPhysicsModule);

@@ -5,12 +5,11 @@
  */
 package bb.debug
 {
-	import bb.modules.*;
-	import bb.core.BBConfig;
+	import bb.config.BBConfig;
 	import bb.core.BabyBox;
+	import bb.modules.*;
 	import bb.physics.BBPhysicsModule;
 	import bb.signals.BBSignal;
-	import bb.tools.debug.BBGridDebug;
 
 	import flash.display.DisplayObjectContainer;
 	import flash.geom.Rectangle;

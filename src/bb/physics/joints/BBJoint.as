@@ -264,9 +264,9 @@ package bb.physics.joints
 		{
 			var ownerAnchorTrace:String = "<" + (ownerAnchor ? ownerAnchor.x + ", " + ownerAnchor.y : "0, 0") + ">";
 			var jointedAnchorTrace:String = "<" + (jointedAnchor ? jointedAnchor.x + ", " + jointedAnchor.y : "0, 0") + ">";
-			var anchorsTrace:String = "{ownerAnchor: "+ownerAnchorTrace+"}-{jointedAnchor: "+jointedAnchorTrace+"}\n";
+			var anchorsTrace:String = "{ownerAnchor: " + ownerAnchorTrace + "}-{jointedAnchor: " + jointedAnchorTrace + "}\n";
 			var jointTrace:String = "";
-			jointTrace += "[Joint {id: "+_id+"}-{type: "+type+"}-{name: "+_name+"}-{jointedActorName: "+jointedActorName+"}\n";
+			jointTrace += "[Joint {id: " + _id + "}-{type: " + type + "}-{name: " + _name + "}-{jointedActorName: " + jointedActorName + "}\n";
 
 			switch (type)
 			{
@@ -279,40 +279,40 @@ package bb.physics.joints
 				case "distance":
 				{
 					jointTrace += anchorsTrace;
-					jointTrace += "{jointMin: "+jointMin+"}-{jointMax: "+jointMax+"}\n";
+					jointTrace += "{jointMin: " + jointMin + "}-{jointMax: " + jointMax + "}\n";
 					break;
 				}
 
 				case "line":
 				{
 					jointTrace += anchorsTrace;
-					jointTrace += "{jointMin: "+jointMin+"}-{jointMax: "+jointMax+"}-{direction: "+direction.x+", "+direction.y+"}\n";
+					jointTrace += "{jointMin: " + jointMin + "}-{jointMax: " + jointMax + "}-{direction: " + direction.x + ", " + direction.y + "}\n";
 					break;
 				}
 
 				case "weld":
 				{
 					jointTrace += anchorsTrace;
-					jointTrace += "{phase: "+phase+"}\n";
+					jointTrace += "{phase: " + phase + "}\n";
 					break;
 				}
 
 				case "angle":
 				{
-					jointTrace += "{jointMin: "+jointMin+"}-{jointMax: "+jointMax+"}-{ratio: "+ratio+"}\n";
+					jointTrace += "{jointMin: " + jointMin + "}-{jointMax: " + jointMax + "}-{ratio: " + ratio + "}\n";
 					break;
 				}
 
 				case "motor":
 				{
-					jointTrace += "{rate: "+rate+"}-{ratio: "+ratio+"}\n";
+					jointTrace += "{rate: " + rate + "}-{ratio: " + ratio + "}\n";
 					break;
 				}
 			}
 
-			jointTrace += "{active: "+active+"}-{ignore: "+ignore+"}-{stiff: "+stiff+"}\n" +
-						  "{breakUnderError: "+breakUnderError+"}-{breakUnderForce: "+breakUnderForce+"}-{removeOnBreak: "+removeOnBreak+"}\n" +
-						  "{damping: "+damping+"}-{frequency: "+frequency+"}-{maxError: "+maxError+"}-{maxForce: "+maxForce+"}\n";
+			jointTrace += "{active: " + active + "}-{ignore: " + ignore + "}-{stiff: " + stiff + "}\n" +
+					"{breakUnderError: " + breakUnderError + "}-{breakUnderForce: " + breakUnderForce + "}-{removeOnBreak: " + removeOnBreak + "}\n" +
+					"{damping: " + damping + "}-{frequency: " + frequency + "}-{maxError: " + maxError + "}-{maxForce: " + maxForce + "}\n";
 
 			return jointTrace;
 		}
@@ -416,117 +416,116 @@ package bb.physics.joints
 
 		{
 			_jointFactories["pivot"] =
-			function(p_jointPrototype:XML):BBJoint
-			{
-				var position:Array;
-				var ownerAnchor:Vec2;
-				var jointedAnchor:Vec2;
+					function (p_jointPrototype:XML):BBJoint
+					{
+						var position:Array;
+						var ownerAnchor:Vec2;
+						var jointedAnchor:Vec2;
 
-				position = String(p_jointPrototype.elements("ownerAnchor")).split(",");
-				ownerAnchor = Vec2.weak(position[0], position[1]);
+						position = String(p_jointPrototype.elements("ownerAnchor")).split(",");
+						ownerAnchor = Vec2.weak(position[0], position[1]);
 
-				position = String(p_jointPrototype.elements("jointedAnchor")).split(",");
-				jointedAnchor = Vec2.weak(position[0], position[1]);
+						position = String(p_jointPrototype.elements("jointedAnchor")).split(",");
+						jointedAnchor = Vec2.weak(position[0], position[1]);
 
-				var joint:BBJoint = pivotJoint(String(p_jointPrototype.elements("jointedActorName")), ownerAnchor, jointedAnchor);
-				setCommonProps(joint, p_jointPrototype);
+						var joint:BBJoint = pivotJoint(String(p_jointPrototype.elements("jointedActorName")), ownerAnchor, jointedAnchor);
+						setCommonProps(joint, p_jointPrototype);
 
-				return joint;
-			};
+						return joint;
+					};
 
 			_jointFactories["distance"] =
-			function(p_jointPrototype:XML):BBJoint
-			{
-				var position:Array;
-				var ownerAnchor:Vec2;
-				var jointedAnchor:Vec2;
+					function (p_jointPrototype:XML):BBJoint
+					{
+						var position:Array;
+						var ownerAnchor:Vec2;
+						var jointedAnchor:Vec2;
 
-				position = String(p_jointPrototype.elements("ownerAnchor")).split(",");
-				ownerAnchor = Vec2.weak(position[0], position[1]);
+						position = String(p_jointPrototype.elements("ownerAnchor")).split(",");
+						ownerAnchor = Vec2.weak(position[0], position[1]);
 
-				position = String(p_jointPrototype.elements("jointedAnchor")).split(",");
-				jointedAnchor = Vec2.weak(position[0], position[1]);
+						position = String(p_jointPrototype.elements("jointedAnchor")).split(",");
+						jointedAnchor = Vec2.weak(position[0], position[1]);
 
-				var jointMin:Number = p_jointPrototype.elements("jointMin");
-				var jointMax:Number = p_jointPrototype.elements("jointMax");
+						var jointMin:Number = p_jointPrototype.elements("jointMin");
+						var jointMax:Number = p_jointPrototype.elements("jointMax");
 
-				var joint:BBJoint = distanceJoint(String(p_jointPrototype.elements("jointedActorName")), ownerAnchor, jointedAnchor, jointMin, jointMax);
-				setCommonProps(joint, p_jointPrototype);
+						var joint:BBJoint = distanceJoint(String(p_jointPrototype.elements("jointedActorName")), ownerAnchor, jointedAnchor, jointMin, jointMax);
+						setCommonProps(joint, p_jointPrototype);
 
-				return joint;
-			};
+						return joint;
+					};
 
 			_jointFactories["line"] =
-			function(p_jointPrototype:XML):BBJoint
-			{
-				var position:Array;
-				var ownerAnchor:Vec2;
-				var jointedAnchor:Vec2;
+					function (p_jointPrototype:XML):BBJoint
+					{
+						var position:Array;
+						var ownerAnchor:Vec2;
+						var jointedAnchor:Vec2;
 
-				position = String(p_jointPrototype.elements("ownerAnchor")).split(",");
-				ownerAnchor = Vec2.weak(position[0], position[1]);
+						position = String(p_jointPrototype.elements("ownerAnchor")).split(",");
+						ownerAnchor = Vec2.weak(position[0], position[1]);
 
-				position = String(p_jointPrototype.elements("jointedAnchor")).split(",");
-				jointedAnchor = Vec2.weak(position[0], position[1]);
+						position = String(p_jointPrototype.elements("jointedAnchor")).split(",");
+						jointedAnchor = Vec2.weak(position[0], position[1]);
 
-				var jointMin:Number = p_jointPrototype.elements("jointMin");
-				var jointMax:Number = p_jointPrototype.elements("jointMax");
+						var jointMin:Number = p_jointPrototype.elements("jointMin");
+						var jointMax:Number = p_jointPrototype.elements("jointMax");
 
-				position = String(p_jointPrototype.elements("direction")).split(",");
-				var direction:Vec2 = Vec2.weak(position[0], position[1]);
+						position = String(p_jointPrototype.elements("direction")).split(",");
+						var direction:Vec2 = Vec2.weak(position[0], position[1]);
 
-				var joint:BBJoint = lineJoint(String(p_jointPrototype.elements("jointedActorName")), ownerAnchor, jointedAnchor, direction, jointMin, jointMax);
-				setCommonProps(joint, p_jointPrototype);
+						var joint:BBJoint = lineJoint(String(p_jointPrototype.elements("jointedActorName")), ownerAnchor, jointedAnchor, direction, jointMin, jointMax);
+						setCommonProps(joint, p_jointPrototype);
 
-				return joint;
-			};
+						return joint;
+					};
 
 			_jointFactories["weld"] =
-			function(p_jointPrototype:XML):BBJoint
-			{
-				var position:Array;
-				var ownerAnchor:Vec2;
-				var jointedAnchor:Vec2;
+					function (p_jointPrototype:XML):BBJoint
+					{
+						var position:Array;
+						var ownerAnchor:Vec2;
+						var jointedAnchor:Vec2;
 
-				position = String(p_jointPrototype.elements("ownerAnchor")).split(",");
-				ownerAnchor = Vec2.weak(position[0], position[1]);
+						position = String(p_jointPrototype.elements("ownerAnchor")).split(",");
+						ownerAnchor = Vec2.weak(position[0], position[1]);
 
-				position = String(p_jointPrototype.elements("jointedAnchor")).split(",");
-				jointedAnchor = Vec2.weak(position[0], position[1]);
+						position = String(p_jointPrototype.elements("jointedAnchor")).split(",");
+						jointedAnchor = Vec2.weak(position[0], position[1]);
 
-				var phase:Number = p_jointPrototype.elements("phase");
+						var phase:Number = p_jointPrototype.elements("phase");
 
-				var joint:BBJoint = weldJoint(String(p_jointPrototype.elements("jointedActorName")), ownerAnchor, jointedAnchor, phase);
-				setCommonProps(joint, p_jointPrototype);
+						var joint:BBJoint = weldJoint(String(p_jointPrototype.elements("jointedActorName")), ownerAnchor, jointedAnchor, phase);
+						setCommonProps(joint, p_jointPrototype);
 
-				return joint;
-			};
+						return joint;
+					};
 
 			_jointFactories["angle"] =
-			function(p_jointPrototype:XML):BBJoint
-			{
-				var jointMin:Number = p_jointPrototype.elements("jointMin");
-				var jointMax:Number = p_jointPrototype.elements("jointMax");
-				var ratio:Number = p_jointPrototype.elements("ratio");
+					function (p_jointPrototype:XML):BBJoint
+					{
+						var jointMin:Number = p_jointPrototype.elements("jointMin");
+						var jointMax:Number = p_jointPrototype.elements("jointMax");
+						var ratio:Number = p_jointPrototype.elements("ratio");
 
-				var joint:BBJoint = angleJoint(String(p_jointPrototype.elements("jointedActorName")), jointMin, jointMax, ratio);
-				setCommonProps(joint, p_jointPrototype);
+						var joint:BBJoint = angleJoint(String(p_jointPrototype.elements("jointedActorName")), jointMin, jointMax, ratio);
+						setCommonProps(joint, p_jointPrototype);
 
-				return joint;
-			};
-
+						return joint;
+					};
 
 			_jointFactories["motor"] =
-			function(p_jointPrototype:XML):BBJoint
-			{
-				var rate:Number = p_jointPrototype.elements("rate");
-				var ratio:Number = p_jointPrototype.elements("ratio");
+					function (p_jointPrototype:XML):BBJoint
+					{
+						var rate:Number = p_jointPrototype.elements("rate");
+						var ratio:Number = p_jointPrototype.elements("ratio");
 
-				var joint:BBJoint = motorJoint(String(p_jointPrototype.elements("jointedActorName")), rate, ratio);
-				setCommonProps(joint, p_jointPrototype);
+						var joint:BBJoint = motorJoint(String(p_jointPrototype.elements("jointedActorName")), rate, ratio);
+						setCommonProps(joint, p_jointPrototype);
 
-				return joint;
-			};
+						return joint;
+					};
 		}
 
 		/**
@@ -560,8 +559,7 @@ package bb.physics.joints
 		/**
 		 * Returns BBJoint with settings of distance joint.
 		 */
-		static public function distanceJoint(p_jointedActorName:String = "", p_ownerAnchor:Vec2 = null, p_jointedAnchor:Vec2 = null,
-											 p_jointMin:Number = 0, p_jointMax:Number = 1):BBJoint
+		static public function distanceJoint(p_jointedActorName:String = "", p_ownerAnchor:Vec2 = null, p_jointedAnchor:Vec2 = null, p_jointMin:Number = 0, p_jointMax:Number = 1):BBJoint
 		{
 			if (p_jointMin > p_jointMax) throw new Error("BBJoint.distanceJoint: jointMin should be less or equal jointMax");
 
@@ -575,14 +573,13 @@ package bb.physics.joints
 		/**
 		 * Returns BBJoint with settings of line joint.
 		 */
-		static public function lineJoint(p_jointedActorName:String = "", p_ownerAnchor:Vec2 = null, p_jointedAnchor:Vec2 = null,
-										 p_direction:Vec2 = null, p_jointMin:Number = 0, p_jointMax:Number = 1):BBJoint
+		static public function lineJoint(p_jointedActorName:String = "", p_ownerAnchor:Vec2 = null, p_jointedAnchor:Vec2 = null, p_direction:Vec2 = null, p_jointMin:Number = 0, p_jointMax:Number = 1):BBJoint
 		{
 			if (p_jointMin > p_jointMax) throw new Error("BBJoint.lineJoint: jointMin should be less or equal jointMax");
 			if (p_direction && Math.abs(p_direction.length) > 1) throw new Error("BBJoint.lineJoint: direction should be normalize");
 
 			var lineJoint:BBJoint = getBaseJointWithAnchors("line", p_jointedActorName, p_ownerAnchor, p_jointedAnchor);
-			lineJoint._direction = p_direction ? p_direction : Vec2.weak(0,1);
+			lineJoint._direction = p_direction ? p_direction : Vec2.weak(0, 1);
 			lineJoint._jointMin = p_jointMin;
 			lineJoint._jointMax = p_jointMax;
 

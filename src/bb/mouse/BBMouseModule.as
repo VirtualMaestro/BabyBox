@@ -5,13 +5,13 @@
  */
 package bb.mouse
 {
-	import bb.modules.*;
 	import bb.bb_spaces.bb_private;
 	import bb.camera.BBCamerasModule;
 	import bb.camera.components.BBCamera;
-	import bb.constants.mouse.BBMouseFlags;
 	import bb.core.BabyBox;
-	import bb.events.BBMouseEvent;
+	import bb.modules.*;
+	import bb.mouse.constants.BBMouseFlags;
+	import bb.mouse.events.BBMouseEvent;
 	import bb.pools.BBNativePool;
 	import bb.signals.BBSignal;
 

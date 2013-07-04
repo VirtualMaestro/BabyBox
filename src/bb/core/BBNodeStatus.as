@@ -1,6 +1,6 @@
 package bb.core
 {
-	import bb.modules.BBGraphModule;
+	import bb.tree.BBTreeModule;
 
 	/**
 	 * Value object which sends as parameter when node adds or removes from parent or stage.
@@ -11,7 +11,7 @@ package bb.core
 		 * Returns instance of BBNodeStatus class.
 		 * Use pool system. In order to back instance to pool use its 'dispose' method.
 		 */
-		static public function get(p_parent:BBNode = null, p_isOnStage:Boolean = false, p_core:BBGraphModule = null):BBNodeStatus
+		static public function get(p_parent:BBNode = null, p_isOnStage:Boolean = false, p_core:BBTreeModule = null):BBNodeStatus
 		{
 			var status:BBNodeStatus = getFromPool();
 			status.parent = p_parent;
@@ -52,7 +52,10 @@ package bb.core
 		static public function rid():void
 		{
 			_available = _pool.length;
-			for (var i:int = 0; i < _available; i++) _pool[i] = null;
+			for (var i:int = 0; i < _available; i++)
+			{
+				_pool[i] = null;
+			}
 			_pool.length = 0;
 			_available = 0;
 		}
@@ -62,7 +65,7 @@ package bb.core
 		//
 		public var parent:BBNode = null;
 		public var isOnStage:Boolean = false;
-		public var core:BBGraphModule = null;
+		public var core:BBTreeModule = null;
 
 		/**
 		 */

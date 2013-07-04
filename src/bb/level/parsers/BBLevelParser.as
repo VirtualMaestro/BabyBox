@@ -6,13 +6,13 @@
 package bb.level.parsers
 {
 	import bb.assets.BBAssetsManager;
-	import bb.components.renderable.BBMovieClip;
-	import bb.components.renderable.BBRenderable;
 	import bb.core.BBNode;
 	import bb.physics.components.BBPhysicsBody;
 	import bb.physics.joints.BBJoint;
 	import bb.physics.utils.BBPhysicalMaterials;
 	import bb.pools.BBNativePool;
+	import bb.render.components.BBMovieClip;
+	import bb.render.components.BBRenderable;
 	import bb.signals.BBSignal;
 
 	import flash.display.DisplayObject;

@@ -5,11 +5,12 @@
  */
 package bb.camera
 {
-	import bb.modules.*;
 	import bb.bb_spaces.bb_private;
-	import bb.components.BBCamera;
+	import bb.camera.components.BBCamera;
 	import bb.core.BBNode;
+	import bb.modules.BBModule;
 	import bb.signals.BBSignal;
+	import bb.tree.BBTreeModule;
 
 	CONFIG::debug
 	{
@@ -40,7 +41,7 @@ package bb.camera
 		 */
 		private function onInitHandler(p_signal:BBSignal):void
 		{
-			_rootNode = (getModule(BBGraphModule) as BBGraphModule).root;
+			_rootNode = (getModule(BBTreeModule) as BBTreeModule).root;
 		}
 
 		/**
@@ -51,8 +52,8 @@ package bb.camera
 		{
 			CONFIG::debug
 			{
-				Assert.isTrue(!isCameraAlreadyAdded(p_camera), "This instance of camera already added to engine", "BBGraphModule.setCamera");
-				Assert.isTrue(p_camera.node != null, "Instance of camera should be attached to node", "BBGraphModule.setCamera");
+				Assert.isTrue(!isCameraAlreadyAdded(p_camera), "This instance of camera already added to engine", "BBTreeModule.setCamera");
+				Assert.isTrue(p_camera.node != null, "Instance of camera should be attached to node", "BBTreeModule.setCamera");
 			}
 
 			if (p_camera.node.parent)
