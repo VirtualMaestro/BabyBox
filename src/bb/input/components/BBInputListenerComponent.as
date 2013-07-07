@@ -18,6 +18,7 @@ package bb.input.components
 	{
 		//
 		private var _inputListener:BBInputListener;
+		private var _onUnlinkedListener:BBSignal;
 
 		/**
 		 */
@@ -36,11 +37,12 @@ package bb.input.components
 		}
 
 		/**
-		 * Signal dispatches when listener was unlinked from source.
+		 * Dispatches when listener was unlinked from dispatcher.
 		 */
 		public function get onUnlinkedListener():BBSignal
 		{
-			return _inputListener.onUnlinkedListener;
+			if (_onUnlinkedListener == null) _onUnlinkedListener = BBSignal.get(this);
+			return _onUnlinkedListener;
 		}
 
 		/**
@@ -48,7 +50,7 @@ package bb.input.components
 		 */
 		public function unlinkListener():void
 		{
-			_inputListener.unlinkListener();
+			if (_onUnlinkedListener) _onUnlinkedListener.dispatch();
 		}
 
 		/**
@@ -58,26 +60,49 @@ package bb.input.components
 			if (!isDisposed)
 			{
 				_inputListener.dispose();
+				if (_onUnlinkedListener) _onUnlinkedListener.removeAllListeners();
+
 				super.dispose();
 			}
 		}
 
+		/**
+		 */
+		override protected function rid():void
+		{
+			super.rid();
 
+			if (_onUnlinkedListener) _onUnlinkedListener.dispose();
+			_onUnlinkedListener = null;
+			_inputListener = null;
+		}
+
+		/**
+		 */
 		public function get channel():int
 		{
-			return 0;
+			return _inputListener.channel;
 		}
 
+		/**
+		 */
 		public function actionIn(p_action:BBActionData):void
 		{
+			// override in children
 		}
 
+		/**
+		 */
 		public function actionsHolding(p_actions:BBActionsHolder):void
 		{
+			// override in children
 		}
 
+		/**
+		 */
 		public function actionOut(p_action:BBActionData):void
 		{
+			// override in children
 		}
 	}
 }

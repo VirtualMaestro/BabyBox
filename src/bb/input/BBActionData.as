@@ -23,5 +23,15 @@ package bb.input
 			code = p_code;
 			data = p_data;
 		}
+
+		/**
+		 */
+		public function dispose():void
+		{
+			actionName = "";
+			code = -1;
+			data = null;
+			actionsHolding = null;
+		}
 	}
 }

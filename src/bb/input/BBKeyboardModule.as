@@ -14,7 +14,7 @@ package bb.input
 	/**
 	 * Represents controller like keyboard.
 	 */
-	public class BBKeyboardModule extends BBModule implements BBIInputDispatcher
+	public class BBKeyboardModule extends BBModule
 	{
 		//
 		private var _inputDispatcher:BBInputDispatcher;
@@ -41,21 +41,21 @@ package bb.input
 		 */
 		private function keyboardDownHandler(p_event:KeyboardEvent):void
 		{
-			pushIncoming(p_event.keyCode, p_event)
+			_inputDispatcher.pushIncoming(p_event.keyCode, p_event)
 		}
 
 		/**
 		 */
 		private function keyboardUpHandler(p_event:KeyboardEvent):void
 		{
-			pushOutgoing(p_event.keyCode, p_event)
+			_inputDispatcher.pushOutgoing(p_event.keyCode, p_event)
 		}
 
 		/**
 		 */
-		override public function update(p_deltaTime:Number):void
+		override public function update(p_deltaTime:int):void
 		{
-			dispatch(p_deltaTime);
+			_inputDispatcher.dispatch(p_deltaTime);
 		}
 
 		/**
@@ -63,7 +63,8 @@ package bb.input
 		override public function dispose():void
 		{
 			enableDispatching = false;
-//			_inputDispatcher.destroy(); // TODO:
+			_inputDispatcher.dispose();
+
 			super.dispose();
 		}
 
@@ -79,27 +80,6 @@ package bb.input
 		public function removeListener(p_listener:BBIInputListener):void
 		{
 			_inputDispatcher.removeListener(p_listener);
-		}
-
-		/**
-		 */
-		public function get inputType():String
-		{
-			return _inputDispatcher.inputType;
-		}
-
-		/**
-		 */
-		public function pushIncoming(p_code:int, p_data:Object = null):void
-		{
-			_inputDispatcher.pushIncoming(p_code, p_data);
-		}
-
-		/**
-		 */
-		public function pushOutgoing(p_code:int, p_data:Object = null):void
-		{
-			_inputDispatcher.pushOutgoing(p_code, p_data);
 		}
 
 		/**
@@ -121,7 +101,7 @@ package bb.input
 		public function set enableDispatching(p_val:Boolean):void
 		{
 			_inputDispatcher.enableDispatching = p_val;
-			isUpdate = p_val;
+			updateEnable = p_val;
 
 			if (stage)
 			{
@@ -146,10 +126,23 @@ package bb.input
 		}
 
 		/**
+		 * Simplest way to listen key down (without implementing any interfaces).
+		 * With this signal you can't use keys map, so you can't to know action name (can't use actionName of BBActionData)
+		 * As parameter sends BBActionData.
 		 */
-		public function dispatch(p_deltaTime:int):void
+		public function get onDown():BBSignal
 		{
-			_inputDispatcher.dispatch(p_deltaTime);
+			return _inputDispatcher.onActionIn;
+		}
+
+		/**
+		 * Simplest way to listen key up (without implementing any interfaces)
+		 * With this signal you can't use keys map, so you can't to know action name (can't use actionName of BBActionData)
+		 * As parameter sends BBActionData.
+		 */
+		public function get onUp():BBSignal
+		{
+			return _inputDispatcher.onActionOut;
 		}
 	}
 }

@@ -55,12 +55,14 @@ package bb.input
 		 */
 		public function actionIn(p_actionData:BBActionData):void
 		{
+			//
 		}
 
 		/**
 		 */
 		public function actionsHolding(p_actions:BBActionsHolder):void
 		{
+			//
 		}
 
 		/**
@@ -69,6 +71,7 @@ package bb.input
 		 */
 		public function actionOut(p_actionData:BBActionData):void
 		{
+			//
 		}
 
 		/**
@@ -96,6 +99,7 @@ package bb.input
 			_onAddedListener = null;
 			_onUnlinkedListener.dispose();
 			_onUnlinkedListener = null;
+			_channel = 0;
 		}
 	}
 }

@@ -20,5 +20,6 @@ package bb.input
 		function set enableDispatching(p_val:Boolean):void;
 		function get enableDispatching():Boolean;
 		function dispatch(p_deltaTime:int):void;
+		function dispose():void;
 	}
 }

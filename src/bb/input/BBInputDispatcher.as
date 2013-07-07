@@ -5,6 +5,8 @@
  */
 package bb.input
 {
+	import bb.signals.BBSignal;
+
 	import flash.utils.Dictionary;
 
 	/**
@@ -12,6 +14,12 @@ package bb.input
 	 */
 	public class BBInputDispatcher implements BBIInputDispatcher
 	{
+		// Using these signal is the fastest way to get in\out actions.
+		// Using these way can't to know what action name
+		private var _onActionIn:BBSignal;
+		private var _onActionOut:BBSignal;
+
+		//
 		private var _channels:Dictionary;
 		private var _inputType:String;
 		private var _enableDispatching:Boolean = true;
@@ -124,6 +132,8 @@ package bb.input
 		{
 			if (_enableDispatching)
 			{
+				if (_onActionIn) _onActionIn.dispatch(p_action);
+
 				for each(var channel:BBInputChannel in _channels)
 				{
 					if (channel.enabled) channel.dispatchIncoming(p_action);
@@ -137,6 +147,8 @@ package bb.input
 		{
 			if (_enableDispatching)
 			{
+				if (_onActionOut) _onActionOut.dispatch(p_action);
+
 				for each(var channel:BBInputChannel in _channels)
 				{
 					if (channel.enabled) channel.dispatchOutgoing(p_action);
@@ -181,22 +193,27 @@ package bb.input
 		public function get channels():Array
 		{
 			var channels:Array = [];
+			var counter:int = 0;
 			for each(var channel:BBInputChannel in _channels)
 			{
-				channels.push(channel.id);
+				channels[counter++] = channel.id;
 			}
 
 			return channels;
 		}
 
 		/**
-		 * Removes all channels, except default (0).
+		 * Removes all channels and clear all their listeners.
+		 * Default channel (0) is not removed, but its listeners also clear.
 		 */
 		public function removeChannels():void
 		{
+			var channel:BBInputChannel;
 			for (var channelNum:String in _channels)
 			{
 				if (channelNum == "0") continue;
+				channel = _channels[channelNum];
+				channel.dispose();
 				delete _channels[channelNum];
 			}
 		}
@@ -220,6 +237,37 @@ package bb.input
 		public function get enableDispatching():Boolean
 		{
 			return _enableDispatching;
+		}
+
+		/**
+		 */
+		public function get onActionIn():BBSignal
+		{
+			if (_onActionIn == null) _onActionIn = BBSignal.get(this);
+			return _onActionIn;
+		}
+
+		/**
+		 */
+		public function get onActionOut():BBSignal
+		{
+			if (_onActionOut == null) _onActionOut = BBSignal.get(this);
+			return _onActionOut;
+		}
+
+		/**
+		 */
+		public function dispose():void
+		{
+			if (_onActionIn) _onActionIn.dispose();
+			_onActionIn = null;
+			if (_onActionOut) _onActionOut.dispose();
+			_onActionOut = null;
+
+			removeChannels();
+			_channels = null;
+			_actions.dispose();
+			_actions = null;
 		}
 	}
 }

@@ -146,5 +146,15 @@ package bb.input
 				listener.actionsHolding(p_actions);
 			}
 		}
+
+		/**
+		 */
+		public function dispose():void
+		{
+			removeAllListeners();
+			_keysMap = null;
+			_list = null;
+			enabled = false;
+		}
 	}
 }

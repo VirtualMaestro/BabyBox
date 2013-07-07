@@ -56,6 +56,21 @@ package bb.input
 		}
 
 		/**
+		 * Removes all actions.
+		 */
+		public function removeAll():void
+		{
+			for each(var action:BBActionData in _actionListCode)
+			{
+				delete _actionListCode[String(action.code)];
+				delete _actionNames[action.actionName];
+				action.dispose();
+			}
+
+			_numActions = 0;
+		}
+
+		/**
 		 * Checks if action with given name exists.
 		 */
 		public function hasByName(p_actionName:String):Boolean
@@ -88,6 +103,18 @@ package bb.input
 		public function get numActions():int
 		{
 			return _numActions;
+		}
+
+		/**
+		 */
+		public function dispose():void
+		{
+			currentChannel = null;
+			inputType = null;
+			removeAll();
+			_actionListCode = null;
+			_actionNames = null;
+			_numActions = 0;
 		}
 	}
 }
