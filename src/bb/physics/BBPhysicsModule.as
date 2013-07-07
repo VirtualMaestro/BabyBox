@@ -88,12 +88,12 @@ package bb.physics
 			handEnable = _config.handEnable;
 
 			//
-			isUpdate = true;
+			updateEnable = true;
 		}
 
 		/**
 		 */
-		override public function update(p_deltaTime:Number):void
+		override public function update(p_deltaTime:int):void
 		{
 			_space.step(timeStep, velocityIterations, positionIterations);
 			if (_isHandEnable) _hand.anchor1.setxy(_mouseX, _mouseY);

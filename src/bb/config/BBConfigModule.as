@@ -87,7 +87,7 @@ package bb.config
 					debugModule.drawPhysics = p_propertyValue;
 					debugModule.showGrid = p_propertyValue;
 					debugModule.showFPS = p_propertyValue;
-					debugModule.isUpdate = p_propertyValue;
+					debugModule.updateEnable = p_propertyValue;
 
 					break;
 				}

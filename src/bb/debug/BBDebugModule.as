@@ -63,13 +63,13 @@ package bb.debug
 				showGrid = true;
 				showFPS = true;
 
-				isUpdate = true;
+				updateEnable = true;
 			}
 		}
 
 		/**
 		 */
-		override public function update(p_deltaTime:Number):void
+		override public function update(p_deltaTime:int):void
 		{
 			// update physics debug draw
 			if (_physicDraw)
@@ -140,7 +140,7 @@ package bb.debug
 				else stage.removeChild(_physDebugList[i].display);
 			}
 
-			if (_physicDraw && !isUpdate) isUpdate = true;
+			if (_physicDraw && !updateEnable) updateEnable = true;
 		}
 
 		/**

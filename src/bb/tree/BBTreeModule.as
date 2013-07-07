@@ -73,7 +73,7 @@ package bb.tree
 			mouseSettings = _config.mouseNodeSettings;
 
 			// start update
-			isUpdate = true;
+			updateEnable = true;
 		}
 
 		/**
@@ -135,7 +135,7 @@ package bb.tree
 		/**
 		 * Update render graph.
 		 */
-		override public function update(p_deltaTime:Number):void
+		override public function update(p_deltaTime:int):void
 		{
 			// makes update render graph
 			_rootNode.update(p_deltaTime, false, false);
