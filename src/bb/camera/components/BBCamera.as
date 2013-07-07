@@ -51,7 +51,7 @@ package bb.camera.components
 		 * Mask number of camera. Determines if camera can render current node (node also has a mask).
 		 * If camera.mask & node.mask != 0 - camera can render current node.
 		 */
-		public var mask:int = 0xffffffff;
+		public var mask:int = -1;
 
 		/**
 		 * Enable mouse interaction with this camera.

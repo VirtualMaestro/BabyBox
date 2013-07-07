@@ -7,6 +7,7 @@ package bb.core
 	import bb.config.BBConfigModule;
 	import bb.core.context.BBContext;
 	import bb.debug.BBDebugModule;
+	import bb.input.BBKeyboardModule;
 	import bb.layer.BBLayerModule;
 	import bb.level.BBLevelsModule;
 	import bb.mouse.BBMouseModule;
@@ -96,6 +97,7 @@ package bb.core
 			addModule(BBMouseModule);
 			addModule(BBDebugModule);
 			addModule(BBLevelsModule);
+			addModule(BBKeyboardModule);
 
 			//
 			_isInitialized = true;
