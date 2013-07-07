@@ -85,6 +85,7 @@ package bb.input.components
 		}
 
 		/**
+		 * Invokes immediately when action in.
 		 */
 		public function actionIn(p_action:BBActionData):void
 		{
@@ -92,6 +93,7 @@ package bb.input.components
 		}
 
 		/**
+		 * Invokes every update.
 		 */
 		public function actionsHolding(p_actions:BBActionsHolder):void
 		{
@@ -99,6 +101,7 @@ package bb.input.components
 		}
 
 		/**
+		 * Invokes immediately when action out (leave).
 		 */
 		public function actionOut(p_action:BBActionData):void
 		{

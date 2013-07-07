@@ -59,6 +59,7 @@ package bb.input
 		}
 
 		/**
+		 * Invokes one times per game loop.
 		 */
 		public function actionsHolding(p_actions:BBActionsHolder):void
 		{
