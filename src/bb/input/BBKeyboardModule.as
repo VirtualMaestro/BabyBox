@@ -69,6 +69,7 @@ package bb.input
 		}
 
 		/**
+		 * Adds given listener to specific channel.
 		 */
 		public function addListener(p_listener:BBIInputListener, p_channel:int = 0):void
 		{
@@ -76,10 +77,19 @@ package bb.input
 		}
 
 		/**
+		 * Removes given listener from the list.
 		 */
 		public function removeListener(p_listener:BBIInputListener):void
 		{
 			_inputDispatcher.removeListener(p_listener);
+		}
+
+		/**
+		 * Removes all attached listeners.
+		 */
+		public function removeAllListeners():void
+		{
+			_inputDispatcher.removeAllListeners();
 		}
 
 		/**
@@ -90,6 +100,8 @@ package bb.input
 		}
 
 		/**
+		 * Returns existing channels - array with channel's ids.
+		 * E.g. channels[0,1,2,3...]
 		 */
 		public function get channels():Array
 		{
