@@ -19,7 +19,7 @@ package bb.input
 		function get channels():Array;
 		function set enableDispatching(p_val:Boolean):void;
 		function get enableDispatching():Boolean;
-		function dispatch(p_deltaTime:int):void;
+		function dispatch():void;
 		function dispose():void;
 	}
 }

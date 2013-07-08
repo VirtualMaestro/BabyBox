@@ -8,6 +8,7 @@ package bb.input
 	import bb.signals.BBSignal;
 
 	import flash.utils.Dictionary;
+	import flash.utils.getTimer;
 
 	/**
 	 * Implementation of BBIInputDispatcher.
@@ -18,12 +19,25 @@ package bb.input
 		// Using these way can't to know what action name
 		private var _onActionIn:BBSignal;
 		private var _onActionOut:BBSignal;
+		private var _onActionsHolding:BBSignal;
 
 		//
 		private var _channels:Dictionary;
 		private var _inputType:String;
-		private var _enableDispatching:Boolean = true;
+		private var _enableDispatching:Boolean = false;
 		private var _actions:BBActionsHolder;
+
+		//
+		private var _prevTime:int = 0;
+		private var _timeBuffer:int = 0;
+
+		/**
+		 * Determines how often 'dispatch' method is invoked. By default it is set to 0, mean that method is invoked as often as app runs.
+		 * It can be helpful if app has high frame rate and need to keep dispatching between specific time range.
+		 * It is could be need because of if dispatching happens often and therefore controlling game object handled faster then need.
+		 * E.g. if app runs in different frame rates, but controlling games object is calculated for 30 fps, therefore should to set up dispatchTime to 33 (ms).
+		 */
+		public var dispatchTime:int = 0;
 
 		/**
 		 * p_inputType - use BBInputType.
@@ -167,16 +181,27 @@ package bb.input
 		 * Sends all gathered actions.
 		 * p_deltaTime - delta time between two dispatching in milliseconds
 		 */
-		public function dispatch(p_deltaTime:int):void
+		public function dispatch():void
 		{
-			_actions.deltaTime = p_deltaTime;
+			var currentTime:int = getTimer();
+			_timeBuffer += currentTime - _prevTime;
 
-			if (_enableDispatching && _actions.numActions > 0)
+			if (_timeBuffer > dispatchTime)
 			{
-				for each(var channel:BBInputChannel in _channels)
+				_actions.deltaTime = _timeBuffer;
+				_timeBuffer = 0;
+
+				if (_enableDispatching && _actions.numActions > 0)
 				{
-					if (channel.enabled) channel.dispatch(_actions);
+					if (_onActionsHolding) _onActionsHolding.dispatch(_actions);
+
+					for each(var channel:BBInputChannel in _channels)
+					{
+						if (channel.enabled) channel.dispatch(_actions);
+					}
 				}
+
+				_prevTime = currentTime;
 			}
 		}
 
@@ -257,6 +282,14 @@ package bb.input
 		}
 
 		/**
+		 * Clear all actions.
+		 */
+		public function clearActions():void
+		{
+			_actions.removeAll();
+		}
+
+		/**
 		 */
 		public function get inputType():String
 		{
@@ -267,6 +300,7 @@ package bb.input
 		 */
 		public function set enableDispatching(p_val:Boolean):void
 		{
+			_prevTime = getTimer();
 			_enableDispatching = p_val;
 		}
 
@@ -291,6 +325,14 @@ package bb.input
 		{
 			if (_onActionOut == null) _onActionOut = BBSignal.get(this);
 			return _onActionOut;
+		}
+
+		/**
+		 */
+		public function get onActionsHolding():BBSignal
+		{
+			if (_onActionsHolding == null) _onActionsHolding = BBSignal.get(this);
+			return _onActionsHolding;
 		}
 
 		/**

@@ -22,7 +22,6 @@ package bb.input
 		 * Associative array where key is code of action (represented as String), value - action itself.
 		 */
 		private var _actionListCode:Array;
-//		private var _actionNames:Array;
 		private var _numActions:int = 0;
 
 		/**
@@ -30,7 +29,6 @@ package bb.input
 		public function BBActionsHolder()
 		{
 			_actionListCode = [];
-//			_actionNames = [];
 		}
 
 		/**
@@ -39,9 +37,6 @@ package bb.input
 		public function add(p_action:BBActionData):void
 		{
 			_actionListCode[String(p_action.code)] = p_action;
-
-//			var actionName:String = p_action.actionName;
-//			if (actionName) _actionNames[actionName] = true;
 
 			_numActions++;
 		}
@@ -53,9 +48,6 @@ package bb.input
 		{
 			_actionListCode[String(p_action.code)] = null;
 
-//			var actionName:String = p_action.actionName;
-//			if (actionName) _actionNames[actionName] = null;
-
 			_numActions--;
 		}
 
@@ -64,26 +56,22 @@ package bb.input
 		 */
 		public function removeAll():void
 		{
-			for each(var action:BBActionData in _actionListCode)
+			if (_numActions > 0)
 			{
-				if (action)
+				for each(var action:BBActionData in _actionListCode)
 				{
-					var actionCode:String = String(action.code);
-					_actionListCode[actionCode] = null;
-					delete _actionListCode[actionCode];
-
-					/*var actionName:String = action.actionName;
-					if (actionName)
+					if (action)
 					{
-						_actionNames[actionName] = null;
-						delete _actionNames[actionName];
-					}*/
+						var actionCode:String = String(action.code);
+						_actionListCode[actionCode] = null;
+						delete _actionListCode[actionCode];
 
-					action.dispose();
+						action.dispose();
+					}
 				}
-			}
 
-			_numActions = 0;
+				_numActions = 0;
+			}
 		}
 
 		/**

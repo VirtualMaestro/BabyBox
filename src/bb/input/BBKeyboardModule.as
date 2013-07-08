@@ -9,6 +9,8 @@ package bb.input
 	import bb.modules.BBModule;
 	import bb.signals.BBSignal;
 
+	import flash.events.Event;
+
 	import flash.events.KeyboardEvent;
 
 	/**
@@ -55,7 +57,7 @@ package bb.input
 		 */
 		override public function update(p_deltaTime:int):void
 		{
-			_inputDispatcher.dispatch(p_deltaTime);
+			_inputDispatcher.dispatch();
 		}
 
 		/**
@@ -141,11 +143,17 @@ package bb.input
 				{
 					stage.addEventListener(KeyboardEvent.KEY_DOWN, keyboardDownHandler);
 					stage.addEventListener(KeyboardEvent.KEY_UP, keyboardUpHandler);
+//					stage.addEventListener(Event.MOUSE_LEAVE, mouseLeaveHandler);
+//					stage.addEventListener(Event.ACTIVATE, mouseLeaveHandler);
+//					stage.addEventListener(Event.DEACTIVATE, mouseLeaveHandler);
 				}
 				else
 				{
 					stage.removeEventListener(KeyboardEvent.KEY_DOWN, keyboardDownHandler);
 					stage.removeEventListener(KeyboardEvent.KEY_UP, keyboardUpHandler);
+//					stage.removeEventListener(Event.MOUSE_LEAVE, mouseLeaveHandler);
+//					stage.removeEventListener(Event.ACTIVATE, mouseLeaveHandler);
+//					stage.removeEventListener(Event.DEACTIVATE, mouseLeaveHandler);
 				}
 			}
 		}
@@ -155,6 +163,32 @@ package bb.input
 		public function get enableDispatching():Boolean
 		{
 			return _inputDispatcher.enableDispatching;
+		}
+
+//		/**
+//		 */
+//		private function mouseLeaveHandler(p_event:Event):void
+//		{
+//			trace("Event type: " + p_event.type);
+//			_inputDispatcher.clearActions();
+//		}
+
+		/**
+		 * Determines how often 'dispatch' method is invoked. By default it is set to 0, mean that method is invoked as often as app runs.
+		 * It can be helpful if app has high frame rate and need to keep dispatching between specific time range.
+		 * It is could be need because of if dispatching happens often and therefore controlling game object handled faster then need.
+		 * E.g. if app runs in different frame rates, but controlling games object is calculated for 30 fps, therefore should to set up dispatchTime to 33 (ms).
+		 */
+		public function set dispatchTime(p_val:int):void
+		{
+			_inputDispatcher.dispatchTime = p_val;
+		}
+
+		/**
+		 */
+		public function get dispatchTime():int
+		{
+			return _inputDispatcher.dispatchTime;
 		}
 
 		/**
@@ -175,6 +209,16 @@ package bb.input
 		public function get onUp():BBSignal
 		{
 			return _inputDispatcher.onActionOut;
+		}
+
+		/**
+		 * Simplest way to listen keys which pressed (without implementing any interfaces)
+		 * With this signal you can't use keys map, so you can't to know action name (can't use actionName of BBActionData)
+		 * As parameter sends BBActionsHolder.
+		 */
+		public function get onPressed():BBSignal
+		{
+			return _inputDispatcher.onActionsHolding;
 		}
 	}
 }
