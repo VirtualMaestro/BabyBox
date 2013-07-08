@@ -93,8 +93,11 @@ package bb.input
 		{
 			for each (var action:BBActionData in _actionListCode)
 			{
-				action.actionName = currentChannel.getActionName(action.code);
-				p_forEach(action);
+				if (action)
+				{
+					action.actionName = currentChannel.getActionName(action.code);
+					p_forEach(action);
+				}
 			}
 		}
 

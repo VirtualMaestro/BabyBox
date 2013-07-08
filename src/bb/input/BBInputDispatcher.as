@@ -97,13 +97,17 @@ package bb.input
 
 		/**
 		 * p_code - if device is keyboard then code is code of key.
+		 * If same p_code already in it is ignores.
 		 */
 		public function pushIncoming(p_code:int, p_data:Object = null):void
 		{
-			var action:BBActionData = getActionData(p_code, p_data);
-			_actions.add(action);
+			if (!_actions.hasByCode(p_code))
+			{
+				var action:BBActionData = getActionData(p_code, p_data);
+				_actions.add(action);
 
-			dispatchIncoming(action);
+				dispatchIncoming(action);
+			}
 		}
 
 		/**
@@ -118,9 +122,10 @@ package bb.input
 
 		/**
 		 */
+		[Inline]
 		private function getActionData(p_code:int, p_data:Object):BBActionData
 		{
-			var action:BBActionData = new BBActionData(p_code, p_data);
+			var action:BBActionData = BBActionData.get(p_code, p_data);
 			action.actionsHolding = _actions;
 
 			return action;
@@ -153,6 +158,8 @@ package bb.input
 				{
 					if (channel.enabled) channel.dispatchOutgoing(p_action);
 				}
+
+				p_action.dispose();
 			}
 		}
 

@@ -21,7 +21,7 @@ package bb.input
 		 */
 		public function BBInputListener()
 		{
-			_onAddedListener.add(setChannel);
+			onAddedListener.add(setChannel);
 		}
 
 		/**

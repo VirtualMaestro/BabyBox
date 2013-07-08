@@ -32,6 +32,56 @@ package bb.input
 			code = -1;
 			data = null;
 			actionsHolding = null;
+
+			put(this);
+		}
+
+		///////////////////
+		/// POOL /////////
+		//////////////////
+
+		static private var _pool:Vector.<BBActionData> = new <BBActionData>[];
+		static private var _size:int = 0;
+
+		/**
+		 */
+		static public function get(p_code:int, p_data:Object = null):BBActionData
+		{
+			var actionData:BBActionData;
+			if (_size > 0)
+			{
+				 actionData = _pool[--_size];
+				actionData.code = p_code;
+				actionData.data = p_data;
+				_pool[_size] = null;
+			}
+			else actionData = new BBActionData(p_code, p_data);
+
+			return actionData;
+		}
+
+		/**
+		 */
+		static private function put(p_actionData:BBActionData):void
+		{
+			_pool[_size++] = p_actionData;
+		}
+
+		/**
+		 */
+		static public function rid():void
+		{
+			var actionData:BBActionData;
+			for (var i:int = 0; i < _size; i++)
+			{
+				actionData = _pool[i];
+				_pool[i] = null;
+				actionData.actionName = null;
+			}
+
+			_size = 0;
+			_pool.length = 0;
+			_pool = new <BBActionData>[];
 		}
 	}
 }
