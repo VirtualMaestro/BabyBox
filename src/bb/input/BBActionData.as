@@ -80,6 +80,7 @@ package bb.input
 		}
 
 		/**
+		 * Clear pool.
 		 */
 		static public function rid():void
 		{

@@ -7,6 +7,7 @@ package bb.core
 	import bb.config.BBConfigModule;
 	import bb.core.context.BBContext;
 	import bb.debug.BBDebugModule;
+	import bb.input.BBActionData;
 	import bb.input.BBKeyboardModule;
 	import bb.layer.BBLayerModule;
 	import bb.level.BBLevelsModule;
@@ -75,6 +76,7 @@ package bb.core
 			BBMasterPool.addRidPoolMethod(BBMouseEvent.rid);
 			BBMasterPool.addRidPoolMethod(BBNativePool.rid);
 			BBMasterPool.addRidPoolMethod(BBJoint.rid);
+			BBMasterPool.addRidPoolMethod(BBActionData.rid);
 
 			//
 			isStage3d = _context.isStage3d;
@@ -143,6 +145,14 @@ package bb.core
 		public function get context():BBContext
 		{
 			return _context;
+		}
+
+		/**
+		 * Methods tries to free some memory in way cleaning caches, pools and rid other resources.
+		 */
+		public function freeMemory():void
+		{
+			BBMasterPool.clearAllPools();
 		}
 
 		/**
