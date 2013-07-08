@@ -28,7 +28,7 @@ package bb.prototyping
 		static public function getBox(p_width:Number = 100, p_height:Number = 100, p_name:String = "", p_color:uint = BBColor.SKY, p_type:BodyType = null, p_material:Material = null):BBNode
 		{
 			var box:BBNode = BBNode.get(p_name);
-			var physics:BBPhysicsBody = BBPhysicsBody.get(p_type);
+			var physics:BBPhysicsBody = BBPhysicsBody.get((p_type == null ? BodyType.DYNAMIC : p_type));
 			var material:Material = p_material ? p_material : BBPhysicalMaterials.wood;
 			physics.addBox(p_width, p_height, "", 0, null, material);
 			box.addComponent(physics);
@@ -45,7 +45,7 @@ package bb.prototyping
 		static public function getCircle(p_radius:Number = 50, p_name:String = "", p_color:uint = BBColor.GRASS, p_type:BodyType = null, p_material:Material = null):BBNode
 		{
 			var circle:BBNode = BBNode.get(p_name);
-			var physics:BBPhysicsBody = BBPhysicsBody.get(p_type);
+			var physics:BBPhysicsBody = BBPhysicsBody.get((p_type == null ? BodyType.DYNAMIC : p_type));
 			var material:Material = p_material ? p_material : BBPhysicalMaterials.wood;
 			physics.addCircle(p_radius, "", null, material);
 			circle.addComponent(physics);

@@ -58,6 +58,19 @@ package bb.physics.components
 		 */
 		public var allowHand:Boolean = false;
 
+		/**
+		 * Represents own gravity of current object.
+		 * By default null.
+		 */
+		public var gravity:Vec2 = null;
+
+		/**
+		 * Custom air friction for current component.
+		 * Friction applies to linear and angular velocity.
+		 * Values meaning: 0 - friction is absent. Any values greater then 0 - represents value of friction.
+		 */
+		public var airFriction:Number = 0;
+
 		//
 		bb_private var handJoint:PivotJoint = null;
 
@@ -74,6 +87,9 @@ package bb.physics.components
 		private var _transform:BBTransform = null;
 		private var _scaleX:Number = 1.0;
 		private var _scaleY:Number = 1.0;
+
+		//
+		private var _physicsModule:BBPhysicsModule;
 
 		//
 		private var _isNeedInitJoints:Boolean = false;
@@ -113,7 +129,8 @@ package bb.physics.components
 		{
 			_transform = node.transform;
 
-			if (!_space) _space = (BabyBox.getInstance().getModule(BBPhysicsModule) as BBPhysicsModule).space;
+			_physicsModule = BabyBox.getInstance().getModule(BBPhysicsModule) as BBPhysicsModule;
+			if (!_space) _space = _physicsModule.space;
 
 			if (node.isOnStage) addToStage();
 
@@ -160,6 +177,8 @@ package bb.physics.components
 				_body.rotation = _transform.worldRotation;
 				_body.space = _space;
 				_lock = false;
+
+				if (gravity) updateOwnGravity();
 
 				// if parent has physics component, add to it group
 				var parentNode:BBNode = node.parent;
@@ -850,10 +869,40 @@ package bb.physics.components
 			}
 			else
 			{
+				if (gravity) updateOwnGravity();
+				if (airFriction > 0)
+				{
+					var velocity:Vec2 = _body.velocity;
+					var airDampening:Number = -airFriction * _physicsModule.timeStep;
+
+					var velX:Number = velocity.x;
+					var velXInt:int = (velX + velX*airDampening) * 1000;
+
+					var velY:Number = velocity.y;
+					var velYInt:int = (velY + velY*airDampening) * 1000;
+
+					velocity.x = velXInt/1000.0;
+					velocity.y = velYInt/1000.0;
+
+					var angularVelocity:Number = _body.angularVel;
+					var angularVelocityInt:int = (angularVelocity + angularVelocity*airDampening) * 1000;
+					_body.angularVel = angularVelocityInt/1000.0;
+				}
+
 				_transform.worldX = _bodyPosition.x;
 				_transform.worldY = _bodyPosition.y;
 				_transform.worldRotation = _body.rotation;
 			}
+		}
+
+		/**
+		 */
+		[Inline]
+		private function updateOwnGravity():void
+		{
+			var ownGravity:Vec2 = _space.gravity.copy(true).muleq(-_body.mass);
+			ownGravity.addeq(gravity);
+			_body.force.set(ownGravity);
 		}
 
 		/**
@@ -896,6 +945,7 @@ package bb.physics.components
 			_attachedJoints = null;
 			_initJointList = null;
 			_space = null;
+			_physicsModule = null;
 			delete _body.userData.bb_component;
 			_body = null;
 			_bodyPosition = null;
