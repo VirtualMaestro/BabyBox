@@ -22,7 +22,7 @@ package bb.input
 		 * Associative array where key is code of action (represented as String), value - action itself.
 		 */
 		private var _actionListCode:Array;
-		private var _actionNames:Array;
+//		private var _actionNames:Array;
 		private var _numActions:int = 0;
 
 		/**
@@ -30,7 +30,7 @@ package bb.input
 		public function BBActionsHolder()
 		{
 			_actionListCode = [];
-			_actionNames = [];
+//			_actionNames = [];
 		}
 
 		/**
@@ -39,7 +39,9 @@ package bb.input
 		public function add(p_action:BBActionData):void
 		{
 			_actionListCode[String(p_action.code)] = p_action;
-			_actionNames[p_action.actionName] = true;
+
+//			var actionName:String = p_action.actionName;
+//			if (actionName) _actionNames[actionName] = true;
 
 			_numActions++;
 		}
@@ -50,7 +52,9 @@ package bb.input
 		public function remove(p_action:BBActionData):void
 		{
 			_actionListCode[String(p_action.code)] = null;
-			_actionNames[p_action.actionName] = null;
+
+//			var actionName:String = p_action.actionName;
+//			if (actionName) _actionNames[actionName] = null;
 
 			_numActions--;
 		}
@@ -62,9 +66,21 @@ package bb.input
 		{
 			for each(var action:BBActionData in _actionListCode)
 			{
-				delete _actionListCode[String(action.code)];
-				delete _actionNames[action.actionName];
-				action.dispose();
+				if (action)
+				{
+					var actionCode:String = String(action.code);
+					_actionListCode[actionCode] = null;
+					delete _actionListCode[actionCode];
+
+					/*var actionName:String = action.actionName;
+					if (actionName)
+					{
+						_actionNames[actionName] = null;
+						delete _actionNames[actionName];
+					}*/
+
+					action.dispose();
+				}
 			}
 
 			_numActions = 0;
@@ -75,7 +91,12 @@ package bb.input
 		 */
 		public function hasByName(p_actionName:String):Boolean
 		{
-			return _actionNames[p_actionName] != null;
+			if (currentChannel)
+			{
+				return Object(currentChannel.getActionCode(p_actionName)) != null;
+			}
+
+			return false;
 		}
 
 		/**
@@ -93,11 +114,7 @@ package bb.input
 		{
 			for each (var action:BBActionData in _actionListCode)
 			{
-				if (action)
-				{
-					action.actionName = currentChannel.getActionName(action.code);
-					p_forEach(action);
-				}
+				if (action) p_forEach(action);
 			}
 		}
 
@@ -116,7 +133,6 @@ package bb.input
 			inputType = null;
 			removeAll();
 			_actionListCode = null;
-			_actionNames = null;
 			_numActions = 0;
 		}
 	}

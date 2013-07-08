@@ -84,9 +84,9 @@ package bb.input
 
 		/**
 		 */
-		public function enableChannels(p_channelIds:Array, p_enable:Boolean):void
+		public function enableChannels(p_channelIds:Array):void
 		{
-			_inputDispatcher.enableChannels(p_channelIds, p_enable);
+			_inputDispatcher.enableChannels(p_channelIds);
 		}
 
 		/**
@@ -94,6 +94,22 @@ package bb.input
 		public function get channels():Array
 		{
 			return _inputDispatcher.channels;
+		}
+
+		/**
+		 * Makes mapping between button code and action name and attaches to specific channel.
+		 * p_actions - array with mapping.
+		 * E.g.
+		 * p_actions = [
+		 *                  Keyboard.UP, "fly",
+		 *                  Keyboard.DOWN, "sit",
+		 *                  Keyboard.LEFT, "runLeft",
+		 *                  Keyboard.RIGHT, "runRight"
+		 *             ]
+		 */
+		public function addButtonsMapping(p_actions:Array, p_channel:int = 0):void
+		{
+			_inputDispatcher.actionsMapping(p_actions, p_channel);
 		}
 
 		/**

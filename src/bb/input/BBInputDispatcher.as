@@ -181,16 +181,24 @@ package bb.input
 		}
 
 		/**
-		 * Enable/disable channels for dispatching.
+		 * Enables channels for dispatching which were set in p_channelIds array. Other channels will disabled.
 		 * p_channelIds - array with ids of channels should be enabled for dispatching.
+		 * E.g. - p_channelIds[0,1,2,3]
 		 */
-		public function enableChannels(p_channelIds:Array, p_enable:Boolean):void
+		public function enableChannels(p_channelIds:Array):void
 		{
 			var channel:BBInputChannel;
-			for (var channelId:String in _channels)
+
+			for each (channel in _channels)
 			{
-				channel = _channels[channelId];
-				if (channel) channel.enabled = p_enable;
+				channel.enabled = false;
+			}
+
+			var num:int = p_channelIds.length;
+			for (var i:int = 0; i < num; i++)
+			{
+				channel = getChannel(p_channelIds[i]);
+				if (channel) channel.enabled = true;
 			}
 		}
 
@@ -222,6 +230,29 @@ package bb.input
 				channel = _channels[channelNum];
 				channel.dispose();
 				delete _channels[channelNum];
+			}
+		}
+
+		/**
+		 * Makes mapping between action code and action name and attaches to specific channel.
+		 * p_actions - array with mapping.
+		 * E.g.
+		 * p_actions = [
+		 *                  Keyboard.UP, "fly",
+		 *                  Keyboard.DOWN, "sit",
+		 *                  Keyboard.LEFT, "runLeft",
+		 *                  Keyboard.RIGHT, "runRight"
+		 *             ]
+		 */
+		public function actionsMapping(p_actions:Array, p_channel:int = 0):void
+		{
+			var channel:BBInputChannel = getChannel(p_channel);
+			if (channel == null) channel = createChannel(p_channel);
+			var len:int = p_actions.length;
+
+			for (var i:int = 0; i < len; i+=2)
+			{
+				channel.addActionMapping(p_actions[i], p_actions[i+1]);
 			}
 		}
 

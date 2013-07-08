@@ -10,7 +10,6 @@ package bb.input
 	 */
 	public class BBActionData
 	{
-		public var actionName:String = "";
 		public var code:int = -1;
 		public var data:Object;
 
@@ -25,10 +24,23 @@ package bb.input
 		}
 
 		/**
+		 * Returns action name.
+		 * If name doesn't exist returns null.
+		 */
+		public function get actionName():String
+		{
+			if (actionsHolding.currentChannel)
+			{
+				return actionsHolding.currentChannel.getActionName(code);
+			}
+
+			return null;
+		}
+
+		/**
 		 */
 		public function dispose():void
 		{
-			actionName = "";
 			code = -1;
 			data = null;
 			actionsHolding = null;
@@ -71,12 +83,9 @@ package bb.input
 		 */
 		static public function rid():void
 		{
-			var actionData:BBActionData;
 			for (var i:int = 0; i < _size; i++)
 			{
-				actionData = _pool[i];
 				_pool[i] = null;
-				actionData.actionName = null;
 			}
 
 			_size = 0;

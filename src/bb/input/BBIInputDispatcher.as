@@ -15,7 +15,7 @@ package bb.input
 		function get inputType():String;
 		function pushIncoming(p_code:int, p_data:Object = null):void;
 		function pushOutgoing(p_code:int, p_data:Object = null):void;
-		function enableChannels(p_channelIds:Array, p_enable:Boolean):void;
+		function enableChannels(p_channelIds:Array):void;
 		function get channels():Array;
 		function set enableDispatching(p_val:Boolean):void;
 		function get enableDispatching():Boolean;

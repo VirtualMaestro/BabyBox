@@ -5,6 +5,8 @@
  */
 package bb.input
 {
+	import flash.utils.Dictionary;
+
 	/**
 	 */
 	internal class BBInputChannel
@@ -17,17 +19,24 @@ package bb.input
 		 * key is code of action (as string), value - action name.
 		 * E.g. [String(Keyboard.UP), "fly"]
 		 */
-		private var _keysMap:Array;
+		private var _actionsMap:Dictionary;
+
+		/**
+		 * Stored actions names.
+		 */
+		private var _actionsNames:Dictionary;
 
 		private var _id:int = 0;
-		private var _list:Array = [];
+		private var _list:Vector.<BBIInputListener>;
 
 		/**
 		 */
 		public function BBInputChannel(p_id:int = 0)
 		{
 			_id = p_id;
-			_keysMap = [];
+			_list = new <BBIInputListener>[];
+			_actionsMap = new Dictionary();
+			_actionsNames = new Dictionary();
 		}
 
 		/**
@@ -60,38 +69,44 @@ package bb.input
 		 */
 		public function removeAllListeners():void
 		{
-			var listener:BBIInputListener;
 			var num:int = _list.length;
 			for (var i:int = 0; i < num; i++)
 			{
-				listener = _list[i];
-				listener.onUnlinkedListener.dispatch();
+				_list[i].onUnlinkedListener.dispatch();
 			}
 		}
 
 		/**
 		 * Adds mapping of the key.
-		 * E.g. for keyboard - addKey(Keyboard.UP, "jump");
+		 * E.g. for keyboard - addActionMapping(Keyboard.UP, "jump");
 		 */
-		public function addKey(p_code:int, p_actionName:String):void
+		public function addActionMapping(p_code:int, p_actionName:String):void
 		{
-			_keysMap[String(p_code)] = p_actionName;
+			_actionsMap[String(p_code)] = p_actionName;
+			_actionsNames[p_actionName] = p_code;
 		}
 
 		/**
-		 *
+		 * Removes specify action mapping by given code of action.
 		 */
-		public function removeKey(p_code:int):void
+		public function removeActionMapping(p_code:int):void
 		{
-			if (_keysMap[String(p_code)] != null) delete _keysMap[String(p_code)];
+			var actionCode:String = String(p_code);
+			var actionName:String = _actionsMap[actionCode];
+			if (actionName != null)
+			{
+				delete _actionsMap[actionCode];
+				delete _actionsNames[actionName];
+			}
 		}
 
 		/**
 		 * Removes mapping table of actions.
 		 */
-		public function clearKeys():void
+		public function clearActionsMapping():void
 		{
-			_keysMap = [];
+			_actionsMap = new Dictionary();
+			_actionsNames = new Dictionary();
 		}
 
 		/**
@@ -99,7 +114,15 @@ package bb.input
 		 */
 		public function getActionName(p_code:int):String
 		{
-			return _keysMap[String(p_code)];
+			return _actionsMap[String(p_code)];
+		}
+
+		/**
+		 * Returns action code by given action name.
+		 */
+		public function getActionCode(p_actionName:String):int
+		{
+			return _actionsNames[p_actionName];
 		}
 
 		/**
@@ -108,12 +131,10 @@ package bb.input
 		{
 			p_action.actionsHolding.currentChannel = this;
 
-			var listener:BBIInputListener;
 			var len:int = _list.length;
 			for (var i:int = 0; i < len; i++)
 			{
-				listener = _list[i];
-				listener.actionIn(p_action);
+				_list[i].actionIn(p_action);
 			}
 		}
 
@@ -123,12 +144,10 @@ package bb.input
 		{
 			p_action.actionsHolding.currentChannel = this;
 
-			var listener:BBIInputListener;
 			var len:int = _list.length;
 			for (var i:int = 0; i < len; i++)
 			{
-				listener = _list[i];
-				listener.actionOut(p_action);
+				_list[i].actionOut(p_action);
 			}
 		}
 
@@ -138,12 +157,10 @@ package bb.input
 		{
 			p_actions.currentChannel = this;
 
-			var listener:BBIInputListener;
 			var len:int = _list.length;
 			for (var i:int = 0; i < len; i++)
 			{
-				listener = _list[i];
-				listener.actionsHolding(p_actions);
+				_list[i].actionsHolding(p_actions);
 			}
 		}
 
@@ -152,7 +169,8 @@ package bb.input
 		public function dispose():void
 		{
 			removeAllListeners();
-			_keysMap = null;
+			_actionsMap = null;
+			_actionsNames = null;
 			_list = null;
 			enabled = false;
 		}
