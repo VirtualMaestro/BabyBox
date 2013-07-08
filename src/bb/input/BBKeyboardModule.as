@@ -93,6 +93,10 @@ package bb.input
 		}
 
 		/**
+		 * Enables channels for dispatching which were set in p_channelIds array. Other channels will disabled.
+		 * p_channelIds - array with ids of channels should be enabled for dispatching.
+		 * if p_channelIds array is empty it is disable all channels.
+		 * E.g. - p_channelIds[0,1,2,3]
 		 */
 		public function enableChannels(p_channelIds:Array):void
 		{
