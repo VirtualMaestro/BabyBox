@@ -425,6 +425,8 @@ package bb.level.parsers
 				body.body.allowRotation = p_actorScheme.allowRotation;
 				body.allowHand = p_actorScheme.useHand;
 				body.isBullet = p_actorScheme.isBullet;
+				body.airFriction = p_actorScheme.airFriction;
+				body.gravity = p_actorScheme.gravity != null ? Vec2.get(p_actorScheme.gravity[0], p_actorScheme.gravity[1]) : null;
 				p_actor.addComponent(body);
 			}
 			else body = p_actor.getComponent(BBPhysicsBody) as BBPhysicsBody;
