@@ -156,8 +156,6 @@ package bb.physics.components
 		 */
 		private function addToStage():void
 		{
-			_transform.independentUpdateWorldParameters = true;
-
 			node.onUpdated.add(initBody);
 			node.onUpdated.add(initJoints);
 		}
@@ -169,6 +167,8 @@ package bb.physics.components
 			if (_active)
 			{
 				p_signal.removeCurrentListener();
+
+				_transform.independentUpdateWorldParameters = true;
 
 				updateEnable = _body.type != BodyType.STATIC;
 
