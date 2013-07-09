@@ -963,6 +963,8 @@ package bb.physics.components
 			component._bodyPosition = component._body.position;
 			component._scaleX = _scaleX;
 			component._scaleY = _scaleY;
+			component.airFriction = airFriction;
+			component.gravity = gravity != null ? gravity.copy() : null;
 
 			// copy shape names
 			var originList:ShapeList = _body.shapes;
@@ -1116,6 +1118,7 @@ package bb.physics.components
 			addPrototypeProperty("velocity", _body.velocity.x + "," + _body.velocity.y, "point");
 			var bodyType:String = (_body.type == BodyType.DYNAMIC) ? "DYNAMIC" : ((_body.type == BodyType.STATIC) ? "STATIC" : "KINEMATIC");
 			addPrototypeProperty("type", bodyType, "String");
+			if (gravity != null) addPrototypeProperty("gravity", gravity.x+","+gravity.y, "point");
 
 			// parse shapes
 			physicsPrototype.shapes = <shapes/>;
@@ -1263,6 +1266,12 @@ package bb.physics.components
 			_body.velocity.setxy(velocity[0], velocity[1]);
 			var typeBody:String = properties.elements("type");
 			type = (typeBody == "STATIC") ? BodyType.STATIC : ((typeBody == "DYNAMIC") ? BodyType.DYNAMIC : BodyType.KINEMATIC);
+
+			if (properties.hasOwnProperty("gravity"))
+			{
+				var gravityElements:Array = String(properties.elements("gravity")).split(",");
+				gravity = Vec2.get(gravityElements[0], gravityElements[1]);
+			}
 
 			// parse and creates shapes
 			var shapes:XMLList = p_prototype.shapes.children();
