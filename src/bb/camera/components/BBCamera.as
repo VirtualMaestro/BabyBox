@@ -9,6 +9,7 @@ package bb.camera.components
 	import bb.camera.BBCamerasModule;
 	import bb.config.BBConfig;
 	import bb.core.BBComponent;
+	import bb.core.BBNode;
 	import bb.core.BBNodeStatus;
 	import bb.core.BBTransform;
 	import bb.core.BabyBox;
@@ -58,12 +59,29 @@ package bb.camera.components
 		 */
 		public var mouseEnable:Boolean = false;
 
+		/**
+		 * Boundary that limits the movement of camera.
+		 * Camera can't leave that border.
+		 * If border no need just set null.
+		 */
+		public var border:Rectangle = null;
+
 		// viewport
 		private var _viewPort:Rectangle = null;
 
 		/**
 		 */
 		private var _fitContentToViewport:Boolean = false;
+
+		/**
+		 * Transform of camera.
+		 */
+		private var _transform:BBTransform = null;
+
+		/**
+		 * Camera following to this leader.
+		 */
+		private var _leader:BBTransform;
 
 		/**
 		 * Zoom of camera.
@@ -169,7 +187,8 @@ package bb.camera.components
 		 */
 		private function cameraAddedToNode(p_signal:BBSignal):void
 		{
-			node.transform.setScale(_zoom, _zoom);
+			_transform = node.transform;
+			_transform.setScale(_zoom, _zoom);
 			setViewport(0, 0, _config.getViewRect().width, _config.getViewRect().height);
 
 			node.onAdded.add(nodeAddedToParentHandler);
@@ -201,7 +220,7 @@ package bb.camera.components
 		public function set zoom(val:Number):void
 		{
 			_zoom = val < MIN_ZOOM ? MIN_ZOOM : val;
-			if (node) node.transform.setScale(val, val);
+			if (_transform) _transform.setScale(val, val);
 		}
 
 		/**
@@ -209,10 +228,10 @@ package bb.camera.components
 		 */
 		public function get zoom():Number
 		{
-			if (node)
+			if (_transform)
 			{
-				_zoom = node.transform.scaleX;
-				if (_zoom < MIN_ZOOM) node.transform.scaleX = _zoom = MIN_ZOOM;
+				_zoom = _transform.scaleX;
+				if (_zoom < MIN_ZOOM) _transform.scaleX = _zoom = MIN_ZOOM;
 			}
 
 			return _zoom;
@@ -273,7 +292,7 @@ package bb.camera.components
 		[Inline]
 		final private function invalidate():void
 		{
-			var transform:BBTransform = node.transform;
+			var transform:BBTransform = _transform;
 
 			// if rotation changed
 			if (transform.worldRotation != rotation)
@@ -313,10 +332,10 @@ package bb.camera.components
 
 				if ((shiftX + shiftY + shiftR + shiftZ) != 0)
 				{
-					node.transform.shiftPositionAndRotation(shiftX * _offsetX, shiftY * _offsetY, shiftR * _offsetRotation);
-					node.transform.shiftScale(shiftZ * _offsetZoom, shiftZ * _offsetZoom);
-					node.transform.invalidate(true, false);
-					node.transform.resetInvalidationFlags();
+					_transform.shiftPositionAndRotation(shiftX * _offsetX, shiftY * _offsetY, shiftR * _offsetRotation);
+					_transform.shiftScale(shiftZ * _offsetZoom, shiftZ * _offsetZoom);
+					_transform.invalidate(true, false);
+					_transform.resetInvalidationFlags();
 					invalidate();
 				}
 
@@ -408,6 +427,38 @@ package bb.camera.components
 		override public function update(p_deltaTime:Number):void
 		{
 			invalidate();
+
+			// if leader presents, update position
+			if (_leader)
+			{
+				_transform.setPosition(_leader.x, _leader.y);
+
+				if (border)
+				{
+					var tX:Number = _transform.x;
+					var tY:Number = _transform.y;
+					var vpW:Number = _viewPort.width/2;
+					var vpH:Number = _viewPort.height/2;
+					var bX:Number = border.x;
+					var bY:Number = border.y;
+					var bW:Number = border.width;
+					var bH:Number = border.height;
+
+					if (tX < bX + vpW) _transform.x = bX+vpW;
+					else if (tX > bX+bW - vpW) _transform.x = bX+bW - vpW;
+
+					if (tY < bY + vpH) _transform.y = bY+vpH;
+					else if (tY > bY+bH - vpH) _transform.y = bY+bH - vpH;
+				}
+			}
+		}
+
+		/**
+		 *
+		 */
+		public function set follow(p_leader:BBNode):void
+		{
+			_leader = p_leader != null ? p_leader.transform : null;
 		}
 
 		/**
@@ -425,6 +476,7 @@ package bb.camera.components
 			_dependOnCameraTransform = null;
 			_config = null;
 			_viewPort = null;
+			_transform = null;
 			backgroundColor = null;
 
 			super.dispose();
