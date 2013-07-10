@@ -22,6 +22,8 @@ package bb.camera.components
 	import flash.geom.Point;
 	import flash.geom.Rectangle;
 
+	import nape.geom.Vec2;
+
 	CONFIG::debug
 	{
 		import vm.debug.Assert;
@@ -75,8 +77,9 @@ package bb.camera.components
 
 		/**
 		 * Gives possible to setup speed of start fading and end fading of camera movement.
+		 * By default is 0. For start try to use value 0.05.
 		 */
-		public var fadeMove:Number = 0.01;
+		public var fadeMove:Number = 0.0;
 
 		/**
 		 * Until object not further then given radiusCalm from the camera, camera will not move.
@@ -456,78 +459,101 @@ package bb.camera.components
 			// if leader presents, update position
 			if (_leader)
 			{
-				if (smoothMove)
-				{
-					var camX:Number = _transform.x;
-					var camY:Number = _transform.y;
-					var diffX:Number = _leader.x - camX;
-					var diffY:Number = _leader.y - camY;
-					var signX:int = diffX < 0 ? -1 : 1;
-					var signY:int = diffY < 0 ? -1 : 1;
-
-					if (fadeMove > 0)
-					{
-						if (Math.abs(diffX) > radiusCalm)
-						{
-							_accumulateFadeMoveX += fadeMove;
-							if (_accumulateFadeMoveX > 1.0) _accumulateFadeMoveX = 1.0;
-							_transform.x = camX + (Math.abs(diffX) - radiusCalm)*_accumulateFadeMoveX*signX;
-						}
-						else if (_accumulateFadeMoveX > 0)
-						{
-							_accumulateFadeMoveX -= fadeMove;
-							if (_accumulateFadeMoveX < 0) _accumulateFadeMoveX = 0;
-							_transform.x = camX + _accumulateFadeMoveX * signX;
-						}
-
-						if (Math.abs(diffY) > radiusCalm)
-						{
-							_accumulateFadeMoveY += fadeMove;
-							if (_accumulateFadeMoveY > 1.0) _accumulateFadeMoveY = 1.0;
-							_transform.y = camY + (Math.abs(diffY) - radiusCalm)*_accumulateFadeMoveY*signY;
-						}
-						else if (_accumulateFadeMoveY > 0)
-						{
-							_accumulateFadeMoveY -= fadeMove;
-							if (_accumulateFadeMoveY < 0) _accumulateFadeMoveY = 0;
-							_transform.y = camY + _accumulateFadeMoveY * signY;
-						}
-					}
-					else
-					{
-						if (Math.abs(diffX) > radiusCalm) _transform.x = camX + (Math.abs(diffX) - radiusCalm)*signX;
-						if (Math.abs(diffY) > radiusCalm) _transform.y = camY + (Math.abs(diffY) - radiusCalm)*signY;
-					}
-				}
-				else _transform.setPosition(_leader.x, _leader.y);
-
-				//
-				if (border)
-				{
-					var tX:Number = _transform.x;
-					var tY:Number = _transform.y;
-					var vpW:Number = _viewPort.width/2;
-					var vpH:Number = _viewPort.height/2;
-					var bX:Number = border.x;
-					var bY:Number = border.y;
-					var bW:Number = border.width;
-					var bH:Number = border.height;
-
-					if (tX < bX + vpW) _transform.x = bX+vpW;
-					else if (tX > bX+bW - vpW) _transform.x = bX+bW - vpW;
-
-					if (tY < bY + vpH) _transform.y = bY+vpH;
-					else if (tY > bY+bH - vpH) _transform.y = bY+bH - vpH;
-				}
+				moveCamera(_leader.x, _leader.y);
 			}
 		}
 
 		/**
 		 *
 		 */
+		[Inline]
+		private function moveCamera(p_x:Number, p_y:Number):void
+		{
+			if (smoothMove)
+			{
+				var camX:Number = _transform.x;
+				var camY:Number = _transform.y;
+				var diffX:Number = p_x - camX;
+				var diffY:Number = p_y - camY;
+				var signX:int = diffX < 0 ? -1 : 1;
+				var signY:int = diffY < 0 ? -1 : 1;
+
+				if (fadeMove > 0)
+				{
+					if (Math.abs(diffX) > radiusCalm)
+					{
+						_accumulateFadeMoveX += fadeMove;
+						if (_accumulateFadeMoveX > 1.0) _accumulateFadeMoveX = 1.0;
+						_transform.x = camX + (Math.abs(diffX) - radiusCalm)*_accumulateFadeMoveX*signX;
+					}
+					else if (_accumulateFadeMoveX > 0)
+					{
+						_accumulateFadeMoveX -= fadeMove;
+						if (_accumulateFadeMoveX < 0) _accumulateFadeMoveX = 0;
+						_transform.x = camX + _accumulateFadeMoveX * signX;
+					}
+
+					if (Math.abs(diffY) > radiusCalm)
+					{
+						_accumulateFadeMoveY += fadeMove;
+						if (_accumulateFadeMoveY > 1.0) _accumulateFadeMoveY = 1.0;
+						_transform.y = camY + (Math.abs(diffY) - radiusCalm)*_accumulateFadeMoveY*signY;
+					}
+					else if (_accumulateFadeMoveY > 0)
+					{
+						_accumulateFadeMoveY -= fadeMove;
+						if (_accumulateFadeMoveY < 0) _accumulateFadeMoveY = 0;
+						_transform.y = camY + _accumulateFadeMoveY * signY;
+					}
+				}
+				else
+				{
+					if (Math.abs(diffX) > radiusCalm) _transform.x = camX + (Math.abs(diffX) - radiusCalm)*signX;
+					if (Math.abs(diffY) > radiusCalm) _transform.y = camY + (Math.abs(diffY) - radiusCalm)*signY;
+				}
+			}
+			else _transform.setPosition(p_x, p_y);
+
+			//
+			if (border) correctPositionByBorder();
+		}
+
+		/**
+		 */
+		[Inline]
+		private function correctPositionByBorder():void
+		{
+			var tX:Number = _transform.x;
+			var tY:Number = _transform.y;
+			var vpW:Number = _viewPort.width/2;
+			var vpH:Number = _viewPort.height/2;
+			var bX:Number = border.x;
+			var bY:Number = border.y;
+			var bW:Number = border.width;
+			var bH:Number = border.height;
+
+			if (tX < bX + vpW) _transform.x = bX+vpW;
+			else if (tX > bX+bW - vpW) _transform.x = bX+bW - vpW;
+
+			if (tY < bY + vpH) _transform.y = bY+vpH;
+			else if (tY > bY+bH - vpH) _transform.y = bY+bH - vpH;
+		}
+
+		/**
+		 * Sets object to which camera should follow.
+		 */
 		public function set follow(p_leader:BBNode):void
 		{
 			_leader = p_leader != null ? p_leader.transform : null;
+		}
+
+		/**
+		 * Moves camera to given coordinates.
+		 * Should to use without using 'follow' method.
+		 */
+		public function moveTo(p_x:Number, p_y:Number):void
+		{
+			// TODO:
 		}
 
 		/**
