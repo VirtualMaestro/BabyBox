@@ -66,6 +66,29 @@ package bb.camera.components
 		 */
 		public var border:Rectangle = null;
 
+		/**
+		 * Make movement of camera smoothly.
+		 * If 'false' the camera strictly follow object pixel by pixel
+		 * If 'true' there is possible to use in conjunction with properties 'fadeMove' and 'radiusCalm'.
+		 */
+		public var smoothMove:Boolean = false;
+
+		/**
+		 * Gives possible to setup speed of start fading and end fading of camera movement.
+		 */
+		public var fadeMove:Number = 0.01;
+
+		/**
+		 * Until object not further then given radiusCalm from the camera, camera will not move.
+		 * By default value is calculated as viewport's bigger side (width/height) divided by 6.
+		 * So, if viewport width = 800 and height = 600, radiusCalm = width/6 = 133
+		 */
+		public var radiusCalm:int = 133;
+
+		//
+		private var _accumulateFadeMoveX:Number = 0;
+		private var _accumulateFadeMoveY:Number = 0;
+
 		// viewport
 		private var _viewPort:Rectangle = null;
 
@@ -190,6 +213,8 @@ package bb.camera.components
 			_transform = node.transform;
 			_transform.setScale(_zoom, _zoom);
 			setViewport(0, 0, _config.getViewRect().width, _config.getViewRect().height);
+
+			radiusCalm = (_viewPort.width > _viewPort.height ? _viewPort.width : _viewPort.height)/6;
 
 			node.onAdded.add(nodeAddedToParentHandler);
 
@@ -431,8 +456,52 @@ package bb.camera.components
 			// if leader presents, update position
 			if (_leader)
 			{
-				_transform.setPosition(_leader.x, _leader.y);
+				if (smoothMove)
+				{
+					var camX:Number = _transform.x;
+					var camY:Number = _transform.y;
+					var diffX:Number = _leader.x - camX;
+					var diffY:Number = _leader.y - camY;
+					var signX:int = diffX < 0 ? -1 : 1;
+					var signY:int = diffY < 0 ? -1 : 1;
 
+					if (fadeMove > 0)
+					{
+						if (Math.abs(diffX) > radiusCalm)
+						{
+							_accumulateFadeMoveX += fadeMove;
+							if (_accumulateFadeMoveX > 1.0) _accumulateFadeMoveX = 1.0;
+							_transform.x = camX + (Math.abs(diffX) - radiusCalm)*_accumulateFadeMoveX*signX;
+						}
+						else if (_accumulateFadeMoveX > 0)
+						{
+							_accumulateFadeMoveX -= fadeMove;
+							if (_accumulateFadeMoveX < 0) _accumulateFadeMoveX = 0;
+							_transform.x = camX + _accumulateFadeMoveX * signX;
+						}
+
+						if (Math.abs(diffY) > radiusCalm)
+						{
+							_accumulateFadeMoveY += fadeMove;
+							if (_accumulateFadeMoveY > 1.0) _accumulateFadeMoveY = 1.0;
+							_transform.y = camY + (Math.abs(diffY) - radiusCalm)*_accumulateFadeMoveY*signY;
+						}
+						else if (_accumulateFadeMoveY > 0)
+						{
+							_accumulateFadeMoveY -= fadeMove;
+							if (_accumulateFadeMoveY < 0) _accumulateFadeMoveY = 0;
+							_transform.y = camY + _accumulateFadeMoveY * signY;
+						}
+					}
+					else
+					{
+						if (Math.abs(diffX) > radiusCalm) _transform.x = camX + (Math.abs(diffX) - radiusCalm)*signX;
+						if (Math.abs(diffY) > radiusCalm) _transform.y = camY + (Math.abs(diffY) - radiusCalm)*signY;
+					}
+				}
+				else _transform.setPosition(_leader.x, _leader.y);
+
+				//
 				if (border)
 				{
 					var tX:Number = _transform.x;
