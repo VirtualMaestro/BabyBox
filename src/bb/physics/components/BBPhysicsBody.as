@@ -866,6 +866,8 @@ package bb.physics.components
 				if (_transform.isScaleInvalidated) setScale(_transform.worldScaleX, _transform.worldScaleY);
 				if (_transform.isPositionInvalidated) _bodyPosition.setxy(_transform.worldX, _transform.worldY);
 				if (_transform.isRotationInvalidated) _body.rotation = _transform.worldRotation;
+
+				invalidateChildren();
 			}
 			else
 			{
@@ -892,6 +894,26 @@ package bb.physics.components
 				_transform.worldX = _bodyPosition.x;
 				_transform.worldY = _bodyPosition.y;
 				_transform.worldRotation = _body.rotation;
+			}
+		}
+
+		/**
+		 */
+		[Inline]
+		private function invalidateChildren():void
+		{
+			if (_transform.node.numChildren > 0)
+			{
+				var child:BBNode = _transform.node.childrenHead;
+				var currentChild:BBNode;
+
+				while(child)
+				{
+					currentChild = child;
+					child = child.next;
+
+					currentChild.transform.isTransformChanged = true;
+				}
 			}
 		}
 
