@@ -279,8 +279,6 @@ package bb.core.context
 			}
 
 			//
-			var texturePivotX:Number = texture.pivotX;
-			var texturePivotY:Number = texture.pivotY;
 			var textureX:Number = textureTransform.worldX;
 			var textureY:Number = textureTransform.worldY;
 			var textureScaleX:Number = textureTransform.worldScaleX;
@@ -308,31 +306,29 @@ package bb.core.context
 				var totalScaleX:Number = textureScaleX * _currentCameraTotalScaleX * p_renderableComponent.scaleX;
 				var totalScaleY:Number = textureScaleY * _currentCameraTotalScaleY * p_renderableComponent.scaleY;
 
-				texturePivotX *= totalScaleX;
-				texturePivotY *= totalScaleY;
+				var texturePivotX:Number = texture.pivotX * totalScaleX;
+				var texturePivotY:Number = texture.pivotY * totalScaleY;
 
 				///  Test for getting into the viewport /////////////
 				if (isFrustum)
 				{
-					var leftX:Number = texturePivotX;
-					var topY:Number = texturePivotY;
 					var rightX:Number = texturePivotX + textureBitmapData.width * totalScaleX;
 					var bottomY:Number = texturePivotY + textureBitmapData.height * totalScaleY;
 
 					var totalRotCos:Number = Math.cos(totalRotation);
 					var totalRotSin:Number = Math.sin(totalRotation);
 
-					var topLeftX:Number = (leftX * totalRotCos - totalRotSin * topY) + newTextureX;
-					var topLeftY:Number = (leftX * totalRotSin + totalRotCos * topY) + newTextureY;
+					var topLeftX:Number = (texturePivotX * totalRotCos - totalRotSin * texturePivotY) + newTextureX;
+					var topLeftY:Number = (texturePivotX * totalRotSin + totalRotCos * texturePivotY) + newTextureY;
 
-					var topRightX:Number = (rightX * totalRotCos - totalRotSin * topY) + newTextureX;
-					var topRightY:Number = (rightX * totalRotSin + totalRotCos * topY) + newTextureY;
+					var topRightX:Number = (rightX * totalRotCos - totalRotSin * texturePivotY) + newTextureX;
+					var topRightY:Number = (rightX * totalRotSin + totalRotCos * texturePivotY) + newTextureY;
 
 					var bottomRightX:Number = (rightX * totalRotCos - totalRotSin * bottomY) + newTextureX;
 					var bottomRightY:Number = (rightX * totalRotSin + totalRotCos * bottomY) + newTextureY;
 
-					var bottomLeftX:Number = (leftX * totalRotCos - totalRotSin * bottomY) + newTextureX;
-					var bottomLeftY:Number = (leftX * totalRotSin + totalRotCos * bottomY) + newTextureY;
+					var bottomLeftX:Number = (texturePivotX * totalRotCos - totalRotSin * bottomY) + newTextureX;
+					var bottomLeftY:Number = (texturePivotX * totalRotSin + totalRotCos * bottomY) + newTextureY;
 
 					var boundingBoxTopLeftX:Number = min(min(topLeftX, topRightX), min(bottomRightX, bottomLeftX));
 					var boundingBoxTopLeftY:Number = min(min(topLeftY, topRightY), min(bottomRightY, bottomLeftY));
@@ -348,7 +344,7 @@ package bb.core.context
 
 				var totalRotABS:Number = Math.abs(totalRotation);
 				var PI_sub_RAD:Number = PI2 - totalRotABS;
-				var isScaleNotChanged:Boolean = totalScaleX > 0 && totalScaleY > 0 && Math.abs(1.0 - totalScaleX * totalScaleY) < PRECISE_SCALE;
+				var isScaleNotChanged:Boolean = Math.abs(1-totalScaleX) < PRECISE_SCALE && Math.abs(1-totalScaleY) < PRECISE_SCALE;
 
 				//
 				if ((PI_sub_RAD < PRECISE_ROTATION || totalRotABS < PRECISE_ROTATION) && isScaleNotChanged && (!colorTransform))
