@@ -17,6 +17,7 @@ package bb.assets
 	import flash.display.DisplayObject;
 	import flash.display.MovieClip;
 	import flash.display.Stage;
+	import flash.display.StageQuality;
 	import flash.events.Event;
 	import flash.utils.Dictionary;
 	import flash.utils.getTimer;
@@ -43,6 +44,7 @@ package bb.assets
 		static private var _stage:Stage;
 
 		static private var _totalAssetsForInit:int = 0;
+		static private var _stageQuality:String = "medium";
 
 		/**
 		 */
@@ -94,6 +96,12 @@ package bb.assets
 		{
 			if (isNeedInit())
 			{
+				if (_stage)
+				{
+					_stageQuality = _stage.quality;
+					_stage.quality = StageQuality.BEST;
+				}
+
 				if (_stage && !p_immediately)
 				{
 					_stage.addEventListener(Event.ENTER_FRAME, performInitialization);
@@ -108,8 +116,7 @@ package bb.assets
 						_initList[i] = null;
 					}
 
-					_initList.length = 0;
-					if (_onComplete) _onComplete.dispatch();
+					completeInitializeAssets();
 				}
 			}
 		}
@@ -130,15 +137,24 @@ package bb.assets
 			if (i < 0) // end initialization
 			{
 				_stage.removeEventListener(Event.ENTER_FRAME, performInitialization);
-				_initList.length = 0;
-				_totalAssetsForInit = 0;
-				if (_onComplete) _onComplete.dispatch();
+				completeInitializeAssets();
 			}
 			else    // continue
 			{
 				_initList.length = i;
 				if (_onProgress) _onProgress.dispatch((1 - _initList.length / _totalAssetsForInit));
 			}
+		}
+
+		/**
+		 */
+		[Inline]
+		static private function completeInitializeAssets():void
+		{
+			_totalAssetsForInit = 0;
+			_initList.length = 0;
+			if (_onComplete) _onComplete.dispatch();
+			if (_stage) _stage.quality = _stageQuality;
 		}
 
 		/**
