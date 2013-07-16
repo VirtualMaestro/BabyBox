@@ -7,6 +7,7 @@ package bb.camera.components
 {
 	import bb.bb_spaces.bb_private;
 	import bb.camera.BBCamerasModule;
+	import bb.camera.BBShaker;
 	import bb.config.BBConfig;
 	import bb.core.BBComponent;
 	import bb.core.BBNode;
@@ -22,7 +23,8 @@ package bb.camera.components
 	import flash.geom.Point;
 	import flash.geom.Rectangle;
 
-	import nape.geom.Vec2;
+	import vm.math.rand.Noise;
+	import vm.math.rand.RandUtil;
 
 	CONFIG::debug
 	{
@@ -108,6 +110,11 @@ package bb.camera.components
 		 * Camera following to this leader.
 		 */
 		private var _leader:BBTransform;
+
+		/**
+		 * Dispatches when shake complete.
+		 */
+		private var _onShakeComplete:BBSignal;
 
 		/**
 		 * Zoom of camera.
@@ -217,7 +224,7 @@ package bb.camera.components
 			_transform.setScale(_zoom, _zoom);
 			setViewport(0, 0, _config.getViewRect().width, _config.getViewRect().height);
 
-			radiusCalm = (_viewPort.width > _viewPort.height ? _viewPort.width : _viewPort.height)/6;
+			radiusCalm = (_viewPort.width > _viewPort.height ? _viewPort.width : _viewPort.height) / 6;
 
 			node.onAdded.add(nodeAddedToParentHandler);
 
@@ -457,10 +464,8 @@ package bb.camera.components
 			invalidate();
 
 			// if leader presents, update position
-			if (_leader)
-			{
-				moveCamera(_leader.x, _leader.y);
-			}
+			if (_leader) moveCamera(_leader.x, _leader.y);
+			if (_shaker) shakeCamera(p_deltaTime);
 		}
 
 		/**
@@ -484,7 +489,7 @@ package bb.camera.components
 					{
 						_accumulateFadeMoveX += fadeMove;
 						if (_accumulateFadeMoveX > 1.0) _accumulateFadeMoveX = 1.0;
-						_transform.x = camX + (Math.abs(diffX) - radiusCalm)*_accumulateFadeMoveX*signX;
+						_transform.x = camX + (Math.abs(diffX) - radiusCalm) * _accumulateFadeMoveX * signX;
 					}
 					else if (_accumulateFadeMoveX > 0)
 					{
@@ -497,7 +502,7 @@ package bb.camera.components
 					{
 						_accumulateFadeMoveY += fadeMove;
 						if (_accumulateFadeMoveY > 1.0) _accumulateFadeMoveY = 1.0;
-						_transform.y = camY + (Math.abs(diffY) - radiusCalm)*_accumulateFadeMoveY*signY;
+						_transform.y = camY + (Math.abs(diffY) - radiusCalm) * _accumulateFadeMoveY * signY;
 					}
 					else if (_accumulateFadeMoveY > 0)
 					{
@@ -508,8 +513,8 @@ package bb.camera.components
 				}
 				else
 				{
-					if (Math.abs(diffX) > radiusCalm) _transform.x = camX + (Math.abs(diffX) - radiusCalm)*signX;
-					if (Math.abs(diffY) > radiusCalm) _transform.y = camY + (Math.abs(diffY) - radiusCalm)*signY;
+					if (Math.abs(diffX) > radiusCalm) _transform.x = camX + (Math.abs(diffX) - radiusCalm) * signX;
+					if (Math.abs(diffY) > radiusCalm) _transform.y = camY + (Math.abs(diffY) - radiusCalm) * signY;
 				}
 			}
 			else _transform.setPosition(p_x, p_y);
@@ -525,18 +530,18 @@ package bb.camera.components
 		{
 			var tX:Number = _transform.x;
 			var tY:Number = _transform.y;
-			var vpW:Number = _viewPort.width/2;
-			var vpH:Number = _viewPort.height/2;
+			var vpW:Number = _viewPort.width / 2;
+			var vpH:Number = _viewPort.height / 2;
 			var bX:Number = border.x;
 			var bY:Number = border.y;
 			var bW:Number = border.width;
 			var bH:Number = border.height;
 
-			if (tX < bX + vpW) _transform.x = bX+vpW;
-			else if (tX > bX+bW - vpW) _transform.x = bX+bW - vpW;
+			if (tX < bX + vpW) _transform.x = bX + vpW;
+			else if (tX > bX + bW - vpW) _transform.x = bX + bW - vpW;
 
-			if (tY < bY + vpH) _transform.y = bY+vpH;
-			else if (tY > bY+bH - vpH) _transform.y = bY+bH - vpH;
+			if (tY < bY + vpH) _transform.y = bY + vpH;
+			else if (tY > bY + bH - vpH) _transform.y = bY + bH - vpH;
 		}
 
 		/**
@@ -544,7 +549,28 @@ package bb.camera.components
 		 */
 		public function set follow(p_leader:BBNode):void
 		{
-			_leader = p_leader != null ? p_leader.transform : null;
+			if (_leader)
+			{
+				// if the same leader return
+				if (_leader.node == p_leader) return;
+
+				_leader.node.onRemoved.remove(heroDisposedHandler);
+				_leader = null;
+			}
+
+			if (p_leader)
+			{
+				p_leader.onRemoved.add(heroDisposedHandler);
+				_leader = p_leader.transform;
+			}
+		}
+
+		/**
+		 */
+		private function heroDisposedHandler(p_signal:BBSignal):void
+		{
+			p_signal.removeCurrentListener();
+			_leader = null;
 		}
 
 		/**
@@ -554,6 +580,71 @@ package bb.camera.components
 		public function moveTo(p_x:Number, p_y:Number):void
 		{
 			// TODO:
+		}
+
+		//
+		private var _timeAccumulator:int;
+		private var _shaker:BBShaker = null;
+		private var _shiftPositionX:Number = 0;
+		private var _shiftPositionY:Number = 0;
+		private var _shiftRotation:Number = 0;
+
+		/**
+		 * Shake the camera.
+		 */
+		public function shake(p_shaker:BBShaker):void
+		{
+			if (_shaker) return;
+			CONFIG::debug
+			{
+				Assert.isTrue(!p_shaker.isDisposed, "current instance of BBShaker is disposed - impossible to use disposed shaker. " +
+						"Instead need to use static method 'get' of BBShaker to created new one", "BBCamera.shake");
+			}
+
+			_shaker = p_shaker;
+			_timeAccumulator = 0;
+		}
+
+		/**
+		 */
+		private function shakeCamera(p_deltaTime:int):void
+		{
+			_transform.shiftPositionAndRotation(-_shiftPositionX, -_shiftPositionY, -_shiftRotation);
+
+			if (_timeAccumulator < _shaker.duration)
+			{
+				_shiftPositionX = _shaker.getX(_timeAccumulator);
+				_shiftPositionY = _shaker.getY(_timeAccumulator);
+				_shiftRotation  = _shaker.getRotation(_timeAccumulator);
+
+				_transform.shiftPositionAndRotation(_shiftPositionX, _shiftPositionY, _shiftRotation);
+			}
+			else
+			{
+				_shaker.dispose();
+				_shaker = null;
+				_shiftPositionX = _shiftPositionY = _shiftRotation = 0;
+				if (_onShakeComplete) _onShakeComplete.dispatch();
+			}
+
+			_timeAccumulator += p_deltaTime;
+		}
+
+		/**
+		 * Dispatches when shake complete.
+		 */
+		public function get onShakeComplete():BBSignal
+		{
+			if (_onShakeComplete == null) _onShakeComplete = BBSignal.get(this);
+			return _onShakeComplete;
+		}
+
+		/**
+		 * Determines if camera is shaking now.
+		 */
+		public function isShaking():Boolean
+		{
+			return _shaker != null;
 		}
 
 		/**
@@ -566,6 +657,9 @@ package bb.camera.components
 				(_core.getModule(BBCamerasModule) as BBCamerasModule).removeCamera(this);
 				_core = null;
 			}
+
+			if (_onShakeComplete) _onShakeComplete.dispose();
+			_onShakeComplete = null;
 
 			_dependOnCamera = null;
 			_dependOnCameraTransform = null;
