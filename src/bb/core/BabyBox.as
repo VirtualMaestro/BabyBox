@@ -3,6 +3,7 @@ package bb.core
 	import bb.BBModuleEngine;
 	import bb.assets.BBAssetsManager;
 	import bb.camera.BBCamerasModule;
+	import bb.camera.BBShaker;
 	import bb.config.BBConfig;
 	import bb.config.BBConfigModule;
 	import bb.core.context.BBContext;
@@ -77,6 +78,7 @@ package bb.core
 			BBMasterPool.addRidPoolMethod(BBNativePool.rid);
 			BBMasterPool.addRidPoolMethod(BBJoint.rid);
 			BBMasterPool.addRidPoolMethod(BBActionData.rid);
+			BBMasterPool.addRidPoolMethod(BBShaker.rid);
 
 			//
 			isStage3d = _context.isStage3d;
