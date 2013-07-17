@@ -1494,7 +1494,7 @@ internal class BBCache
 	 * @return BBNode
 	 */
 	[Inline]
-	private function getIfExist():BBNode
+	final private function getIfExist():BBNode
 	{
 		var actor:BBNode;
 

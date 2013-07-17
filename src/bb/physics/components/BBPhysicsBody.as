@@ -900,7 +900,7 @@ package bb.physics.components
 		/**
 		 */
 		[Inline]
-		private function invalidateChildren():void
+		final private function invalidateChildren():void
 		{
 			if (_transform.node.numChildren > 0)
 			{
@@ -920,7 +920,7 @@ package bb.physics.components
 		/**
 		 */
 		[Inline]
-		private function updateOwnGravity():void
+		final private function updateOwnGravity():void
 		{
 			var ownGravity:Vec2 = _space.gravity.copy(true).muleq(-_body.mass);
 			ownGravity.addeq(gravity);

@@ -93,7 +93,7 @@ package bb.input
 		/**
 		 */
 		[Inline]
-		private function getChannel(p_channelId:int):BBInputChannel
+		final private function getChannel(p_channelId:int):BBInputChannel
 		{
 			return _channels[String(p_channelId)];
 		}
@@ -101,7 +101,7 @@ package bb.input
 		/**
 		 */
 		[Inline]
-		private function createChannel(p_channelId:int):BBInputChannel
+		final private function createChannel(p_channelId:int):BBInputChannel
 		{
 			var channel:BBInputChannel = new BBInputChannel(p_channelId);
 			_channels[String(p_channelId)] = channel;
@@ -137,7 +137,7 @@ package bb.input
 		/**
 		 */
 		[Inline]
-		private function getActionData(p_code:int, p_data:Object):BBActionData
+		final private function getActionData(p_code:int, p_data:Object):BBActionData
 		{
 			var action:BBActionData = BBActionData.get(p_code, p_data);
 			action.actionsHolding = _actions;
