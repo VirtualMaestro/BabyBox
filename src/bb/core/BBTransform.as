@@ -508,7 +508,7 @@ package bb.core
 				var newWorldX:Number = (_localX * cos - _localY * sin) * parentWorldScaleX + parentTransform.worldX;
 				var newWorldY:Number = (_localX * sin + _localY * cos) * parentWorldScaleY + parentTransform.worldY;
 
-				if (isPositionChanged || !isEqual(newWorldX, worldX) || !isEqual(newWorldY, worldY))
+				if (isPositionChanged || Math.abs(newWorldX - worldX) < 0.01 || Math.abs(newWorldY - worldY) < 0.01)
 				{
 					worldX = newWorldX;
 					worldY = newWorldY;
@@ -519,7 +519,7 @@ package bb.core
 				var newScaleX:Number = _localScaleX * parentWorldScaleX;
 				var newScaleY:Number = _localScaleY * parentWorldScaleY;
 
-				if (isScaleChanged || !isEqual(newScaleX, worldScaleX) || !isEqual(newScaleY, worldScaleY))
+				if (isScaleChanged || Math.abs(newScaleX - worldScaleX) < 0.01 || Math.abs(newScaleY - worldScaleY) < 0.01)
 				{
 					worldScaleX = newScaleX;
 					worldScaleY = newScaleY;
@@ -528,7 +528,7 @@ package bb.core
 				}
 
 				var newWorldRotation:Number = _localRotation + parentWorldRotation;
-				if (isRotationChanged || !isEqual(newWorldRotation, worldRotation))
+				if (isRotationChanged || Math.abs(newWorldRotation - worldRotation) < 0.01)
 				{
 					worldRotation = newWorldRotation;
 					COS = Math.cos(worldRotation);
@@ -573,14 +573,6 @@ package bb.core
 			isPositionInvalidated = false;
 			isRotationInvalidated = false;
 			isScaleInvalidated = false;
-		}
-
-		/**
-		 */
-		[Inline]
-		final private function isEqual(p_val1:Number, p_val2:Number, p_precis:Number = 0.01):Boolean
-		{
-			return Math.abs(p_val1 - p_val2) < p_precis;
 		}
 
 		/**
