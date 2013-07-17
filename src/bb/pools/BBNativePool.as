@@ -18,8 +18,8 @@ package bb.pools
 		////////////////////
 
 		//
-		static private var _rectPool:Vector.<Rectangle> = new <Rectangle>[];
-		static private var _rectPoolCounter:int = 0;
+		static private var _rectPool:Vector.<Rectangle>;
+		static private var _rectSize:int = 0;
 
 		/**
 		 * Returns instance of Rectangle class.
@@ -27,9 +27,9 @@ package bb.pools
 		static public function getRect(p_x:Number = 0, p_y:Number = 0, p_width:Number = 0, p_height:Number = 0):Rectangle
 		{
 			var rect:Rectangle;
-			if (_rectPoolCounter > 0)
+			if (_rectSize > 0)
 			{
-				rect = _rectPool[--_rectPoolCounter];
+				rect = _rectPool[--_rectSize];
 				rect.setTo(p_x, p_y, p_width, p_height);
 			}
 			else rect = new Rectangle(p_x, p_y, p_width, p_height);
@@ -42,7 +42,16 @@ package bb.pools
 		 */
 		static public function putRect(p_rect:Rectangle):void
 		{
-			_rectPool[_rectPoolCounter++] = p_rect;
+			if (_rectPool == null) _rectPool = new <Rectangle>[];
+			_rectPool[_rectSize++] = p_rect;
+		}
+
+		/**
+		 * Returns number of Rectangle instances in pool.
+		 */
+		static public function sizeRects():int
+		{
+			return _rectSize;
 		}
 
 		/**
@@ -50,13 +59,17 @@ package bb.pools
 		 */
 		static public function ridRectPool():void
 		{
-			_rectPoolCounter = _rectPool.length;
-			for (var i:int = 0; i < _rectPoolCounter; i++)
+			if (_rectPool)
 			{
-				_rectPool[i] = null;
-			}
+				_rectSize = _rectPool.length;
+				for (var i:int = 0; i < _rectSize; i++)
+				{
+					_rectPool[i] = null;
+				}
 
-			_rectPool.length = _rectPoolCounter = 0;
+				_rectPool.length = _rectSize = 0;
+				_rectPool = null;
+			}
 		}
 
 		////////////////////
@@ -64,8 +77,8 @@ package bb.pools
 		////////////////////
 
 		//
-		static private var _pointPool:Vector.<Point> = new <Point>[];
-		static private var _pointPoolCounter:int = 0;
+		static private var _pointPool:Vector.<Point>;
+		static private var _pointSize:int = 0;
 
 		/**
 		 * Returns instance of Point class.
@@ -74,9 +87,9 @@ package bb.pools
 		{
 			var point:Point;
 
-			if (_pointPoolCounter > 0)
+			if (_pointSize > 0)
 			{
-				point = _pointPool[--_pointPoolCounter];
+				point = _pointPool[--_pointSize];
 				point.setTo(p_x, p_y);
 			}
 			else point = new Point(p_x, p_y);
@@ -89,15 +102,16 @@ package bb.pools
 		 */
 		static public function putPoint(p_point:Point):void
 		{
-			_pointPool[_pointPoolCounter++] = p_point;
+			if (_pointPool == null) _pointPool = new <Point>[];
+			_pointPool[_pointSize++] = p_point;
 		}
 
 		/**
 		 * Returns number of Point instances in pool.
 		 */
-		static public function numPointsInPool():int
+		static public function sizePoints():int
 		{
-			return _pointPoolCounter;
+			return _pointSize;
 		}
 
 		/**
@@ -105,13 +119,17 @@ package bb.pools
 		 */
 		static public function ridPointPool():void
 		{
-			_pointPoolCounter = _pointPool.length;
-			for (var i:int = 0; i < _pointPoolCounter; i++)
+			if (_pointPool)
 			{
-				_pointPool[i] = null;
-			}
+				_pointSize = _pointPool.length;
+				for (var i:int = 0; i < _pointSize; i++)
+				{
+					_pointPool[i] = null;
+				}
 
-			_pointPool.length = _pointPoolCounter = 0;
+				_pointPool.length = _pointSize = 0;
+				_pointPool = null;
+			}
 		}
 
 		/**

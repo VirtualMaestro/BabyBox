@@ -52,7 +52,7 @@ package bb.input
 		/// POOL /////////
 		//////////////////
 
-		static private var _pool:Vector.<BBActionData> = new <BBActionData>[];
+		static private var _pool:Vector.<BBActionData>;
 		static private var _size:int = 0;
 
 		/**
@@ -76,7 +76,16 @@ package bb.input
 		 */
 		static private function put(p_actionData:BBActionData):void
 		{
+			if (_pool == null) _pool = new <BBActionData>[];
 			_pool[_size++] = p_actionData;
+		}
+
+		/**
+		 * Returns number of elements in pool.
+		 */
+		static public function get size():int
+		{
+			return _size;
 		}
 
 		/**
@@ -84,14 +93,17 @@ package bb.input
 		 */
 		static public function rid():void
 		{
-			for (var i:int = 0; i < _size; i++)
+			if (_pool)
 			{
-				_pool[i] = null;
-			}
+				for (var i:int = 0; i < _size; i++)
+				{
+					_pool[i] = null;
+				}
 
-			_size = 0;
-			_pool.length = 0;
-			_pool = new <BBActionData>[];
+				_size = 0;
+				_pool.length = 0;
+				_pool = null;
+			}
 		}
 	}
 }

@@ -832,20 +832,20 @@ package bb.physics.joints
 		////////////////////
 
 		//
-		static private var _pool:Vector.<BBJoint> = new <BBJoint>[];
-		static private var _numInPool:int = 0;
+		static private var _pool:Vector.<BBJoint>;
+		static private var _size:int = 0;
 
 		/**
-		 * Returns instance of Point class.
+		 * Returns instance of BBJoint class.
 		 */
 		static public function get(p_type:String):BBJoint
 		{
 			var joint:BBJoint;
 
-			if (_numInPool > 0)
+			if (_size > 0)
 			{
-				joint = _pool[--_numInPool];
-				_pool[_numInPool] = null;
+				joint = _pool[--_size];
+				_pool[_size] = null;
 				joint._type = p_type;
 				joint._isDisposed = false;
 			}
@@ -859,15 +859,16 @@ package bb.physics.joints
 		 */
 		static public function put(p_joint:BBJoint):void
 		{
-			_pool[_numInPool++] = p_joint;
+			if (_pool == null) _pool = new <BBJoint>[];
+			_pool[_size++] = p_joint;
 		}
 
 		/**
-		 * Returns number of Point instances in pool.
+		 * Returns number of elements in pool.
 		 */
-		static public function numInPool():int
+		static public function get size():int
 		{
-			return _numInPool;
+			return _size;
 		}
 
 		/**
@@ -875,13 +876,17 @@ package bb.physics.joints
 		 */
 		static public function rid():void
 		{
-			_numInPool = _pool.length;
-			for (var i:int = 0; i < _numInPool; i++)
+			if (_pool)
 			{
-				_pool[i] = null;
-			}
+				_size = _pool.length;
+				for (var i:int = 0; i < _size; i++)
+				{
+					_pool[i] = null;
+				}
 
-			_pool.length = _numInPool = 0;
+				_pool.length = _size = 0;
+				_pool = null;
+			}
 		}
 	}
 }

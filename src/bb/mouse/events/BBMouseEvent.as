@@ -16,8 +16,6 @@ package bb.mouse.events
 	 */
 	public class BBMouseEvent
 	{
-		bb_private var z_next:BBMouseEvent = null;
-
 		bb_private var z_nodeMouseSettings:int = 0;
 
 		//
@@ -102,7 +100,7 @@ package bb.mouse.events
 			target = null;
 			dispatcher = null;
 			capturedCamera = null;
-			type = "";
+			type = null;
 			localX = localY = 0;
 			stageX = stageY = 0;
 			viewRectX = viewRectY = -1;
@@ -115,10 +113,12 @@ package bb.mouse.events
 			put(this);
 		}
 
+		////////////
 		/// pool ///
+		////////////
 
-		// Head of pool
-		static private var _head:BBMouseEvent = null;
+		static private var _pool:Vector.<BBMouseEvent>;
+		static private var _size:int = 0;
 
 		/**
 		 * Returns instance of BBMouseEvent.
@@ -127,10 +127,10 @@ package bb.mouse.events
 		{
 			var mouseEvent:BBMouseEvent;
 
-			if (_head)
+			if (_size > 0)
 			{
-				mouseEvent = _head;
-				_head = _head.z_next;
+				mouseEvent = _pool[--_size];
+				_pool[_size] = null;
 
 				mouseEvent.type = p_type;
 				mouseEvent.target = p_target;
@@ -149,20 +149,33 @@ package bb.mouse.events
 		 */
 		static private function put(p_mouseEvent:BBMouseEvent):void
 		{
-			p_mouseEvent.z_next = _head;
-			_head = p_mouseEvent;
+			if (_pool == null) _pool = new <BBMouseEvent>[];
+			_pool[_size++] = p_mouseEvent;
 		}
 
 		/**
+		 * Returns number of elements in pool.
+		 */
+		static public function get size():int
+		{
+			return _size;
+		}
+
+		/**
+		 * Rid the pool.
 		 */
 		static public function rid():void
 		{
-			var curObj:BBMouseEvent;
-			while (_head)
+			if (_pool)
 			{
-				curObj = _head;
-				_head = _head.z_next;
-				curObj.z_next = null;
+				for (var i:int = 0; i < _size; i++)
+				{
+					_pool[i] = null;
+				}
+
+				_size = 0;
+				_pool.length = 0;
+				_pool = null;
 			}
 		}
 	}
