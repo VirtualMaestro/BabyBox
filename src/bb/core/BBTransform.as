@@ -508,7 +508,7 @@ package bb.core
 				var newWorldX:Number = (_localX * cos - _localY * sin) * parentWorldScaleX + parentTransform.worldX;
 				var newWorldY:Number = (_localX * sin + _localY * cos) * parentWorldScaleY + parentTransform.worldY;
 
-				if (isPositionChanged || Math.abs(newWorldX - worldX) < 0.01 || Math.abs(newWorldY - worldY) < 0.01)
+				if (isPositionChanged || Math.abs(newWorldX - worldX) > 0.01 || Math.abs(newWorldY - worldY) > 0.01)
 				{
 					worldX = newWorldX;
 					worldY = newWorldY;
@@ -519,7 +519,7 @@ package bb.core
 				var newScaleX:Number = _localScaleX * parentWorldScaleX;
 				var newScaleY:Number = _localScaleY * parentWorldScaleY;
 
-				if (isScaleChanged || Math.abs(newScaleX - worldScaleX) < 0.01 || Math.abs(newScaleY - worldScaleY) < 0.01)
+				if (isScaleChanged || Math.abs(newScaleX - worldScaleX) > 0.01 || Math.abs(newScaleY - worldScaleY) > 0.01)
 				{
 					worldScaleX = newScaleX;
 					worldScaleY = newScaleY;
@@ -528,7 +528,7 @@ package bb.core
 				}
 
 				var newWorldRotation:Number = _localRotation + parentWorldRotation;
-				if (isRotationChanged || Math.abs(newWorldRotation - worldRotation) < 0.01)
+				if (isRotationChanged || Math.abs(newWorldRotation - worldRotation) > 0.01)
 				{
 					worldRotation = newWorldRotation;
 					COS = Math.cos(worldRotation);
