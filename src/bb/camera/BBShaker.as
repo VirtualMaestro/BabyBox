@@ -81,7 +81,7 @@ package bb.camera
 		 * Check number and fit to range [0; 100]
 		 */
 		[Inline]
-		private function correctRange(p_number:Number):Number
+		final private function correctRange(p_number:Number):Number
 		{
 			if (p_number < 0) p_number = 0;
 			else if (p_number > 100) p_number = 100;
@@ -138,7 +138,7 @@ package bb.camera
 		/**
 		 */
 		[Inline]
-		private function applyAttenuation(p_val:Number, p_currentTime:Number):Number
+		final private function applyAttenuation(p_val:Number, p_currentTime:Number):Number
 		{
 			var attenuationFactor:Number = 1-p_currentTime/(duration*1.5);
 			return p_val * attenuationFactor;
@@ -207,6 +207,14 @@ package bb.camera
 		{
 			if (_pool == null) _pool = new <BBShaker>[];
 			_pool[_size++] = p_shaker;
+		}
+
+		/**
+		 * Returns number of elements in pool.
+		 */
+		static public function get size():int
+		{
+			return _size;
 		}
 
 		/**

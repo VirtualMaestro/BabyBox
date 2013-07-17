@@ -469,10 +469,8 @@ package bb.camera.components
 		}
 
 		/**
-		 *
 		 */
-		[Inline]
-		private function moveCamera(p_x:Number, p_y:Number):void
+		final private function moveCamera(p_x:Number, p_y:Number):void
 		{
 			if (smoothMove)
 			{
@@ -526,7 +524,7 @@ package bb.camera.components
 		/**
 		 */
 		[Inline]
-		private function correctPositionByBorder():void
+		final private function correctPositionByBorder():void
 		{
 			var tX:Number = _transform.x;
 			var tY:Number = _transform.y;
