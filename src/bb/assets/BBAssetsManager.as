@@ -33,7 +33,7 @@ package bb.assets
 	/**
 	 * Response for creating and storing assets.
 	 */
-	public class BBAssetsManager
+	final public class BBAssetsManager
 	{
 		static public var INITIALIZATION_TIME_STEP:int = 200;
 
@@ -148,7 +148,6 @@ package bb.assets
 
 		/**
 		 */
-		[Inline]
 		static private function completeInitializeAssets():void
 		{
 			_totalAssetsForInit = 0;

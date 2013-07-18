@@ -31,7 +31,7 @@ package bb.core
 	 *   а не в дебаг консоль.
 	 * -
 	 */
-	public class BabyBox extends BBModuleEngine
+	final public class BabyBox extends BBModuleEngine
 	{
 		// After engine is initialized this field shows if engine launched in stage3d mode or blitting
 		static public var isStage3d:Boolean = false;
@@ -54,10 +54,10 @@ package bb.core
 		/**
 		 * Start to init engine.
 		 */
-		public function init(p_stage:Stage, p_config:BBConfig):void
+		final public function init(p_stage:Stage, p_config:BBConfig):void
 		{
 			stage = p_stage;
-			BBAssetsManager.stage = p_stage;
+			BBAssetsManager.stage = stage;
 
 			_config = p_config;
 			_context = new BBContext();
