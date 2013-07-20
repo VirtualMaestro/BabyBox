@@ -97,8 +97,6 @@ package bb.core
 		public function BBTransform()
 		{
 			super();
-
-			_componentClass = BBTransform;
 		}
 
 		/**

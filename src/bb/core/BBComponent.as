@@ -35,7 +35,7 @@ package bb.core
 		//
 		private var _id:int;
 		private var _lookupClass:Class = null;
-		protected var _componentClass:Class = null;
+		private var _componentClass:Class = null;
 
 		// Dispatches when component was added to node.
 		private var _onAdded:BBSignal = null;

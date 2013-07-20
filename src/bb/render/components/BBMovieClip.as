@@ -55,7 +55,6 @@ package bb.render.components
 		{
 			super();
 			updateEnable = false;
-			_componentClass = BBMovieClip;
 
 			_speed = 1000.0 / BabyBox.getInstance().config.animationFrameRate;
 		}

@@ -25,7 +25,6 @@ package bb.render.components
 		public function BBSprite()
 		{
 			super();
-			_componentClass = BBSprite;
 		}
 
 		/**
