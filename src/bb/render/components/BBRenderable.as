@@ -72,6 +72,13 @@ package bb.render.components
 		}
 
 		/**
+		 */
+		public function get isTextureExist():Boolean
+		{
+			return z_texture != null;
+		}
+
+		/**
 		 * Render current component.
 		 * Here is possible to implement own logic of rendering.
 		 */
