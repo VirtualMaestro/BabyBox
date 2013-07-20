@@ -855,7 +855,7 @@ package bb.physics.joints
 		}
 
 		/**
-		 * Put Point instance to pool.
+		 * Put instance to pool.
 		 */
 		static public function put(p_joint:BBJoint):void
 		{
@@ -872,7 +872,7 @@ package bb.physics.joints
 		}
 
 		/**
-		 * Clear Point pool.
+		 * Clear pool.
 		 */
 		static public function rid():void
 		{
