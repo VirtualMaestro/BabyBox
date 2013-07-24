@@ -238,6 +238,7 @@ package bb.assets
 
 		/**
 		 * Returns renderable component (e.g. BBSprite, BBMovieClip) with asset corresponds to given class.
+		 * Returns without node.
 		 */
 		static public function getRenderable(p_assetClass:Class):BBRenderable
 		{
@@ -248,6 +249,7 @@ package bb.assets
 
 		/**
 		 * Returns renderable component (e.g. BBSprite, BBMovieClip) with asset corresponds to given id.
+		 * Returns without node.
 		 */
 		static public function getRenderableById(p_assetId:String):BBRenderable
 		{

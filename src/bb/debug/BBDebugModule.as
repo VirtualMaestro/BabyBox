@@ -130,7 +130,7 @@ package bb.debug
 		 */
 		public function set drawPhysics(p_val:Boolean):void
 		{
-			if (_physDebugList == null || _physicDraw == p_val) return;
+			if (_physDebugList == null || _physicDraw == p_val || !_config.physicsEnable) return;
 			_physicDraw = p_val;
 
 			var len:int = _physDebugList.length;
