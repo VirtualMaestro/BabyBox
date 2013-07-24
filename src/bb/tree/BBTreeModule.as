@@ -14,7 +14,7 @@ package bb.tree
 	import bb.core.context.BBContext;
 	import bb.modules.*;
 	import bb.mouse.BBMouseModule;
-	import bb.mouse.constants.BBMouseFlags;
+	import bb.mouse.constants.BBMouseActions;
 	import bb.mouse.events.BBMouseEvent;
 	import bb.signals.BBSignal;
 
@@ -77,17 +77,17 @@ package bb.tree
 		}
 
 		/**
-		 * Config of dispatching mouse events. Configuration is done via BBMouseFlags.
+		 * Config of dispatching mouse events. Configuration is done via BBMouseActions.
 		 * E.g. if we want to enable dispatching click and move events - should to do:
 		 * <code>
-		 *     mouseSettings = BBMouseFlags.CLICK | BBMouseFlags.MOVE;
+		 *     mouseSettings = BBMouseActions.CLICK | BBMouseActions.MOVE;
 		 * </code>
 		 */
 		public function set mouseSettings(p_flags:uint):void
 		{
 			_nodeMouseSettings = p_flags;
 
-			if ((p_flags & BBMouseFlags.CLICK) != 0)
+			if ((p_flags & BBMouseActions.CLICK) != 0)
 			{
 				_mouseModule.onUp.add(mouseHandler);
 				_mouseModule.onDown.add(mouseHandler);
@@ -97,14 +97,14 @@ package bb.tree
 				_mouseModule.onUp.remove(mouseHandler);
 				_mouseModule.onDown.remove(mouseHandler);
 
-				if ((p_flags & BBMouseFlags.UP) != 0) _mouseModule.onUp.add(mouseHandler);
+				if ((p_flags & BBMouseActions.UP) != 0) _mouseModule.onUp.add(mouseHandler);
 				else _mouseModule.onUp.remove(mouseHandler);
 
-				if ((p_flags & BBMouseFlags.DOWN) != 0) _mouseModule.onDown.add(mouseHandler);
+				if ((p_flags & BBMouseActions.DOWN) != 0) _mouseModule.onDown.add(mouseHandler);
 				else _mouseModule.onDown.remove(mouseHandler);
 			}
 
-			if ((p_flags & BBMouseFlags.MOVE | p_flags & BBMouseFlags.OVER | p_flags & BBMouseFlags.OUT) != 0) _mouseModule.onMove.add(mouseHandler);
+			if ((p_flags & BBMouseActions.MOVE | p_flags & BBMouseActions.OVER | p_flags & BBMouseActions.OUT) != 0) _mouseModule.onMove.add(mouseHandler);
 			else _mouseModule.onMove.remove(mouseHandler);
 		}
 

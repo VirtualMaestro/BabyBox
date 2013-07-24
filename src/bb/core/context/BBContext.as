@@ -112,7 +112,7 @@ package bb.core.context
 		public function init(p_stage:Stage):void
 		{
 			_stage = p_stage;
-			_config = BabyBox.getInstance().config;
+			_config = BabyBox.get().config;
 			_canvasViewRect = _config.getViewRect();
 			isFrustum = _config.isFrustum;
 

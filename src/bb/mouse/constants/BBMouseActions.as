@@ -6,9 +6,9 @@
 package bb.mouse.constants
 {
 	/**
-	 * Constants of mouse flags for configuring mouse interaction.
+	 * Constants of mouse actions for configuring mouse interaction.
 	 */
-	public class BBMouseFlags
+	public class BBMouseActions
 	{
 		static public const CLICK:uint = 0x00000001;
 		static public const UP:uint = 0x00000010;

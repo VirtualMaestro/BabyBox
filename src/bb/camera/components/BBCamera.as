@@ -166,7 +166,7 @@ package bb.camera.components
 		{
 			super();
 
-			_config = BabyBox.getInstance().config;
+			_config = BabyBox.get().config;
 			_viewPort = new Rectangle();
 			backgroundColor = new BBColor();
 			cacheable = false;

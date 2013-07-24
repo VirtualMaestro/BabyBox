@@ -50,7 +50,7 @@ package bb.render.components
 		{
 			super();
 
-			mousePixelEnabled = BabyBox.getInstance().config.mousePixelEnable;
+			mousePixelEnabled = BabyBox.get().config.mousePixelEnable;
 		}
 
 		/**

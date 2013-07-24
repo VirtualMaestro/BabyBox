@@ -84,10 +84,14 @@ package bb.config
 				case "debugMode":
 				{
 					var debugModule:BBDebugModule = getModule(BBDebugModule) as BBDebugModule;
-					debugModule.drawPhysics = p_propertyValue;
-					debugModule.showGrid = p_propertyValue;
-					debugModule.showFPS = p_propertyValue;
-					debugModule.updateEnable = p_propertyValue;
+
+					if (debugModule)
+					{
+						debugModule.drawPhysics = p_propertyValue;
+						debugModule.showGrid = p_propertyValue;
+						debugModule.showFPS = p_propertyValue;
+						debugModule.updateEnable = p_propertyValue;
+					}
 
 					break;
 				}

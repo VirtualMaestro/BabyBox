@@ -129,7 +129,7 @@ package bb.physics.components
 		{
 			_transform = node.transform;
 
-			_physicsModule = BabyBox.getInstance().getModule(BBPhysicsModule) as BBPhysicsModule;
+			_physicsModule = BabyBox.get().getModule(BBPhysicsModule) as BBPhysicsModule;
 			if (!_space) _space = _physicsModule.space;
 
 			if (node.isOnStage) addToStage();

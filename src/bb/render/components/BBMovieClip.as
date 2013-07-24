@@ -56,7 +56,7 @@ package bb.render.components
 			super();
 			updateEnable = false;
 
-			_speed = 1000.0 / BabyBox.getInstance().config.animationFrameRate;
+			_speed = 1000.0 / BabyBox.get().config.animationFrameRate;
 		}
 
 		/**

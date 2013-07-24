@@ -10,7 +10,7 @@ package bb.mouse
 	import bb.camera.components.BBCamera;
 	import bb.core.BabyBox;
 	import bb.modules.*;
-	import bb.mouse.constants.BBMouseFlags;
+	import bb.mouse.constants.BBMouseActions;
 	import bb.mouse.events.BBMouseEvent;
 	import bb.pools.BBNativePool;
 	import bb.signals.BBSignal;
@@ -57,21 +57,21 @@ package bb.mouse
 		}
 
 		/**
-		 * Config of dispatching mouse events. Configuration is done via BBMouseFlags.
+		 * Config of dispatching mouse events. Configuration is done via BBMouseActions.
 		 * E.g. if we want to enable dispatching click and move events - should to do:
 		 * <code>
-		 *     mouseSettings = BBMouseFlags.CLICK | BBMouseFlags.MOVE;
+		 *     mouseSettings = BBMouseActions.CLICK | BBMouseActions.MOVE;
 		 * </code>
 		 */
 		public function set mouseSettings(p_flags:uint):void
 		{
-			if ((p_flags & BBMouseFlags.UP) != 0) stage.addEventListener(MouseEvent.MOUSE_UP, mouseHandler);
+			if ((p_flags & BBMouseActions.UP) != 0) stage.addEventListener(MouseEvent.MOUSE_UP, mouseHandler);
 			else stage.removeEventListener(MouseEvent.MOUSE_UP, mouseHandler);
 
-			if ((p_flags & BBMouseFlags.DOWN) != 0) stage.addEventListener(MouseEvent.MOUSE_DOWN, mouseHandler);
+			if ((p_flags & BBMouseActions.DOWN) != 0) stage.addEventListener(MouseEvent.MOUSE_DOWN, mouseHandler);
 			else stage.removeEventListener(MouseEvent.MOUSE_DOWN, mouseHandler);
 
-			if ((p_flags & BBMouseFlags.MOVE) != 0) stage.addEventListener(MouseEvent.MOUSE_MOVE, mouseHandler);
+			if ((p_flags & BBMouseActions.MOVE) != 0) stage.addEventListener(MouseEvent.MOUSE_MOVE, mouseHandler);
 			else stage.removeEventListener(MouseEvent.MOUSE_MOVE, mouseHandler);
 		}
 

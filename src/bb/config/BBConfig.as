@@ -130,6 +130,7 @@ package bb.config
 		private var _gameWidth:int = 0;
 		private var _gameHeight:int = 0;
 		private var _handEnable:Boolean = false;
+		private var _levelManager:Boolean = false;
 
 		/**
 		 */
@@ -188,6 +189,7 @@ package bb.config
 		 */
 		public function set debugMode(p_val:Boolean):void
 		{
+			if (_debugMode == p_val) return;
 			_debugMode = p_val;
 			sendChanges("debugMode", _debugMode)
 		}
@@ -204,6 +206,7 @@ package bb.config
 		 */
 		public function set frameRate(p_val:int):void
 		{
+			if (_appFrameRate == p_val) return;
 			_appFrameRate = p_val;
 			sendChanges("frameRate", _appFrameRate);
 		}
@@ -221,6 +224,7 @@ package bb.config
 		 */
 		public function set graphicsEnable(p_val:Boolean):void
 		{
+			if (_graphicsEnable == p_val) return;
 			_graphicsEnable = p_val;
 			sendChanges("graphicsEnable", _graphicsEnable);
 		}
@@ -234,17 +238,35 @@ package bb.config
 		 * Turn on/off keyboard.
 		 * By default off.
 		 *
-		 * [runtime]
+		 * [startup]
 		 */
 		public function set keyboardEnable(p_val:Boolean):void
 		{
+			if (_keyboardEnable == p_val) return;
 			_keyboardEnable = p_val;
-			sendChanges("keyboardEnable", _keyboardEnable);
+//			sendChanges("keyboardEnable", _keyboardEnable);
 		}
 
 		public function get keyboardEnable():Boolean
 		{
 			return _keyboardEnable;
+		}
+
+		/**
+		 * Enable/disable BBLevelsModule.
+		 * If visual editor is not using have no sense to have active BBLevelsModule.
+		 */
+		public function set levelManager(p_val:Boolean):void
+		{
+			if (_levelManager == p_val) return;
+			_levelManager = p_val;
+		}
+
+		/**
+		 */
+		public function get levelManager():Boolean
+		{
+			return _levelManager;
 		}
 
 		/**
@@ -302,15 +324,6 @@ package bb.config
 		}
 
 		/**
-		 * Returns genome's config object.
-		 * Have to use only after BabyBox is initialized.
-		 */
-//		public function get GENOME_CONFIG():GConfig
-//		{
-//			return Genome2D.getInstance().config;
-//		}
-
-		/**
 		 * Sets position and size of area of game field (canvas).
 		 *
 		 * [startup]
@@ -362,9 +375,11 @@ package bb.config
 		 * Set which mouse's events will dispatches module BBMouseModule.
 		 * If need dispatch events like: click, move should to set like that:
 		 * <code>
-		 *     mouseSettings(BBMouseFlags.CLICK | BBMouseFlags.MOVE);
+		 *     mouseSettings = BBMouseActions.CLICK | BBMouseActions.MOVE;
 		 * </code>
 		 * By default module is not dispatching any events.
+		 *
+		 * [startup]
 		 */
 		public function set mouseSettings(p_val:int):void
 		{
@@ -382,7 +397,7 @@ package bb.config
 		 * Set which mouse events will receive and dispatches node.
 		 * E.g. need to dispatch mouse click and move:
 		 * <code>
-		 *     mouseSettings(BBMouseFlags.CLICK | BBMouseFlags.MOVE);
+		 *     mouseSettings = BBMouseActions.CLICK | BBMouseActions.MOVE;
 		 * </code>
 		 *
 		 * Except this it is should to allow dispatching appropriate events by BBMouseModule.

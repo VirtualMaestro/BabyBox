@@ -96,12 +96,12 @@ package bb.core
 			addModule(BBTreeModule);
 			addModule(BBWorldModule);
 			addModule(BBLayerModule);
-			if (_config.physicsEnable) addModule(BBPhysicsModule);
 			addModule(BBConfigModule);
-			addModule(BBMouseModule);
-			addModule(BBDebugModule);
-			addModule(BBLevelsModule);
-			addModule(BBKeyboardModule);
+			if (_config.physicsEnable) addModule(BBPhysicsModule);
+			if (_config.mouseSettings != 0) addModule(BBMouseModule);
+			if (_config.debugMode) addModule(BBDebugModule);
+			if (_config.levelManager) addModule(BBLevelsModule);
+			if (_config.keyboardEnable) addModule(BBKeyboardModule);
 
 			//
 			_isInitialized = true;
@@ -171,7 +171,7 @@ package bb.core
 		/*******************************/
 		static private var _instance:BabyBox;
 
-		static public function getInstance():BabyBox
+		static public function get():BabyBox
 		{
 			if (_instance == null) _instance = new BabyBox(new Enforce());
 			return _instance;
