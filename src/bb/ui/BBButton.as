@@ -116,6 +116,18 @@ package bb.ui
 		}
 
 		/**
+		 */
+		override public function dispose():void
+		{
+			_upState = null;
+			_downState = null;
+			_overState = null;
+			_isOver = false;
+
+			super.dispose();
+		}
+
+		/**
 		 * Methods creates instance of BBButton.
 		 * Component created with node and properly settings.
 		 */
