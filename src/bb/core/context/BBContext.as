@@ -114,7 +114,7 @@ package bb.core.context
 			_stage = p_stage;
 			_config = BabyBox.get().config;
 			_canvasViewRect = _config.getViewRect();
-			isFrustum = _config.isFrustum;
+			isFrustum = _config.isCulling;
 
 			if (_config.renderMode == BBRenderMode.BLITTING) initBlitting();
 			else initGenome();
@@ -229,7 +229,7 @@ package bb.core.context
 			else
 			{
 				_smoothingDraw = _config.smoothingDraw;
-				isFrustum = _config.isFrustum;
+				isFrustum = _config.isCulling;
 				_canvas.lock();
 
 				// fill whole canvas with given color

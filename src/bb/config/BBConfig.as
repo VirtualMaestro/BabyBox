@@ -82,12 +82,12 @@ package bb.config
 		public var animationFrameRate:int = 30;
 
 		/**
-		 * If apply frustum culling test.
+		 * Whether need to apply a culling test.
 		 * Mean before render object will be tested on getting on screen.
 		 *
 		 * [runtime]
 		 */
-		public var isFrustum:Boolean = false;
+		public var isCulling:Boolean = false;
 
 		/**
 		 * Determines what type of game is creating.
