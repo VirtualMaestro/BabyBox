@@ -40,6 +40,7 @@ package bb.layer
 		{
 			_name = p_uniqueName;
 			_node = BBNode.get(_name);
+			_node.mouseChildren = true;
 
 			if (p_setOwnGroup)
 			{

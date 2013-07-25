@@ -87,10 +87,12 @@ package bb.core
 		public var transform:BBTransform = null;
 
 		/**
+		 * Allows to handle of mouse events for children nodes.
 		 */
 		public var mouseChildren:Boolean = false;
 
 		/**
+		 * Allows to handle of mouse events.
 		 */
 		public var mouseEnabled:Boolean = false;
 
