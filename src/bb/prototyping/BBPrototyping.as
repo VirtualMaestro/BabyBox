@@ -11,6 +11,8 @@ package bb.prototyping
 	import bb.physics.utils.BBPhysicalMaterials;
 	import bb.render.components.BBSprite;
 	import bb.render.textures.BBTexture;
+	import bb.ui.BBButton;
+	import bb.ui.BBLabel;
 	import bb.vo.BBColor;
 
 	import nape.geom.Vec2;
@@ -128,6 +130,19 @@ package bb.prototyping
 			cart.addChild(wheel);
 
 			return cart;
+		}
+
+		/**
+		 */
+		static public function getButton(p_text:String):BBButton
+		{
+			var upState:BBTexture = BBTexture.createFromColorRect(100, 25, "");
+			var downState:BBTexture = BBTexture.createFromColorRect(100, 25, "", 0xffff0000);
+			var overState:BBTexture = BBTexture.createFromColorRect(100, 25, "", 0xffa3d5ba);
+			var button:BBButton = BBButton.get(upState, downState, overState);
+			button.node.addChild(BBLabel.getWithNode(p_text).node);
+
+			return button;
 		}
 	}
 }
