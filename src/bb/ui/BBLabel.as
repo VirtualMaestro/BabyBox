@@ -24,7 +24,7 @@ package bb.ui
 		//
 		private var _textField:TextField;
 		private var _textFormat:TextFormat;
-		private var _alignByCenter:Boolean = false;
+		private var _alignByCenter:Boolean = true;
 
 		/**
 		 */
@@ -142,6 +142,7 @@ package bb.ui
 		{
 			_textFormat.font = p_val;
 			_textField.setTextFormat(_textFormat);
+			_textField.defaultTextFormat = _textFormat;
 
 			updateEnable = true;
 		}
@@ -160,6 +161,7 @@ package bb.ui
 		{
 			_textFormat.size = p_val;
 			_textField.setTextFormat(_textFormat);
+			_textField.defaultTextFormat = _textFormat;
 
 			updateEnable = true;
 		}
@@ -177,6 +179,7 @@ package bb.ui
 		{
 			_textFormat.color = p_val;
 			_textField.setTextFormat(_textFormat);
+			_textField.defaultTextFormat = _textFormat;
 
 			updateEnable = true;
 		}
@@ -194,6 +197,7 @@ package bb.ui
 		{
 			_textFormat.bold = p_val;
 			_textField.setTextFormat(_textFormat);
+			_textField.defaultTextFormat = _textFormat;
 
 			updateEnable = true;
 		}
@@ -211,6 +215,7 @@ package bb.ui
 		{
 			_textFormat.italic = p_val;
 			_textField.setTextFormat(_textFormat);
+			_textField.defaultTextFormat = _textFormat;
 
 			updateEnable = true;
 		}
@@ -228,6 +233,7 @@ package bb.ui
 		{
 			_textFormat.underline = p_val;
 			_textField.setTextFormat(_textFormat);
+			_textField.defaultTextFormat = _textFormat;
 
 			updateEnable = true;
 		}
@@ -269,6 +275,7 @@ package bb.ui
 			_textFormat = new TextFormat();
 			_textField.defaultTextFormat = _textFormat;
 			_textField.setTextFormat(_textFormat);
+
 			super.dispose();
 		}
 
@@ -278,14 +285,19 @@ package bb.ui
 		{
 			_textField = null;
 			_textFormat = null;
+
 			super.rid();
 		}
 
 		/**
 		 */
-		static public function get(p_text:String = ""):BBLabel
+		static public function get(p_text:String = "", p_alignByCenter:Boolean = true, p_size:int = 12, p_color:uint = 0xffffff, p_font:String = "Arial"):BBLabel
 		{
 			var label:BBLabel = BBComponent.get(BBLabel) as BBLabel;
+			label.centerAlign = p_alignByCenter;
+			label.size = p_size;
+			label.color = p_color;
+			label.font = p_font;
 			label.text = p_text;
 
 			return label;
@@ -293,9 +305,13 @@ package bb.ui
 
 		/**
 		 */
-		static public function getWithNode(p_text:String = "", p_nodeName:String = ""):BBLabel
+		static public function getWithNode(p_text:String = "", p_alignByCenter:Boolean = true, p_size:int = 12, p_color:uint = 0xffffff, p_font:String = "Arial"):BBLabel
 		{
-			var label:BBLabel = BBComponent.getWithNode(BBLabel, p_nodeName) as BBLabel;
+			var label:BBLabel = BBComponent.getWithNode(BBLabel) as BBLabel;
+			label.centerAlign = p_alignByCenter;
+			label.size = p_size;
+			label.color = p_color;
+			label.font = p_font;
 			label.text = p_text;
 
 			return label;
