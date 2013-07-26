@@ -7,6 +7,7 @@ package bb.render.components
 {
 	import bb.bb_spaces.bb_private;
 	import bb.core.BBComponent;
+	import bb.core.BBNode;
 	import bb.core.BabyBox;
 	import bb.core.context.BBContext;
 	import bb.mouse.events.BBMouseEvent;
@@ -105,17 +106,18 @@ package bb.render.components
 		 */
 		bb_private function processMouseEvent(p_captured:Boolean, p_event:BBMouseEvent):Boolean
 		{
-			p_event.dispatcher = node;
+			var currentNode:BBNode = node;
+			p_event.dispatcher = currentNode;
 
-			if (p_captured && p_event.type == BBMouseEvent.UP) node.mouseDown = null;
+			if (p_captured && p_event.type == BBMouseEvent.UP) currentNode.mouseDown = null;
 			if (p_captured || z_texture == null)
 			{
-				if (node.mouseOver == node) node.handleMouseEvent(p_event, BBMouseEvent.OUT);
+				if (currentNode.mouseOver == currentNode) currentNode.handleMouseEvent(p_event, BBMouseEvent.OUT);
 				return false;
 			}
 
 			var cameraPoint:Point = BBNativePool.getPoint(p_event.cameraX, p_event.cameraY);
-			var localMousePosition:Point = node.transform.worldToLocal(cameraPoint);
+			var localMousePosition:Point = currentNode.transform.worldToLocal(cameraPoint);
 			var localMouseX:Number = localMousePosition.x;
 			var localMouseY:Number = localMousePosition.y;
 			var texPivotX:Number = z_texture.pivotX;
@@ -132,19 +134,19 @@ package bb.render.components
 			{
 				if (mousePixelEnabled && z_texture.getAlphaAt(localMouseX - texPivotX, localMouseY - texPivotY) == 0)
 				{
-					if (node.mouseOver == node) node.handleMouseEvent(p_event, BBMouseEvent.OUT);
+					if (currentNode.mouseOver == currentNode) currentNode.handleMouseEvent(p_event, BBMouseEvent.OUT);
 					return false;
 				}
 
 				// **************
-				node.handleMouseEvent(p_event, p_event.type);
+				currentNode.handleMouseEvent(p_event, p_event.type);
 				// ***************
 
 				//
-				if (node.mouseOver != node) node.handleMouseEvent(p_event, BBMouseEvent.OVER);
+				if (currentNode && currentNode.mouseOver != currentNode) currentNode.handleMouseEvent(p_event, BBMouseEvent.OVER);
 				return true;
 			}
-			else if (node.mouseOver == node) node.handleMouseEvent(p_event, BBMouseEvent.OUT);
+			else if (currentNode.mouseOver == currentNode) currentNode.handleMouseEvent(p_event, BBMouseEvent.OUT);
 
 			return false;
 		}
