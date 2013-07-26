@@ -12,6 +12,8 @@ package bb.layer
 	import bb.tools.BBGroupMask;
 	import bb.tree.BBTreeModule;
 
+	import flash.utils.Dictionary;
+
 	CONFIG::debug
 	{
 		import vm.debug.Assert;
@@ -24,7 +26,7 @@ package bb.layer
 	 */
 	public class BBLayerModule extends BBModule
 	{
-		private var _layersTable:Array;
+		private var _layersTable:Dictionary;
 		private var _graph:BBTreeModule;
 		private var _root:BBNode;
 
@@ -41,7 +43,7 @@ package bb.layer
 		 */
 		private function onInitHandler(p_signal:BBSignal):void
 		{
-			_layersTable = [];
+			_layersTable = new Dictionary();
 			_graph = getModule(BBTreeModule) as BBTreeModule;
 			_root = _graph.root;
 		}
@@ -55,6 +57,7 @@ package bb.layer
 
 		/**
 		 * Adds layer to manager.
+		 * Layer name should be unique
 		 *
 		 * @return - instance of BBLayer - adding p_layer
 		 */
@@ -80,7 +83,7 @@ package bb.layer
 		 * p_layer - layer which should be added to another.
 		 * p_layer - layer could be already added to manager, in this case it will re-add to the p_addToLayer layer.
 		 * p_layer - if layer isn't exist yet it is created and add to p_addToLayer.
-		 *
+		 * Layer name should be unique
 		 * p_addToLayer - layer which should contains p_layer.
 		 * p_addToLayer should be already created and added to manager, in other case generates error.
 		 *
@@ -106,6 +109,22 @@ package bb.layer
 		}
 
 		/**
+		 * If p_layer is specify clears all actors on that layer.
+		 * If not clear all actors on all layers.
+		 */
+		public function clear(p_layer:String = null):void
+		{
+			if (p_layer && get(p_layer)) get(p_layer).clear();
+			else
+			{
+				for each (var layer:BBLayer in _layersTable)
+				{
+					layer.clear();
+				}
+			}
+		}
+
+		/**
 		 * Removes layer from manager and removes layer itself with all actors inside.
 		 */
 		public function remove(p_layerName:String):void
@@ -114,7 +133,7 @@ package bb.layer
 
 			if (layer)
 			{
-				_layersTable[p_layerName] = null;
+				delete _layersTable[p_layerName];
 				if (layer.parent) layer.parent.removeChild(layer);
 				layer.dispose();
 			}
@@ -123,18 +142,19 @@ package bb.layer
 		/**
 		 * Removes all layers with all actors inside.
 		 */
-		public function clear():void
+		public function removeAll():void
 		{
 			for each(var layer:BBLayer in _layersTable)
 			{
 				layer.dispose();
 			}
-			_layersTable = [];
+
+			_layersTable = new Dictionary();
 		}
 
 		/**
 		 * Returns layer by given name.
-		 * If such layer doesn't exist return null.
+		 * If such layer doesn't exist returns null.
 		 */
 		public function get(p_layerName:String):BBLayer
 		{
@@ -145,7 +165,7 @@ package bb.layer
 		 */
 		override public function dispose():void
 		{
-			clear();
+			removeAll();
 			_layersTable = null;
 			_graph = null;
 		}

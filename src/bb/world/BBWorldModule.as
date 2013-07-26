@@ -66,11 +66,12 @@ package bb.world
 		}
 
 		/**
-		 * Removes actors from world.
+		 * Clear world from actors.
+		 * if p_layer specify it is clears just given layer.
 		 */
-		public function remove(p_actor:BBNode):void
+		public function clear(p_layer:String = null):void
 		{
-			// TODO:
+			_layerManager.clear(p_layer);
 		}
 
 		/**

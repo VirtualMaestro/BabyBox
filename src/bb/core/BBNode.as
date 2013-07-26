@@ -75,12 +75,6 @@ package bb.core
 		private var _active:Boolean = true;
 
 		/**
-		 * Mean that transform object won't invalidate after changing its transformation (position, rotation etc.) or transformation its parent.
-		 * Need for components which need own independent transformation (e.g. Camera, BBPhysicsBody).
-		 */
-//		public var lockTransformInvalidation:Boolean = false;
-
-		/**
 		 * Transform component of node.
 		 * (as public member for faster access, so read-only)
 		 */
@@ -798,7 +792,7 @@ package bb.core
 
 		/**
 		 */
-		bb_private function handleMouseEvent(p_event:BBMouseEvent, p_mouseEventName:String/*, p_dispatcherNode:BBNode, , p_localX:int, p_localY:int, p_buttonDown:Boolean, p_ctrlDown:Boolean*/):void
+		bb_private function handleMouseEvent(p_event:BBMouseEvent, p_mouseEventName:String):void
 		{
 			if (mouseEnabled)
 			{
