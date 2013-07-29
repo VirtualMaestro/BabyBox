@@ -805,13 +805,13 @@ package bb.core
 				if (p_mouseEventName == BBMouseEvent.DOWN)
 				{
 					mouseDown = p_event.dispatcher;
-					if (_onMouseDown && (p_event.z_nodeMouseSettings & BBMouseActions.DOWN) != 0) _onMouseDown.dispatch(mouseEvent);
+					if (_onMouseDown && (p_event.nodeMouseSettings & BBMouseActions.DOWN) != 0) _onMouseDown.dispatch(mouseEvent);
 				}
 				else if (p_mouseEventName == BBMouseEvent.MOVE && _onMouseMove
-						&& (p_event.z_nodeMouseSettings & BBMouseActions.MOVE) != 0) _onMouseMove.dispatch(mouseEvent);
+						&& (p_event.nodeMouseSettings & BBMouseActions.MOVE) != 0) _onMouseMove.dispatch(mouseEvent);
 				else if (p_mouseEventName == BBMouseEvent.UP)
 				{
-					if (mouseDown == p_event.dispatcher && _onMouseClick && (p_event.z_nodeMouseSettings & BBMouseActions.CLICK) != 0)
+					if (mouseDown == p_event.dispatcher && _onMouseClick && (p_event.nodeMouseSettings & BBMouseActions.CLICK) != 0)
 					{
 						var mouseClickEvent:BBMouseEvent = mouseEvent.clone();
 						mouseClickEvent.type = BBMouseEvent.CLICK;
@@ -821,17 +821,17 @@ package bb.core
 
 					mouseDown = null;
 
-					if (_onMouseUp && (p_event.z_nodeMouseSettings & BBMouseActions.UP) != 0) _onMouseUp.dispatch(mouseEvent);
+					if (_onMouseUp && (p_event.nodeMouseSettings & BBMouseActions.UP) != 0) _onMouseUp.dispatch(mouseEvent);
 				}
 				else if (p_mouseEventName == BBMouseEvent.OVER)
 				{
 					mouseOver = p_event.dispatcher;
-					if (_onMouseOver && (p_event.z_nodeMouseSettings & BBMouseActions.OVER) != 0) _onMouseOver.dispatch(mouseEvent);
+					if (_onMouseOver && (p_event.nodeMouseSettings & BBMouseActions.OVER) != 0) _onMouseOver.dispatch(mouseEvent);
 				}
 				else if (p_mouseEventName == BBMouseEvent.OUT)
 				{
 					mouseOver = null;
-					if (_onMouseOut && (p_event.z_nodeMouseSettings & BBMouseActions.OUT) != 0) _onMouseOut.dispatch(mouseEvent);
+					if (_onMouseOut && (p_event.nodeMouseSettings & BBMouseActions.OUT) != 0) _onMouseOut.dispatch(mouseEvent);
 				}
 
 				mouseEvent.dispose();

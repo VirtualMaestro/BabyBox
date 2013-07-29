@@ -16,7 +16,7 @@ package bb.mouse.events
 	 */
 	public class BBMouseEvent
 	{
-		bb_private var z_nodeMouseSettings:int = 0;
+		bb_private var nodeMouseSettings:int = 0;
 
 		//
 		static public const CLICK:String = "click";
@@ -87,7 +87,7 @@ package bb.mouse.events
 			cloneInstance.cameraX = cameraX;
 			cloneInstance.cameraY = cameraY;
 			cloneInstance.capturedCamera = capturedCamera;
-			cloneInstance.z_nodeMouseSettings = z_nodeMouseSettings;
+			cloneInstance.nodeMouseSettings = nodeMouseSettings;
 
 			return cloneInstance;
 		}

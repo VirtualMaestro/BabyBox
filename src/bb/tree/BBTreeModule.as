@@ -113,7 +113,7 @@ package bb.tree
 		private function mouseHandler(p_signal:BBSignal):void
 		{
 			var mouseEvent:BBMouseEvent = p_signal.params as BBMouseEvent;
-			mouseEvent.z_nodeMouseSettings = _nodeMouseSettings;
+			mouseEvent.nodeMouseSettings = _nodeMouseSettings;
 
 			var camera:BBCamera = mouseEvent.capturedCamera;
 			if (camera)
