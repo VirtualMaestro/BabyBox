@@ -973,6 +973,24 @@ package bb.core
 			if (_onUpdated) _onUpdated.dispose();
 			_onUpdated = null;
 
+			if (_onMouseClick) _onMouseClick.dispose();
+			_onMouseClick = null;
+
+			if (_onMouseDown) _onMouseDown.dispose();
+			_onMouseDown = null;
+
+			if (_onMouseMove) _onMouseMove.dispose();
+			_onMouseMove = null;
+
+			if (_onMouseOut) _onMouseOut.dispose();
+			_onMouseOut = null;
+
+			if (_onMouseOver) _onMouseOver.dispose();
+			_onMouseOver = null;
+
+			if (_onMouseUp) _onMouseUp.dispose();
+			_onMouseUp = null;
+
 			_nextComponentUpdList = null;
 			_nextChildNode = null;
 			_parent = null;
