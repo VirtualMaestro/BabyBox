@@ -801,37 +801,48 @@ package bb.core
 				var mouseEvent:BBMouseEvent = p_event.clone();
 				mouseEvent.type = p_mouseEventName;
 
-				//
-				if (p_mouseEventName == BBMouseEvent.DOWN)
+				switch (p_mouseEventName)
 				{
-					mouseDown = p_event.dispatcher;
-					if (_onMouseDown && (p_event.nodeMouseSettings & BBMouseActions.DOWN) != 0) _onMouseDown.dispatch(mouseEvent);
-				}
-				else if (p_mouseEventName == BBMouseEvent.MOVE && _onMouseMove
-						&& (p_event.nodeMouseSettings & BBMouseActions.MOVE) != 0) _onMouseMove.dispatch(mouseEvent);
-				else if (p_mouseEventName == BBMouseEvent.UP)
-				{
-					if (mouseDown == p_event.dispatcher && _onMouseClick && (p_event.nodeMouseSettings & BBMouseActions.CLICK) != 0)
+					case BBMouseEvent.DOWN:
 					{
-						var mouseClickEvent:BBMouseEvent = mouseEvent.clone();
-						mouseClickEvent.type = BBMouseEvent.CLICK;
-						_onMouseClick.dispatch(mouseClickEvent);
-						mouseClickEvent.dispose();
+						mouseDown = p_event.dispatcher;
+						if (_onMouseDown && (p_event.nodeMouseSettings & BBMouseActions.DOWN) != 0) _onMouseDown.dispatch(mouseEvent);
+						break;
 					}
 
-					mouseDown = null;
+					case BBMouseEvent.MOVE:
+					{
+						if (_onMouseMove && (p_event.nodeMouseSettings & BBMouseActions.MOVE) != 0) _onMouseMove.dispatch(mouseEvent);
+						break;
+					}
 
-					if (_onMouseUp && (p_event.nodeMouseSettings & BBMouseActions.UP) != 0) _onMouseUp.dispatch(mouseEvent);
-				}
-				else if (p_mouseEventName == BBMouseEvent.OVER)
-				{
-					mouseOver = p_event.dispatcher;
-					if (_onMouseOver && (p_event.nodeMouseSettings & BBMouseActions.OVER) != 0) _onMouseOver.dispatch(mouseEvent);
-				}
-				else if (p_mouseEventName == BBMouseEvent.OUT)
-				{
-					mouseOver = null;
-					if (_onMouseOut && (p_event.nodeMouseSettings & BBMouseActions.OUT) != 0) _onMouseOut.dispatch(mouseEvent);
+					case BBMouseEvent.UP:
+					{
+						if (mouseDown == p_event.dispatcher && _onMouseClick && (p_event.nodeMouseSettings & BBMouseActions.CLICK) != 0)
+						{
+							var mouseClickEvent:BBMouseEvent = mouseEvent.clone();
+							mouseClickEvent.type = BBMouseEvent.CLICK;
+							_onMouseClick.dispatch(mouseClickEvent);
+							mouseClickEvent.dispose();
+						}
+
+						mouseDown = null;
+
+						if (_onMouseUp && (p_event.nodeMouseSettings & BBMouseActions.UP) != 0) _onMouseUp.dispatch(mouseEvent);
+						break;
+					}
+					case BBMouseEvent.OVER:
+					{
+						mouseOver = p_event.dispatcher;
+						if (_onMouseOver && (p_event.nodeMouseSettings & BBMouseActions.OVER) != 0) _onMouseOver.dispatch(mouseEvent);
+						break;
+					}
+					case BBMouseEvent.OUT:
+					{
+						mouseOver = null;
+						if (_onMouseOut && (p_event.nodeMouseSettings & BBMouseActions.OUT) != 0) _onMouseOut.dispatch(mouseEvent);
+						break;
+					}
 				}
 
 				mouseEvent.dispose();
