@@ -10,6 +10,8 @@ package bb.core
 	import flash.geom.Matrix;
 	import flash.geom.Point;
 
+	import nape.geom.Vec2;
+
 	use namespace bb_private;
 
 	/**
@@ -102,7 +104,7 @@ package bb.core
 		/**
 		 * Sets given color in ARGB format.
 		 */
-		public function set color(p_value:int):void
+		public function set color(p_value:uint):void
 		{
 			alpha = Number((p_value >> 24) & 0xFF) / 0xFF;
 			red = Number((p_value >> 16) & 0xFF) / 0xFF;
@@ -229,6 +231,15 @@ package bb.core
 			isPositionChanged = true;
 
 			if (independentUpdateWorldParameters && node.parent) invalidate(true, false);
+		}
+
+		/**
+		 * Returns instance of Vec2 with position values.
+		 * Creates new Vec2 non-weak instance.
+		 */
+		final public function getPosition():Vec2
+		{
+			return Vec2.get(x, y);
 		}
 
 		/**
