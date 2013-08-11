@@ -770,7 +770,7 @@ package bb.core
 		 */
 		bb_private function processMouseEvent(p_captured:Boolean, p_event:BBMouseEvent):Boolean
 		{
-			if (!_active || !visible || (group & p_event.capturedCamera.mask) == 0 && group != 0) return false;
+			if (!_active || !visible || (group & p_event.capturedCamera.mask) == 0 && group != 0 || !p_event.propagation) return false;
 
 			if (mouseChildren)
 			{
@@ -782,7 +782,7 @@ package bb.core
 				}
 			}
 
-			if (mouseEnabled && z_renderComponent)
+			if (mouseEnabled && z_renderComponent && p_event.propagation)
 			{
 				p_captured = z_renderComponent.processMouseEvent(p_captured, p_event) || p_captured;
 			}
@@ -794,7 +794,7 @@ package bb.core
 		 */
 		bb_private function handleMouseEvent(p_event:BBMouseEvent, p_mouseEventName:String):void
 		{
-			if (mouseEnabled)
+			if (mouseEnabled && p_event.propagation)
 			{
 				p_event.target = this;
 
@@ -845,6 +845,7 @@ package bb.core
 					}
 				}
 
+				p_event.propagation = mouseEvent.propagation;
 				mouseEvent.dispose();
 			}
 
@@ -1311,7 +1312,7 @@ package bb.core
 				_headPool = _headPool.next;
 				node.next = null;
 				node._name = p_name;
-				node.transform = BBComponent.get(BBTransform) as BBTransform;
+				node.transform = node.addComponent(BBTransform) as BBTransform;
 				node._isDisposed = false;
 				--_numInPool;
 			}

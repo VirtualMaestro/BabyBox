@@ -60,6 +60,10 @@ package bb.mouse.events
 		public var cameraY:int = 0;
 		public var capturedCamera:BBCamera = null;
 
+		public var propagation:Boolean = true;
+
+		private var _isDisposed:Boolean = false;
+
 		/**
 		 */
 		public function BBMouseEvent(p_type:String = "", p_target:BBNode = null, p_dispatcher:BBNode = null, p_localX:int = 0, p_localY:int = 0, p_buttonDown:Boolean = false, p_ctrlDown:Boolean = false)
@@ -93,24 +97,36 @@ package bb.mouse.events
 		}
 
 		/**
+		 */
+		public function get isDisposed():Boolean
+		{
+			return _isDisposed;
+		}
+
+		/**
 		 * Dispose object and back to pool.
 		 */
 		public function dispose():void
 		{
-			target = null;
-			dispatcher = null;
-			capturedCamera = null;
-			type = null;
-			localX = localY = 0;
-			stageX = stageY = 0;
-			viewRectX = viewRectY = -1;
-			cameraX = cameraY = 0;
-			cameraViewPortX = cameraViewPortY = -1;
-			isButtonDown = false;
-			isCtrlDown = false;
+			if (!isDisposed)
+			{
+				_isDisposed = true;
+				target = null;
+				dispatcher = null;
+				capturedCamera = null;
+				type = null;
+				localX = localY = 0;
+				stageX = stageY = 0;
+				viewRectX = viewRectY = -1;
+				cameraX = cameraY = 0;
+				cameraViewPortX = cameraViewPortY = -1;
+				isButtonDown = false;
+				isCtrlDown = false;
+				propagation = true;
 
-			// back to pool
-			put(this);
+				// back to pool
+				put(this);
+			}
 		}
 
 		////////////
@@ -139,6 +155,7 @@ package bb.mouse.events
 				mouseEvent.localY = p_localY;
 				mouseEvent.isButtonDown = p_buttonDown;
 				mouseEvent.isCtrlDown = p_ctrlDown;
+				mouseEvent._isDisposed = false;
 			}
 			else mouseEvent = new BBMouseEvent(p_type, p_target, p_dispatcher, p_localX, p_localY, p_buttonDown, p_ctrlDown);
 
