@@ -714,10 +714,26 @@ package bb.physics.components
 		}
 
 		/**
+		 * Returns instance of Vec2 with scale values.
+		 * Instance of Vec2 is non-weak, so for disposing need to invoke 'dispose' method explicitly.
 		 */
 		public function getScale():Vec2
 		{
 			return Vec2.get(_scaleX, _scaleY);
+		}
+
+		/**
+		 */
+		public function get scaleX():Number
+		{
+			return _scaleX;
+		}
+
+		/**
+		 */
+		public function get scaleY():Number
+		{
+			return _scaleY;
 		}
 
 		/**
@@ -947,6 +963,7 @@ package bb.physics.components
 				onAdded.add(addedToNodeHandler);
 				onRemoved.add(unlinkedFromNodeHandler);
 
+				_body.cbTypes.clear();
 				_body.rotation = 0;
 				_body.position.setxy(0, 0);
 				_body.velocity.setxy(0, 0);
