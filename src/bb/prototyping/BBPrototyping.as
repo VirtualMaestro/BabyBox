@@ -15,6 +15,8 @@ package bb.prototyping
 	import bb.ui.BBLabel;
 	import bb.vo.BBColor;
 
+	import nape.dynamics.InteractionFilter;
+
 	import nape.geom.Vec2;
 	import nape.phys.BodyType;
 	import nape.phys.Material;
@@ -27,12 +29,12 @@ package bb.prototyping
 		/**
 		 * Creates and returns box with physical and graphical components.
 		 */
-		static public function getBox(p_width:Number = 100, p_height:Number = 100, p_name:String = "", p_color:uint = BBColor.SKY, p_type:BodyType = null, p_material:Material = null):BBNode
+		static public function getBox(p_width:Number = 100, p_height:Number = 100, p_name:String = "", p_color:uint = BBColor.SKY, p_type:BodyType = null, p_material:Material = null, p_filter:InteractionFilter = null):BBNode
 		{
 			var box:BBNode = BBNode.get(p_name);
 			var physics:BBPhysicsBody = BBPhysicsBody.get((p_type == null ? BodyType.DYNAMIC : p_type));
 			var material:Material = p_material ? p_material : BBPhysicalMaterials.wood;
-			physics.addBox(p_width, p_height, "", 0, null, material);
+			physics.addBox(p_width, p_height, "", 0, null, material, p_filter);
 			box.addComponent(physics);
 
 			var view:BBSprite = BBSprite.get(BBTexture.createFromColorRect(p_width, p_height, "", p_color));
@@ -44,12 +46,12 @@ package bb.prototyping
 		/**
 		 * Creates and returns circle with physical and graphical components.
 		 */
-		static public function getCircle(p_radius:Number = 50, p_name:String = "", p_color:uint = BBColor.GRASS, p_type:BodyType = null, p_material:Material = null):BBNode
+		static public function getCircle(p_radius:Number = 50, p_name:String = "", p_color:uint = BBColor.GRASS, p_type:BodyType = null, p_material:Material = null, p_filter:InteractionFilter = null):BBNode
 		{
 			var circle:BBNode = BBNode.get(p_name);
 			var physics:BBPhysicsBody = BBPhysicsBody.get((p_type == null ? BodyType.DYNAMIC : p_type));
 			var material:Material = p_material ? p_material : BBPhysicalMaterials.wood;
-			physics.addCircle(p_radius, "", null, material);
+			physics.addCircle(p_radius, "", null, material, p_filter);
 			circle.addComponent(physics);
 
 			var view:BBSprite = BBSprite.get(BBTexture.createFromColorCircle(p_radius, "", p_color));
@@ -61,12 +63,12 @@ package bb.prototyping
 		/**
 		 * Creates and returns circle with physical and graphical components.
 		 */
-		static public function getEllipse(p_radiusX:Number = 100, p_radiusY:Number = 50, p_name:String = "", p_color:uint = BBColor.GRASS, p_type:BodyType = null, p_material:Material = null):BBNode
+		static public function getEllipse(p_radiusX:Number = 100, p_radiusY:Number = 50, p_name:String = "", p_color:uint = BBColor.GRASS, p_type:BodyType = null, p_material:Material = null, p_filter:InteractionFilter = null):BBNode
 		{
 			var ellipse:BBNode = BBNode.get(p_name);
 			var physics:BBPhysicsBody = BBPhysicsBody.get((p_type == null ? BodyType.DYNAMIC : p_type));
 			var material:Material = p_material ? p_material : BBPhysicalMaterials.wood;
-			physics.addEllipse(p_radiusX, p_radiusY, "", 0, null, material);
+			physics.addEllipse(p_radiusX, p_radiusY, "", 0, null, material, p_filter);
 			ellipse.addComponent(physics);
 
 			var view:BBSprite = BBSprite.get(BBTexture.createFromColorEllipse(p_radiusX, p_radiusY, "", p_color));
