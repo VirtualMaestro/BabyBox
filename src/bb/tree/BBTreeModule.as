@@ -70,7 +70,7 @@ package bb.tree
 		private function readyToUseHandler(p_signal:BBSignal):void
 		{
 			// init mouse handling
-			mouseSettings = _config.mouseNodeSettings;
+			if (_mouseModule) mouseSettings = _config.mouseNodeSettings;
 
 			// start update
 			updateEnable = true;
@@ -116,7 +116,7 @@ package bb.tree
 			mouseEvent.nodeMouseSettings = _nodeMouseSettings;
 
 			var camera:BBCamera = mouseEvent.capturedCamera;
-			if (camera)
+			if (camera && mouseEvent.propagation)
 			{
 				camera.isCaptured = false;
 				camera.captureMouseEvent(false, mouseEvent);
