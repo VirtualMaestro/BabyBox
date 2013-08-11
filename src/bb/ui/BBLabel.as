@@ -99,9 +99,14 @@ package bb.ui
 
 		/**
 		 */
-		private function set height(p_val:Number):void
+		public function set height(p_val:Number):void
 		{
 			_textField.height = p_val;
+		}
+
+		public function get height():Number
+		{
+			return _textField.height;
 		}
 
 		/**
