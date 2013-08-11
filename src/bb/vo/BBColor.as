@@ -28,10 +28,10 @@ package bb.vo
 		 */
 		public function BBColor(p_alpha:Number = 1.0, p_red:Number = 1.0, p_green:Number = 1.0, p_blue:Number = 1.0)
 		{
-			z_alpha = p_alpha;
-			z_red = p_red;
-			z_green = p_green;
-			z_blue = p_blue;
+			alpha = p_alpha;
+			red = p_red;
+			green = p_green;
+			blue = p_blue;
 		}
 
 		/**
@@ -130,6 +130,27 @@ package bb.vo
 		}
 
 		/**
+		 * All color values should be in range 0-255.
+		 */
+		public function setARGB255(p_alpha:uint, p_red:uint, p_green:uint, p_blue:uint):void
+		{
+			z_alpha = cutToRange255(p_alpha)/255.0;
+			z_red = cutToRange255(p_red)/255.0;
+			z_green = cutToRange255(p_green)/255.0;
+			z_blue = cutToRange255(p_blue)/255.0;
+		}
+
+		/**
+		 */
+		private function cutToRange255(p_value:uint):Number
+		{
+			if (p_value > 255) p_value = 255;
+			_colorChanged = true;
+
+			return p_value;
+		}
+
+		/**
 		 * Determines if color was changed.
 		 * After first calling this method flag reset to false.
 		 */
@@ -158,5 +179,105 @@ package bb.vo
 
 		static public const SKY:uint = 0xff73bdd5;
 		static public const GRASS:uint = 0xff9abe5e;
+
+		//
+		public static const INTERPOLATION_LINEAR:uint = 0;
+		public static const INTERPOLATION_COS:uint = 1;
+		public static const INTERPOLATION_COS_LINEAR:uint = 2;
+
+		/**
+		 */
+		static public function getGradient(x1:uint, y1:uint, color1:uint, x2:uint, y2:uint, color2:uint, width:uint, height:uint = 1, interpolation:uint = 2):Array
+		{
+			var rgb:Array = [];
+			var dx:Number = x1 - x2;
+			var dy:Number = y1 - y2;
+			var AB:Number = Math.sqrt(dx * dx + dy * dy);
+
+			for (var y:uint = 0; y < height; y++)
+			{
+				for (var x:uint = 0; x < width; x++)
+				{
+					dx = x1 - x;
+					dy = y1 - y;
+					var AE2:Number = dx * dx + dy * dy;
+					var AE:Number = Math.sqrt(AE2);
+
+					dx = x2 - x;
+					dy = y2 - y;
+					var EB2:Number = dx * dx + dy * dy;
+					var EB:Number = Math.sqrt(EB2);
+
+					var p:Number = (AB + AE + EB) / 2;
+
+					var EF:Number = 2 / AB * Math.sqrt(Math.abs(p * (p - AB) * (p - AE) * (p - EB)));
+					var EF2:Number = EF * EF;
+
+					var AF:Number = Math.sqrt(Math.abs(AE2 - EF2));
+					var BF:Number = Math.sqrt(Math.abs(EB2 - EF2));
+
+					if (AF + BF - 0.1 > AB)
+					{
+						rgb[y * width + x] = AF < BF ? color1 : color2;
+					}
+					else
+					{
+						var progress:Number = AF / AB;
+						rgb[y * width + x] = interpolate(color1, color2, progress, interpolation);
+					}
+				}
+			}
+
+			return rgb;
+		}
+
+		/**
+		 */
+		static private function interpolate(color1:uint, color2:uint, progress:Number, interpolation:uint):uint
+		{
+			var a1:uint = (color1 & 0xff000000) >>> 24;
+			var r1:uint = (color1 & 0x00ff0000) >>> 16;
+			var g1:uint = (color1 & 0x0000ff00) >>> 8;
+			var b1:uint = color1 & 0x000000ff;
+
+			var a2:uint = (color2 & 0xff000000) >>> 24;
+			var r2:uint = (color2 & 0x00ff0000) >>> 16;
+			var g2:uint = (color2 & 0x0000ff00) >>> 8;
+			var b2:uint = color2 & 0x000000ff;
+
+			var f:Number;
+			var ft:Number = progress * 3.1415927;
+			if (interpolation == INTERPOLATION_LINEAR) f = progress;
+			else if (interpolation == INTERPOLATION_COS)
+			{
+				f = (1 - Math.cos(ft)) * 0.5;
+			}
+			else if (interpolation == INTERPOLATION_COS_LINEAR)
+			{
+				f = (progress + (1 - Math.cos(ft)) * 0.5) / 2;
+			}
+
+			var newA:uint = clip(a1 * (1 - f) + a2 * f);
+			var newR:uint = clip(r1 * (1 - f) + r2 * f);
+			var newG:uint = clip(g1 * (1 - f) + g2 * f);
+			var newB:uint = clip(b1 * (1 - f) + b2 * f);
+
+			return (newA << 24) + (newR << 16) + (newG << 8) + newB;
+		}
+
+		/**
+		 */
+		static private function clip(num:int):int
+		{
+			return num <= 0 ? 0 : (num >= 255 ? 255 : num);
+		}
+
+		/**
+		 *
+		 */
+		static public function getGradientStrip(p_colorStart:uint, p_colorEnd:uint, p_length:int = 100, p_interpolation:uint = 0):Array
+		{
+			return getGradient(0,0, p_colorStart, p_length, 0, p_colorEnd, p_length, 1, p_interpolation);
+		}
 	}
 }
