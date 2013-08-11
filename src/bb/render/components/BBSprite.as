@@ -94,7 +94,7 @@ package bb.render.components
 		 * Returns instance of BBSprite attached to BBNode.
 		 * @return bb.render.components.BBSprite with BBNode
 		 */
-		static public function getWithNode(p_nodeName:String = "", p_texture:BBTexture = null):BBSprite
+		static public function getWithNode(p_texture:BBTexture = null, p_nodeName:String = ""):BBSprite
 		{
 			var sprite:BBSprite = BBComponent.getWithNode(BBSprite, p_nodeName) as BBSprite;
 			if (p_texture) sprite.setTexture(p_texture);
