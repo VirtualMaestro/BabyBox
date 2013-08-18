@@ -128,9 +128,12 @@ package bb.render.components
 			p_event.localX = localMouseX + texPivotX;
 			p_event.localY = localMouseY + texPivotY;
 
+			var texPivotXScaled:Number = texPivotX * scaleX;
+			var texPivotYScaled:Number = texPivotY * scaleY;
+
 			//
-			if (localMouseX >= texPivotX && localMouseX <= texPivotX + z_texture.width &&
-					localMouseY >= texPivotY && localMouseY <= texPivotY + z_texture.height)
+			if (localMouseX >= texPivotXScaled && localMouseX <= texPivotXScaled + z_texture.width * scaleX &&
+					localMouseY >= texPivotYScaled && localMouseY <= texPivotYScaled + z_texture.height * scaleY)
 			{
 				if (mousePixelEnabled && z_texture.getAlphaAt(localMouseX - texPivotX, localMouseY - texPivotY) == 0)
 				{
