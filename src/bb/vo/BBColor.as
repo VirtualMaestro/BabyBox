@@ -180,6 +180,54 @@ package bb.vo
 		static public const SKY:uint = 0xff73bdd5;
 		static public const GRASS:uint = 0xff9abe5e;
 
+		/**
+		 * Extract alpha channel.
+		 * p_color - ARGB
+		 * toFloat - mean convert color value to range [0, 1]. By default return in range [0, 255].
+		 */
+		static public function getAlpha(p_color:uint, toFloat:Boolean = false):Number
+		{
+			return extractColor(p_color, 24, toFloat);
+		}
+
+		/**
+		 * Extract red channel.
+		 * p_color - ARGB
+		 * toFloat - mean convert color value to range [0, 1]. By default return in range [0, 255].
+		 */
+		static public function getRed(p_color:uint, toFloat:Boolean = false):Number
+		{
+			return extractColor(p_color, 16, toFloat);
+		}
+
+		/**
+		 * Extract green channel.
+		 * p_color - ARGB
+		 * toFloat - mean convert color value to range [0, 1]. By default return in range [0, 255].
+		 */
+		static public function getGreen(p_color:uint, toFloat:Boolean = false):Number
+		{
+			return extractColor(p_color, 8, toFloat);
+		}
+
+		/**
+		 * Extract blue channel.
+		 * p_color - ARGB
+		 * toFloat - mean convert color value to range [0, 1]. By default return in range [0, 255].
+		 */
+		static public function getBlue(p_color:uint, toFloat:Boolean = false):Number
+		{
+			return extractColor(p_color, 0, toFloat);
+		}
+
+		/**
+		 */
+		[Inline]
+		static private function extractColor(p_color:uint, p_shift:int, toFloat:Boolean):Number
+		{
+			return ((p_color >> p_shift) & 0xff) / (toFloat ? 255.0 : 1);
+		}
+
 		//
 		public static const INTERPOLATION_LINEAR:uint = 0;
 		public static const INTERPOLATION_COS:uint = 1;
