@@ -7,6 +7,7 @@ package bb.render.textures
 {
 	import bb.bb_spaces.bb_private;
 	import bb.core.BabyBox;
+	import bb.vo.BBColor;
 
 	import com.genome2d.textures.GTexture;
 	import com.genome2d.textures.factories.GTextureFactory;
@@ -342,7 +343,7 @@ package bb.render.textures
 		/**
 		 * Creates texture circle with given color.
 		 */
-		static public function createFromColorCircle(p_radius:int, p_textureId:String = "", p_color:uint = 0xff9abe5e, p_alignByCenter:Boolean = true):BBTexture
+		static public function createFromColorCircle(p_radius:int, p_textureId:String = "", p_color:uint = 0xff9abe5e, p_outlineColor:uint = 0x00000000, p_thicknessOutline:uint = 1, p_alignByCenter:Boolean = true):BBTexture
 		{
 			var texture:BBTexture = getTextureById(p_textureId);
 			if (texture) return texture;
@@ -350,8 +351,24 @@ package bb.render.textures
 			//
 			var bitmapData:BitmapData = new BitmapData(p_radius * 2, p_radius * 2, true, 0x00000000);
 			var circle:Sprite = new Sprite();
-			circle.graphics.beginFill(p_color);
-			circle.graphics.drawCircle(0, 0, p_radius);
+
+			var alpha:Number = BBColor.getAlpha(p_color, true);
+			p_color = p_color & 0x00ffffff;
+
+			var thickness:int = 0;
+
+			if (p_outlineColor > 0)
+			{
+				thickness = p_thicknessOutline;
+				var alphaOutline:Number = BBColor.getAlpha(p_outlineColor, true);
+				var colorOutline:uint = p_outlineColor & 0x00ffffff;
+				circle.graphics.lineStyle(thickness, colorOutline, alphaOutline);
+
+				thickness += (thickness % 2) == 0 ? 0 : 1;
+			}
+
+			circle.graphics.beginFill(p_color, alpha);
+			circle.graphics.drawCircle(0, 0, p_radius-thickness);
 			circle.graphics.endFill();
 
 			var matrix:Matrix = new Matrix();
