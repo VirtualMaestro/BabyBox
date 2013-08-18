@@ -113,6 +113,19 @@ package bb.core
 		}
 
 		/**
+		 */
+		public function get color():uint
+		{
+			var alpha:uint = uint(_alpha * 255) << 24;
+			var red:uint = uint(_red * 255) << 16;
+			var green:uint = uint(_green * 255) << 8;
+			var blue:uint = uint(_blue * 255);
+
+			return alpha + red + green + blue;
+		}
+
+
+		/**
 		 *     @private
 		 */
 		public function get red():Number
