@@ -85,26 +85,26 @@ package bb.ui
 
 		/**
 		 */
-		public function set width(p_val:Number):void
+		override public function set width(p_val:Number):void
 		{
 			_textField.width = p_val;
 		}
 
 		/**
 		 */
-		public function get width():Number
+		override public function get width():Number
 		{
 			return _textField.width;
 		}
 
 		/**
 		 */
-		public function set height(p_val:Number):void
+		override public function set height(p_val:Number):void
 		{
 			_textField.height = p_val;
 		}
 
-		public function get height():Number
+		override public function get height():Number
 		{
 			return _textField.height;
 		}
