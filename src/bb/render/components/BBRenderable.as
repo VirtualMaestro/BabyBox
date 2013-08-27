@@ -8,13 +8,16 @@ package bb.render.components
 	import bb.bb_spaces.bb_private;
 	import bb.core.BBComponent;
 	import bb.core.BBNode;
+	import bb.core.BBTransform;
 	import bb.core.BabyBox;
 	import bb.core.context.BBContext;
 	import bb.mouse.events.BBMouseEvent;
 	import bb.pools.BBNativePool;
 	import bb.render.textures.BBTexture;
 
+	import flash.geom.Matrix;
 	import flash.geom.Point;
+	import flash.geom.Rectangle;
 
 	use namespace bb_private;
 
@@ -43,7 +46,7 @@ package bb.render.components
 		public var offsetRotation:Number = 0.0;
 
 		//
-//		private var _worldBounds:Rectangle = null;
+		private var _worldBounds:Rectangle = null;
 
 		/**
 		 */
@@ -90,17 +93,60 @@ package bb.render.components
 
 		/**
 		 * Returns bounds of renderable component in world coordinates.
-		 * TODO: implement getWorldBounds
 		 */
-//		public function getWorldBounds():Rectangle
-//		{
-//			if (!_worldBounds) _worldBounds = new Rectangle();
-//
-//
-//			node.transform.worldTransformMatrix.transformPoint();
-//
-//			return _worldBounds;
-//		}
+		public function getWorldBounds():Rectangle
+		{
+			if (!_worldBounds) _worldBounds = new Rectangle();
+
+			if (!node || !z_texture) _worldBounds.setEmpty();
+			else
+			{
+				var transform:BBTransform = node.transform;
+				var transMatrix:Matrix = transform.transformWorldMatrix(scaleX, scaleY, offsetRotation, offsetX, offsetY);
+				var halfWidth:Number = z_texture.width * 0.5;
+				var halfHeight:Number = z_texture.height * 0.5;
+
+				var topLeft:Point = transMatrix.transformPoint(BBNativePool.getPoint(-halfWidth, -halfHeight));
+				var bottomLeft:Point = transMatrix.transformPoint(BBNativePool.getPoint(-halfWidth, halfHeight));
+				var bottomRight:Point = transMatrix.transformPoint(BBNativePool.getPoint(halfWidth, halfHeight));
+				var topRight:Point = transMatrix.transformPoint(BBNativePool.getPoint(halfWidth, -halfHeight));
+
+				var leftX:Number = topLeft.x;
+				var topY:Number = topLeft.y;
+				var rightX:Number = leftX;
+				var bottomY:Number = topY;
+				var nX:Number;
+				var nY:Number;
+
+				var vertices:Vector.<Number> = new <Number>[
+					bottomLeft.x, bottomLeft.y,
+					bottomRight.x, bottomRight.y,
+					topRight.x, topRight.y
+				];
+
+				for (var i:int = 0; i < 6; i += 2)
+				{
+					nX = vertices[i];
+					nY = vertices[i + 1];
+
+					if (leftX > nX) leftX = nX;
+					else if (rightX < nX) rightX = nX;
+
+					if (topY > nY) topY = nY;
+					else if (bottomY < nY) bottomY = nY;
+				}
+
+				_worldBounds.setTo(leftX, topY, rightX - leftX, bottomY - topY);
+
+				// disposing
+				BBNativePool.putPoint(topLeft);
+				BBNativePool.putPoint(bottomLeft);
+				BBNativePool.putPoint(bottomRight);
+				BBNativePool.putPoint(topRight);
+			}
+
+			return _worldBounds;
+		}
 
 		/**
 		 */
@@ -156,6 +202,34 @@ package bb.render.components
 
 		/**
 		 */
+		public function set width(p_val:Number):void
+		{
+			if (z_texture && p_val > 1) scaleX = p_val / z_texture.width;
+		}
+
+		/**
+		 */
+		public function get width():Number
+		{
+			return z_texture ? z_texture.width * scaleX : 0;
+		}
+
+		/**
+		 */
+		public function set height(p_val:Number):void
+		{
+			if (z_texture && p_val > 1) scaleY = p_val / z_texture.height;
+		}
+
+		/**
+		 */
+		public function get height():Number
+		{
+			return z_texture ? z_texture.height * scaleY : 0;
+		}
+
+		/**
+		 */
 		override public function dispose():void
 		{
 			z_texture = null;
@@ -200,11 +274,6 @@ package bb.render.components
 		{
 			var renderableXML:XML = super.getPrototype();
 			if (z_texture) addPrototypeProperty("asset", z_texture.id, "string");
-
-			// no need because public properties, they are automatically added to prototype
-//			addPrototypeProperty("allowRotation", allowRotation, "boolean");
-//			addPrototypeProperty("scaleX", scaleX, "number");
-//			addPrototypeProperty("scaleY", scaleY, "number");
 
 			return renderableXML;
 		}
