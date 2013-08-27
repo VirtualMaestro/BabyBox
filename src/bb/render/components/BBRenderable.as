@@ -233,6 +233,7 @@ package bb.render.components
 		override public function dispose():void
 		{
 			z_texture = null;
+			_worldBounds = null;
 			allowRotation = true;
 			scaleX = 1.0;
 			scaleY = 1.0;
