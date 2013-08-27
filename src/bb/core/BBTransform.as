@@ -190,14 +190,35 @@ package bb.core
 		}
 
 		/**
+		 * Transforms world matrix and return new one by given parameters.
+		 * Almost the same as transformWorldMatrix but changes translation (tx/ty) and there is possible to invert.
 		 */
-		public function getTransformedWorldTransformMatrix(p_scaleX:Number, p_scaleY:Number, p_rotation:Number, p_invert:Boolean):Matrix
+		public function getTransformedWorldTransformMatrix(p_scaleX:Number, p_scaleY:Number, p_rotation:Number, p_invert:Boolean = false):Matrix
 		{
 			var matrix:Matrix = worldTransformMatrix.clone();
 
 			if (p_scaleX != 1 && p_scaleY != 1) matrix.scale(p_scaleX, p_scaleY);
 			if (p_rotation != 0) matrix.rotate(p_rotation);
 			if (p_invert) matrix.invert();
+
+			return matrix;
+		}
+
+		/**
+		 * Returns new transformed world matrix by given parameters.
+		 * NOTICE: scale and rotation won't change the translation of matrix (tx/ty).
+		 */
+		public function transformWorldMatrix(p_scaleX:Number = 1.0, p_scaleY:Number = 1.0, p_rotation:Number = 0.0, p_x:Number = 0, p_y:Number = 0):Matrix
+		{
+			var matrix:Matrix = worldTransformMatrix.clone();
+			var tx:Number = matrix.tx + p_x;
+			var ty:Number = matrix.ty + p_y;
+
+			if (p_scaleX != 1 && p_scaleY != 1) matrix.scale(p_scaleX, p_scaleY);
+			if (p_rotation != 0) matrix.rotate(p_rotation);
+
+			matrix.tx = tx;
+			matrix.ty = ty;
 
 			return matrix;
 		}
@@ -253,6 +274,15 @@ package bb.core
 		final public function getPosition():Vec2
 		{
 			return Vec2.get(x, y);
+		}
+
+		/**
+		 * Returns point with world position.
+		 * Returns new Vec2 instance non-weak.
+		 */
+		final public function getPositionWorld():Vec2
+		{
+			return Vec2.get(worldX, worldY);
 		}
 
 		/**
@@ -368,6 +398,14 @@ package bb.core
 		}
 
 		/**
+		 * Returns rotation in world coordinates.
+		 */
+		public function get rotationWorld():Number
+		{
+			return worldRotation;
+		}
+
+		/**
 		 * Sets scale.
 		 */
 		[Inline]
@@ -417,6 +455,15 @@ package bb.core
 		{
 			calcLocalScaleWhenIndependentUpdate();
 			return _localScaleY;
+		}
+
+		/**
+		 * Gets scale in world.
+		 * Return new non-weak Vec2 instance.
+		 */
+		public function getScaleWorld():Vec2
+		{
+			return Vec2.get(worldScaleX, worldScaleY);
 		}
 
 		/**
