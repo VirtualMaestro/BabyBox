@@ -133,11 +133,11 @@ package bb.ui
 		 */
 		static public function get(p_upState:BBTexture, p_downState:BBTexture = null, p_overState:BBTexture = null):BBButton
 		{
-			var button:BBButton =  BBComponent.getWithNode(BBButton) as BBButton;
+			var button:BBButton = BBComponent.getWithNode(BBButton) as BBButton;
 			button.upState = p_upState;
 			button.downState = p_downState;
 			button.overState = p_overState;
-			button.node.mouseEnabled = true;
+			button.node.mouseSettings = BBMouseEvent.OVER | BBMouseEvent.OUT | BBMouseEvent.UP | BBMouseEvent.DOWN;
 
 			return button;
 		}
