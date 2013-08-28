@@ -189,21 +189,6 @@ package bb.core
 		}
 
 		/**
-		 * Transforms world matrix and return new one by given parameters.
-		 * Almost the same as transformWorldMatrix but changes translation (tx/ty).
-		 */
-		public function getTransformedWorldTransformMatrix(p_scaleX:Number, p_scaleY:Number, p_rotation:Number, p_invert:Boolean = false):Matrix
-		{
-			var matrix:Matrix = worldTransformMatrix.clone();
-
-			if (p_scaleX != 1 && p_scaleY != 1) matrix.scale(p_scaleX, p_scaleY);
-			if (p_rotation != 0) matrix.rotate(p_rotation);
-			if (p_invert) matrix.invert();
-
-			return matrix;
-		}
-
-		/**
 		 * Returns new transformed world matrix by given parameters.
 		 * NOTICE: scale and rotation won't change the translation of matrix (tx/ty).
 		 */
