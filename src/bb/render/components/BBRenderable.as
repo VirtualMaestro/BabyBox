@@ -163,7 +163,8 @@ package bb.render.components
 			}
 
 			var cameraPoint:Point = BBNativePool.getPoint(p_event.cameraX, p_event.cameraY);
-			var localMousePosition:Point = currentNode.transform.worldToLocal(cameraPoint);
+			var matrix:Matrix = currentNode.transform.transformWorldMatrix(scaleX, scaleY, offsetRotation, offsetX, offsetY, true);
+			var localMousePosition:Point = matrix.transformPoint(cameraPoint);
 			var localMouseX:Number = localMousePosition.x;
 			var localMouseY:Number = localMousePosition.y;
 			var texPivotX:Number = z_texture.pivotX;
@@ -174,12 +175,9 @@ package bb.render.components
 			p_event.localX = localMouseX + texPivotX;
 			p_event.localY = localMouseY + texPivotY;
 
-			var texPivotXScaled:Number = texPivotX * scaleX;
-			var texPivotYScaled:Number = texPivotY * scaleY;
-
 			//
-			if (localMouseX >= texPivotXScaled && localMouseX <= texPivotXScaled + z_texture.width * scaleX &&
-					localMouseY >= texPivotYScaled && localMouseY <= texPivotYScaled + z_texture.height * scaleY)
+			if (localMouseX >= texPivotX && localMouseX <= texPivotX + z_texture.width &&
+					localMouseY >= texPivotY && localMouseY <= texPivotY + z_texture.height)
 			{
 				if (mousePixelEnabled && z_texture.getAlphaAt(localMouseX - texPivotX, localMouseY - texPivotY) == 0)
 				{
@@ -201,8 +199,9 @@ package bb.render.components
 		}
 
 		/**
-		 * Sets width for renderable component.
+		 * Sets 'width' for renderable component (changes appropriate scale params).
 		 * Doesn't takes into account rotation.
+		 * For more detailed info use getWorldBounds method.
 		 */
 		public function set width(p_val:Number):void
 		{
@@ -217,6 +216,9 @@ package bb.render.components
 		}
 
 		/**
+		 * Sets 'height' for renderable component (changes appropriate scale params).
+		 * Doesn't takes into account rotation.
+		 * For more detailed info use getWorldBounds method.
 		 */
 		public function set height(p_val:Number):void
 		{
