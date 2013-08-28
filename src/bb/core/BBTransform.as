@@ -124,7 +124,6 @@ package bb.core
 			return alpha + red + green + blue;
 		}
 
-
 		/**
 		 *     @private
 		 */
@@ -191,7 +190,7 @@ package bb.core
 
 		/**
 		 * Transforms world matrix and return new one by given parameters.
-		 * Almost the same as transformWorldMatrix but changes translation (tx/ty) and there is possible to invert.
+		 * Almost the same as transformWorldMatrix but changes translation (tx/ty).
 		 */
 		public function getTransformedWorldTransformMatrix(p_scaleX:Number, p_scaleY:Number, p_rotation:Number, p_invert:Boolean = false):Matrix
 		{
@@ -208,7 +207,7 @@ package bb.core
 		 * Returns new transformed world matrix by given parameters.
 		 * NOTICE: scale and rotation won't change the translation of matrix (tx/ty).
 		 */
-		public function transformWorldMatrix(p_scaleX:Number = 1.0, p_scaleY:Number = 1.0, p_rotation:Number = 0.0, p_x:Number = 0, p_y:Number = 0):Matrix
+		public function transformWorldMatrix(p_scaleX:Number = 1.0, p_scaleY:Number = 1.0, p_rotation:Number = 0.0, p_x:Number = 0, p_y:Number = 0, p_invert:Boolean = false):Matrix
 		{
 			var matrix:Matrix = worldTransformMatrix.clone();
 			var tx:Number = matrix.tx + p_x;
@@ -219,6 +218,8 @@ package bb.core
 
 			matrix.tx = tx;
 			matrix.ty = ty;
+
+			if (p_invert) matrix.invert();
 
 			return matrix;
 		}
