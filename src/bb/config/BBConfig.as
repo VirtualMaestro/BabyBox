@@ -43,6 +43,11 @@ package bb.config
 		public var mousePixelEnable:Boolean = false;
 
 		/**
+		 * Mouse propagation stops immediately after some node handled it.
+		 */
+		public var stopMousePropagationAfterHandling:Boolean = true;
+
+		/**
 		 * If true uses 'sweep and prune' algorithm for physics engine.
 		 * Else uses 'dynamic aabb tree'.
 		 *
@@ -372,11 +377,17 @@ package bb.config
 		}
 
 		/**
-		 * Set which mouse's events will dispatches module BBMouseModule.
-		 * If need dispatch events like: click, move should to set like that:
+		 * Config of dispatching mouse events. Configuration is done via BBMouseEvent.
+		 * E.g. if we want to enable dispatching click and move events - should to do (it will dispatch up and down events):
 		 * <code>
-		 *     mouseSettings = BBMouseActions.CLICK | BBMouseActions.MOVE;
+		 *     mouseSettings = BBMouseEvent.UP | BBMouseEvent.DOWN | BBMouseEvent.MOVE;
 		 * </code>
+		 *
+		 * if need to enable dispatching only e.g. UP event and MOVE, it is possible to do in the following way:
+		 * <code>
+		 *     mouseSettings = BBMouseEvent.UP | BBMouseEvent.MOVE;
+		 * </code>
+		 *
 		 * By default module is not dispatching any events.
 		 *
 		 * [startup]
@@ -397,7 +408,7 @@ package bb.config
 		 * Set which mouse events will receive and dispatches node.
 		 * E.g. need to dispatch mouse click and move:
 		 * <code>
-		 *     mouseSettings = BBMouseActions.CLICK | BBMouseActions.MOVE;
+		 *     mouseSettings = BBMouseEvent.CLICK | BBMouseEvent.MOVE;
 		 * </code>
 		 *
 		 * Except this it is should to allow dispatching appropriate events by BBMouseModule.
