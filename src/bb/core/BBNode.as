@@ -2,7 +2,6 @@ package bb.core
 {
 	import bb.bb_spaces.bb_private;
 	import bb.core.context.BBContext;
-	import bb.mouse.constants.BBMouseActions;
 	import bb.mouse.events.BBMouseEvent;
 	import bb.render.components.BBRenderable;
 	import bb.signals.BBSignal;
@@ -69,12 +68,6 @@ package bb.core
 		public var keepGroup:Boolean = false;
 
 		/**
-		 * Property determine if node active - updating/rendering.
-		 * If active false this node and all children nodes with components are not update and render, but they still in the tree.
-		 */
-		private var _active:Boolean = true;
-
-		/**
 		 * Transform component of node.
 		 * (as public member for faster access, so read-only)
 		 */
@@ -87,8 +80,17 @@ package bb.core
 
 		/**
 		 * Allows to handle of mouse events.
+		 * There is possible tune which mouse events should node dispatch.
+		 * E.g. mouseSettings = BBMouseEvent.UP | BBMouseEvent.OVER | BBMouseEvent.OUT
+		 * By default node can't dispatch any events. Value by default 0 or BBMouseEvent.NONE.
 		 */
-		public var mouseEnabled:Boolean = false;
+		public var mouseSettings:uint = 0;
+
+		/**
+		 * Property determine if node active - updating/rendering.
+		 * If active false this node and all children nodes with components are not update and render, but they still in the tree.
+		 */
+		private var _active:Boolean = true;
 
 		/**
 		 * Table where stored all components related to this node.
@@ -782,7 +784,7 @@ package bb.core
 				}
 			}
 
-			if (mouseEnabled && z_renderComponent && p_event.propagation)
+			if (mouseSettings > 0 && z_renderComponent && p_event.propagation)
 			{
 				p_captured = z_renderComponent.processMouseEvent(p_captured, p_event) || p_captured;
 			}
@@ -792,9 +794,9 @@ package bb.core
 
 		/**
 		 */
-		bb_private function handleMouseEvent(p_event:BBMouseEvent, p_mouseEventName:String):void
+		bb_private function handleMouseEvent(p_event:BBMouseEvent, p_mouseEventName:uint):void
 		{
-			if (mouseEnabled && p_event.propagation)
+			if (mouseSettings > 0 && p_event.propagation)
 			{
 				p_event.target = this;
 
@@ -806,19 +808,19 @@ package bb.core
 					case BBMouseEvent.DOWN:
 					{
 						mouseDown = p_event.dispatcher;
-						if (_onMouseDown && (p_event.nodeMouseSettings & BBMouseActions.DOWN) != 0) _onMouseDown.dispatch(mouseEvent);
+						if (_onMouseDown && (mouseSettings & BBMouseEvent.DOWN) != 0) _onMouseDown.dispatch(mouseEvent);
 						break;
 					}
 
 					case BBMouseEvent.MOVE:
 					{
-						if (_onMouseMove && (p_event.nodeMouseSettings & BBMouseActions.MOVE) != 0) _onMouseMove.dispatch(mouseEvent);
+						if (_onMouseMove && (mouseSettings & BBMouseEvent.MOVE) != 0) _onMouseMove.dispatch(mouseEvent);
 						break;
 					}
 
 					case BBMouseEvent.UP:
 					{
-						if (mouseDown == p_event.dispatcher && _onMouseClick && (p_event.nodeMouseSettings & BBMouseActions.CLICK) != 0)
+						if (mouseDown == p_event.dispatcher && _onMouseClick && (mouseSettings & BBMouseEvent.CLICK) != 0)
 						{
 							var mouseClickEvent:BBMouseEvent = mouseEvent.clone();
 							mouseClickEvent.type = BBMouseEvent.CLICK;
@@ -828,24 +830,24 @@ package bb.core
 
 						mouseDown = null;
 
-						if (_onMouseUp && (p_event.nodeMouseSettings & BBMouseActions.UP) != 0) _onMouseUp.dispatch(mouseEvent);
+						if (_onMouseUp && (mouseSettings & BBMouseEvent.UP) != 0) _onMouseUp.dispatch(mouseEvent);
 						break;
 					}
 					case BBMouseEvent.OVER:
 					{
 						mouseOver = p_event.dispatcher;
-						if (_onMouseOver && (p_event.nodeMouseSettings & BBMouseActions.OVER) != 0) _onMouseOver.dispatch(mouseEvent);
+						if (_onMouseOver && (mouseSettings & BBMouseEvent.OVER) != 0) _onMouseOver.dispatch(mouseEvent);
 						break;
 					}
 					case BBMouseEvent.OUT:
 					{
 						mouseOver = null;
-						if (_onMouseOut && (p_event.nodeMouseSettings & BBMouseActions.OUT) != 0) _onMouseOut.dispatch(mouseEvent);
+						if (_onMouseOut && (mouseSettings & BBMouseEvent.OUT) != 0) _onMouseOut.dispatch(mouseEvent);
 						break;
 					}
 				}
 
-				p_event.propagation = mouseEvent.propagation;
+				p_event.propagation = !mouseEvent.stopPropagationAfterHandling;
 				mouseEvent.dispose();
 			}
 
@@ -1011,6 +1013,8 @@ package bb.core
 			_isOnStage = false;
 			_active = true;
 			keepGroup = false;
+			mouseChildren = false;
+			mouseSettings = 0;
 
 			// Remove all listeners to prevent dispatching 'onUnlinked' signal for better performance due to avoiding issues which lie behind it
 			_onAdded.removeAllListeners();
@@ -1057,7 +1061,7 @@ package bb.core
 			copyNode.group = group;
 			copyNode.keepGroup = keepGroup;
 			copyNode.mouseChildren = mouseChildren;
-			copyNode.mouseEnabled = mouseEnabled;
+			copyNode.mouseSettings = mouseSettings;
 			copyNode._active = _active;
 			copyNode._visible = _visible;
 
@@ -1110,7 +1114,7 @@ package bb.core
 			return  "===========================================================================================================================================\n" +
 					"[BBNode: {id: " + _id + "}" + (alias ? "-{alias: " + alias + "}" : "") + "\n" +
 					"{name: " + _name + "}-{group: " + group + "}-{keepGroup: " + keepGroup + "}-{active: " + _active + "}-" +
-					"{mouseChildren: " + mouseChildren + "}-{mouseEnabled: " + mouseEnabled + "}\n" +
+					"{mouseChildren: " + mouseChildren + "}-{mouseSettings: " + mouseSettings + "}\n" +
 					"{numChildren: " + _numChildren + "}-{numComponents: " + _numComponents + "}-{has parent: " + (_parent != null) + "}-{isOnStage: " + _isOnStage + "}-{visible: " + _visible + "}\n" +
 					"{Components:\n " + componentsStr + "}]\n" +
 					"===========================================================================================================================================";
@@ -1166,7 +1170,7 @@ package bb.core
 
 			var nodePrototype:XML = <node/>;
 			nodePrototype.@name = _name;
-			nodePrototype.@mouseEnabled = mouseEnabled;
+			nodePrototype.@mouseSettings = mouseSettings;
 			nodePrototype.@mouseChildren = mouseChildren;
 			nodePrototype.@group = group;
 			nodePrototype.@keepGroup = keepGroup;
@@ -1242,7 +1246,7 @@ package bb.core
 
 				// parse attributes
 				node._name = p_prototype.@name;
-				node.mouseEnabled = p_prototype.@mouseEnabled == "true";
+				node.mouseSettings = parseInt(p_prototype.@mouseSettings);
 				node.mouseChildren = p_prototype.@mouseChildren == "true";
 				node.keepGroup = p_prototype.@keepGroup == "true";
 				node.group = parseInt(p_prototype.@group);

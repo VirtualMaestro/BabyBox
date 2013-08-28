@@ -14,7 +14,6 @@ package bb.tree
 	import bb.core.context.BBContext;
 	import bb.modules.*;
 	import bb.mouse.BBMouseModule;
-	import bb.mouse.constants.BBMouseActions;
 	import bb.mouse.events.BBMouseEvent;
 	import bb.signals.BBSignal;
 
@@ -32,7 +31,6 @@ package bb.tree
 		private var _config:BBConfig = null;
 
 		private var _mouseModule:BBMouseModule = null;
-		private var _nodeMouseSettings:int = 0;
 		private var _camerasModule:BBCamerasModule;
 
 		/**
@@ -50,7 +48,6 @@ package bb.tree
 			_rootNode.z_core = this;
 			_rootNode.markAsRoot();
 			_rootNode.mouseChildren = true;
-			_rootNode.mouseEnabled = true;
 			_rootNode.group = -1;   // will displays for all possible values of camera masks
 		}
 
@@ -85,9 +82,7 @@ package bb.tree
 		 */
 		public function set mouseSettings(p_flags:uint):void
 		{
-			_nodeMouseSettings = p_flags;
-
-			if ((p_flags & BBMouseActions.CLICK) != 0)
+			if ((p_flags & BBMouseEvent.CLICK) != 0)
 			{
 				_mouseModule.onUp.add(mouseHandler);
 				_mouseModule.onDown.add(mouseHandler);
@@ -97,23 +92,22 @@ package bb.tree
 				_mouseModule.onUp.remove(mouseHandler);
 				_mouseModule.onDown.remove(mouseHandler);
 
-				if ((p_flags & BBMouseActions.UP) != 0) _mouseModule.onUp.add(mouseHandler);
+				if ((p_flags & BBMouseEvent.UP) != 0) _mouseModule.onUp.add(mouseHandler);
 				else _mouseModule.onUp.remove(mouseHandler);
 
-				if ((p_flags & BBMouseActions.DOWN) != 0) _mouseModule.onDown.add(mouseHandler);
+				if ((p_flags & BBMouseEvent.DOWN) != 0) _mouseModule.onDown.add(mouseHandler);
 				else _mouseModule.onDown.remove(mouseHandler);
 			}
 
-			if ((p_flags & BBMouseActions.MOVE | p_flags & BBMouseActions.OVER | p_flags & BBMouseActions.OUT) != 0) _mouseModule.onMove.add(mouseHandler);
+			if ((p_flags & BBMouseEvent.MOVE | p_flags & BBMouseEvent.OVER | p_flags & BBMouseEvent.OUT) != 0) _mouseModule.onMove.add(mouseHandler);
 			else _mouseModule.onMove.remove(mouseHandler);
 		}
 
 		/**
 		 */
-		private function mouseHandler(p_signal:BBSignal):void
+		static private function mouseHandler(p_signal:BBSignal):void
 		{
 			var mouseEvent:BBMouseEvent = p_signal.params as BBMouseEvent;
-			mouseEvent.nodeMouseSettings = _nodeMouseSettings;
 
 			var camera:BBCamera = mouseEvent.capturedCamera;
 			if (camera && mouseEvent.propagation)

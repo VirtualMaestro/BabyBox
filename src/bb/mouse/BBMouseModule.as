@@ -10,7 +10,6 @@ package bb.mouse
 	import bb.camera.components.BBCamera;
 	import bb.core.BabyBox;
 	import bb.modules.*;
-	import bb.mouse.constants.BBMouseActions;
 	import bb.mouse.events.BBMouseEvent;
 	import bb.pools.BBNativePool;
 	import bb.signals.BBSignal;
@@ -32,12 +31,18 @@ package bb.mouse
 
 		private var _camerasList:Vector.<BBCamera> = null;
 		private var _viewRect:Rectangle = null;
+		private var _mapNativeMouseEventsConst:Array;
 
 		/**
 		 */
 		public function BBMouseModule()
 		{
 			super();
+
+			_mapNativeMouseEventsConst = [];
+			_mapNativeMouseEventsConst[MouseEvent.MOUSE_UP] = BBMouseEvent.UP;
+			_mapNativeMouseEventsConst[MouseEvent.MOUSE_DOWN] = BBMouseEvent.DOWN;
+			_mapNativeMouseEventsConst[MouseEvent.MOUSE_MOVE] = BBMouseEvent.MOVE;
 
 			_onUp = BBSignal.get(this);
 			_onDown = BBSignal.get(this);
@@ -57,21 +62,34 @@ package bb.mouse
 		}
 
 		/**
-		 * Config of dispatching mouse events. Configuration is done via BBMouseActions.
-		 * E.g. if we want to enable dispatching click and move events - should to do:
+		 * Config of dispatching mouse events. Configuration is done via BBMouseEvent.
+		 * E.g. if we want to enable dispatching click and move events - should to do (it will dispatch up and down events):
 		 * <code>
-		 *     mouseSettings = BBMouseActions.CLICK | BBMouseActions.MOVE;
+		 *     mouseSettings = BBMouseEvent.UP | BBMouseEvent.DOWN | BBMouseEvent.MOVE;
+		 * </code>
+		 *
+		 * if need to enable dispatching only e.g. UP event and MOVE, it is possible to do in the following way:
+		 * <code>
+		 *     mouseSettings = BBMouseEvent.UP | BBMouseEvent.MOVE;
 		 * </code>
 		 */
 		public function set mouseSettings(p_flags:uint):void
 		{
-			if ((p_flags & BBMouseActions.UP) != 0) stage.addEventListener(MouseEvent.MOUSE_UP, mouseHandler);
-			else stage.removeEventListener(MouseEvent.MOUSE_UP, mouseHandler);
+			if ((p_flags & BBMouseEvent.CLICK) != 0)
+			{
+				stage.addEventListener(MouseEvent.MOUSE_UP, mouseHandler);
+				stage.addEventListener(MouseEvent.MOUSE_DOWN, mouseHandler);
+			}
+			else
+			{
+				if ((p_flags & BBMouseEvent.UP) != 0) stage.addEventListener(MouseEvent.MOUSE_UP, mouseHandler);
+				else stage.removeEventListener(MouseEvent.MOUSE_UP, mouseHandler);
 
-			if ((p_flags & BBMouseActions.DOWN) != 0) stage.addEventListener(MouseEvent.MOUSE_DOWN, mouseHandler);
-			else stage.removeEventListener(MouseEvent.MOUSE_DOWN, mouseHandler);
+				if ((p_flags & BBMouseEvent.DOWN) != 0) stage.addEventListener(MouseEvent.MOUSE_DOWN, mouseHandler);
+				else stage.removeEventListener(MouseEvent.MOUSE_DOWN, mouseHandler);
+			}
 
-			if ((p_flags & BBMouseActions.MOVE) != 0) stage.addEventListener(MouseEvent.MOUSE_MOVE, mouseHandler);
+			if ((p_flags & BBMouseEvent.MOVE) != 0) stage.addEventListener(MouseEvent.MOUSE_MOVE, mouseHandler);
 			else stage.removeEventListener(MouseEvent.MOUSE_MOVE, mouseHandler);
 		}
 
@@ -82,9 +100,10 @@ package bb.mouse
 			var stageX:Number = p_event.stageX;
 			var stageY:Number = p_event.stageY;
 
-			var event:BBMouseEvent = BBMouseEvent.get(p_event.type, null, null, 0, 0, p_event.buttonDown, p_event.ctrlKey);
+			var event:BBMouseEvent = BBMouseEvent.get(_mapNativeMouseEventsConst[p_event.type], null, null, 0, 0, p_event.buttonDown, p_event.ctrlKey);
 			event.stageX = stageX;
 			event.stageY = stageY;
+			event.stopPropagationAfterHandling = (engine as BabyBox).config.stopMousePropagationAfterHandling;
 
 			if (_viewRect.contains(stageX, stageY))
 			{
@@ -138,19 +157,19 @@ package bb.mouse
 		{
 			switch (p_event.type)
 			{
-				case MouseEvent.MOUSE_MOVE:
+				case BBMouseEvent.MOVE:
 				{
 					_onMove.dispatch(p_event);
 					break;
 				}
 
-				case MouseEvent.MOUSE_UP:
+				case BBMouseEvent.UP:
 				{
 					_onUp.dispatch(p_event);
 					break;
 				}
 
-				case MouseEvent.MOUSE_DOWN:
+				case BBMouseEvent.DOWN:
 				{
 					_onDown.dispatch(p_event);
 					break;

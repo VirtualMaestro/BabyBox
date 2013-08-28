@@ -16,25 +16,24 @@ package bb.mouse.events
 	 */
 	public class BBMouseEvent
 	{
-		bb_private var nodeMouseSettings:int = 0;
-
 		//
-		static public const CLICK:String = "click";
-		static public const DOWN:String = "mouseDown";
-		static public const MOVE:String = "mouseMove";
-		static public const OUT:String = "mouseOut";
-		static public const OVER:String = "mouseOver";
-		static public const UP:String = "mouseUp";
-
-//		static public const DOUBLE_CLICK:String = "doubleClick";
-//		static public const MOUSE_WHEEL:String = "mouseWheel";
-//		static public const ROLL_OUT:String = "rollOut";
-//		static public const ROLL_OVER:String = "rollOver";
+		static public const NONE:uint = 0x000000;
+		static public const CLICK:uint = 0x000001;
+		static public const UP:uint = 0x000010;
+		static public const DOWN:uint = 0x000100;
+		static public const MOVE:uint = 0x001000;
+		static public const OVER:uint = 0x010000;
+		static public const OUT:uint = 0x100000;
+		static public const ALL:uint = 0xFFFFFF;
 
 		//
 		public var target:BBNode;
 		public var dispatcher:BBNode;
-		public var type:String;
+
+		/**
+		 * Type of mouse event. There is possible few values which are static constants of this class (CLICK, UP, DOWN etc.).
+		 */
+		public var type:uint;
 		public var isButtonDown:Boolean = false;
 		public var isCtrlDown:Boolean = false;
 
@@ -61,12 +60,13 @@ package bb.mouse.events
 		public var capturedCamera:BBCamera = null;
 
 		public var propagation:Boolean = true;
+		public var stopPropagationAfterHandling:Boolean = true;
 
 		private var _isDisposed:Boolean = false;
 
 		/**
 		 */
-		public function BBMouseEvent(p_type:String = "", p_target:BBNode = null, p_dispatcher:BBNode = null, p_localX:int = 0, p_localY:int = 0, p_buttonDown:Boolean = false, p_ctrlDown:Boolean = false)
+		public function BBMouseEvent(p_type:uint = 0, p_target:BBNode = null, p_dispatcher:BBNode = null, p_localX:int = 0, p_localY:int = 0, p_buttonDown:Boolean = false, p_ctrlDown:Boolean = false)
 		{
 			type = p_type;
 			target = p_target;
@@ -91,7 +91,7 @@ package bb.mouse.events
 			cloneInstance.cameraX = cameraX;
 			cloneInstance.cameraY = cameraY;
 			cloneInstance.capturedCamera = capturedCamera;
-			cloneInstance.nodeMouseSettings = nodeMouseSettings;
+			cloneInstance.stopPropagationAfterHandling = stopPropagationAfterHandling;
 
 			return cloneInstance;
 		}
@@ -114,7 +114,7 @@ package bb.mouse.events
 				target = null;
 				dispatcher = null;
 				capturedCamera = null;
-				type = null;
+				type = 0;
 				localX = localY = 0;
 				stageX = stageY = 0;
 				viewRectX = viewRectY = -1;
@@ -139,7 +139,7 @@ package bb.mouse.events
 		/**
 		 * Returns instance of BBMouseEvent.
 		 */
-		static public function get(p_type:String = "", p_target:BBNode = null, p_dispatcher:BBNode = null, p_localX:int = 0, p_localY:int = 0, p_buttonDown:Boolean = false, p_ctrlDown:Boolean = false):BBMouseEvent
+		static public function get(p_type:uint = 0, p_target:BBNode = null, p_dispatcher:BBNode = null, p_localX:int = 0, p_localY:int = 0, p_buttonDown:Boolean = false, p_ctrlDown:Boolean = false):BBMouseEvent
 		{
 			var mouseEvent:BBMouseEvent;
 
