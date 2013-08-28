@@ -201,6 +201,8 @@ package bb.render.components
 		}
 
 		/**
+		 * Sets width for renderable component.
+		 * Doesn't takes into account rotation.
 		 */
 		public function set width(p_val:Number):void
 		{
