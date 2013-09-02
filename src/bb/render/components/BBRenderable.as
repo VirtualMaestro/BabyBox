@@ -16,7 +16,6 @@ package bb.render.components
 	import bb.render.textures.BBTexture;
 
 	import flash.geom.Matrix;
-	import flash.geom.Point;
 	import flash.geom.Rectangle;
 
 	use namespace bb_private;
@@ -96,32 +95,34 @@ package bb.render.components
 		 */
 		public function getWorldBounds():Rectangle
 		{
-			if (!_worldBounds) _worldBounds = new Rectangle();
+			if (!_worldBounds) _worldBounds = BBNativePool.getRect();
 
 			if (!node || !z_texture) _worldBounds.setEmpty();
 			else
 			{
-				var transform:BBTransform = node.transform;
-				var transMatrix:Matrix = transform.transformWorldMatrix(scaleX, scaleY, offsetRotation, offsetX, offsetY);
 				var halfWidth:Number = z_texture.width * 0.5;
 				var halfHeight:Number = z_texture.height * 0.5;
+				var transform:BBTransform = node.transform;
+				var transMatrix:Matrix = transform.transformWorldMatrix(scaleX, scaleY, offsetRotation, offsetX, offsetY);
+				var a:Number = transMatrix.a;
+				var b:Number = transMatrix.b;
+				var c:Number = transMatrix.c;
+				var d:Number = transMatrix.d;
+				var tx:Number = transMatrix.tx;
+				var ty:Number = transMatrix.ty;
+				BBNativePool.putMatrix(transMatrix);
 
-				var topLeft:Point = transMatrix.transformPoint(BBNativePool.getPoint(-halfWidth, -halfHeight));
-				var bottomLeft:Point = transMatrix.transformPoint(BBNativePool.getPoint(-halfWidth, halfHeight));
-				var bottomRight:Point = transMatrix.transformPoint(BBNativePool.getPoint(halfWidth, halfHeight));
-				var topRight:Point = transMatrix.transformPoint(BBNativePool.getPoint(halfWidth, -halfHeight));
-
-				var leftX:Number = topLeft.x;
-				var topY:Number = topLeft.y;
+				var leftX:Number = -halfWidth * a + -halfHeight * c + tx;
+				var topY:Number = -halfWidth * b + -halfHeight * d + ty;
 				var rightX:Number = leftX;
 				var bottomY:Number = topY;
 				var nX:Number;
 				var nY:Number;
 
 				var vertices:Vector.<Number> = new <Number>[
-					bottomLeft.x, bottomLeft.y,
-					bottomRight.x, bottomRight.y,
-					topRight.x, topRight.y
+					-halfWidth * a + halfHeight * c + tx, -halfWidth * b + halfHeight * d + ty,
+					halfWidth * a + halfHeight * c + tx, halfWidth * b + halfHeight * d + ty,
+					halfWidth * a + -halfHeight * c + tx, halfWidth * b + -halfHeight * d + ty
 				];
 
 				for (var i:int = 0; i < 6; i += 2)
@@ -137,12 +138,6 @@ package bb.render.components
 				}
 
 				_worldBounds.setTo(leftX, topY, rightX - leftX, bottomY - topY);
-
-				// disposing
-				BBNativePool.putPoint(topLeft);
-				BBNativePool.putPoint(bottomLeft);
-				BBNativePool.putPoint(bottomRight);
-				BBNativePool.putPoint(topRight);
 			}
 
 			return _worldBounds;
@@ -256,7 +251,13 @@ package bb.render.components
 		override public function dispose():void
 		{
 			z_texture = null;
-			_worldBounds = null;
+
+			if (_worldBounds)
+			{
+				BBNativePool.putRect(_worldBounds);
+				_worldBounds = null;
+			}
+
 			allowRotation = true;
 			scaleX = 1.0;
 			scaleY = 1.0;
