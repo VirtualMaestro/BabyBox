@@ -5,6 +5,7 @@
  */
 package bb.pools
 {
+	import flash.geom.Matrix;
 	import flash.geom.Point;
 	import flash.geom.Rectangle;
 
@@ -132,6 +133,66 @@ package bb.pools
 			}
 		}
 
+		/////////////////
+		// MATRIX POOL //
+		/////////////////
+
+		//
+		static private var _matrixPool:Vector.<Matrix>;
+		static private var _matrixSize:int = 0;
+
+		/**
+		 * Returns instance of Matrix class.
+		 */
+		static public function getMatrix():Matrix
+		{
+			var matrix:Matrix;
+
+			if (_matrixSize > 0)
+			{
+				matrix = _matrixPool[--_matrixSize];
+				matrix.identity();
+			}
+			else matrix = new Matrix();
+
+			return matrix;
+		}
+
+		/**
+		 * Put Matrix instance to pool.
+		 */
+		static public function putMatrix(p_matrix:Matrix):void
+		{
+			if (_matrixPool == null) _matrixPool = new <Matrix>[];
+			_matrixPool[_matrixSize++] = p_matrix;
+		}
+
+		/**
+		 * Returns number of Matrix instances in pool.
+		 */
+		static public function sizeMatrices():int
+		{
+			return _matrixSize;
+		}
+
+		/**
+		 * Clear Matrix pool.
+		 */
+		static public function ridMatrixPool():void
+		{
+			if (_matrixPool)
+			{
+				_matrixSize = _matrixPool.length;
+				for (var i:int = 0; i < _matrixSize; i++)
+				{
+					_matrixPool[i] = null;
+				}
+
+				_matrixPool.length = _matrixSize = 0;
+				_matrixPool = null;
+			}
+		}
+
 		/**
 		 * Rid all pools.
 		 */
@@ -139,6 +200,7 @@ package bb.pools
 		{
 			ridRectPool();
 			ridPointPool();
+			ridMatrixPool();
 		}
 	}
 }
