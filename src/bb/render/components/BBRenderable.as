@@ -152,50 +152,69 @@ package bb.render.components
 		 */
 		bb_private function processMouseEvent(p_captured:Boolean, p_event:BBMouseEvent):Boolean
 		{
+			var captureResult:Boolean = false;
 			var currentNode:BBNode = node;
 			p_event.dispatcher = currentNode;
 
 			if (p_captured && p_event.type == BBMouseEvent.UP) currentNode.mouseDown = null;
 			if (p_captured || z_texture == null)
 			{
-				if (currentNode.mouseOver == currentNode) currentNode.handleMouseEvent(p_event, BBMouseEvent.OUT);
-				return false;
-			}
-
-			var cameraPoint:Point = BBNativePool.getPoint(p_event.cameraX, p_event.cameraY);
-			var matrix:Matrix = currentNode.transform.transformWorldMatrix(scaleX, scaleY, offsetRotation, offsetX, offsetY, true);
-			var localMousePosition:Point = matrix.transformPoint(cameraPoint);
-			var localMouseX:Number = localMousePosition.x;
-			var localMouseY:Number = localMousePosition.y;
-			var texPivotX:Number = z_texture.pivotX;
-			var texPivotY:Number = z_texture.pivotY;
-
-			BBNativePool.putPoint(cameraPoint);
-
-			p_event.localX = localMouseX + texPivotX;
-			p_event.localY = localMouseY + texPivotY;
-
-			//
-			if (localMouseX >= texPivotX && localMouseX <= texPivotX + z_texture.width &&
-					localMouseY >= texPivotY && localMouseY <= texPivotY + z_texture.height)
-			{
-				if (mousePixelEnabled && z_texture.getAlphaAt(localMouseX - texPivotX, localMouseY - texPivotY) == 0)
+				if (currentNode.mouseOver == currentNode)
 				{
-					if (currentNode.mouseOver == currentNode) currentNode.handleMouseEvent(p_event, BBMouseEvent.OUT);
-					return false;
-				}
+					currentNode.handleMouseEvent(p_event, BBMouseEvent.OUT);
 
-				// **************
-				currentNode.handleMouseEvent(p_event, p_event.type);
-				// ***************
+					// if need stop propagation
+					p_event.propagation = !p_event.stopPropagationAfterHandling;
+				}
+			}
+			else
+			{
+				var matrix:Matrix = currentNode.transform.transformWorldMatrix(scaleX, scaleY, offsetRotation, offsetX, offsetY, true);
+				var camX:Number = p_event.cameraX;
+				var camY:Number = p_event.cameraY;
+				var localMouseX:Number = camX * matrix.a + camY * matrix.c + matrix.tx;
+				var localMouseY:Number = camX * matrix.b + camY * matrix.d + matrix.ty;
+				var texPivotX:Number = z_texture.pivotX;
+				var texPivotY:Number = z_texture.pivotY;
+
+				BBNativePool.putMatrix(matrix);
+
+				p_event.localX = localMouseX + texPivotX;
+				p_event.localY = localMouseY + texPivotY;
 
 				//
-				if (currentNode && currentNode.mouseOver != currentNode) currentNode.handleMouseEvent(p_event, BBMouseEvent.OVER);
-				return true;
-			}
-			else if (currentNode.mouseOver == currentNode) currentNode.handleMouseEvent(p_event, BBMouseEvent.OUT);
+				if (localMouseX >= texPivotX && localMouseX <= texPivotX + z_texture.width &&
+						localMouseY >= texPivotY && localMouseY <= texPivotY + z_texture.height)
+				{
+					if (mousePixelEnabled && z_texture.getAlphaAt(localMouseX - texPivotX, localMouseY - texPivotY) == 0)
+					{
+						if (currentNode.mouseOver == currentNode) currentNode.handleMouseEvent(p_event, BBMouseEvent.OUT);
+					}
+					else
+					{
+						currentNode.handleMouseEvent(p_event, p_event.type);
 
-			return false;
+						if (currentNode && currentNode.mouseOver != currentNode)
+						{
+							currentNode.handleMouseEvent(p_event, BBMouseEvent.OVER);
+						}
+
+						// if need stop propagation
+						p_event.propagation = !p_event.stopPropagationAfterHandling;
+
+						captureResult = true;
+					}
+				}
+				else if (currentNode.mouseOver == currentNode)
+				{
+					currentNode.handleMouseEvent(p_event, BBMouseEvent.OUT);
+
+					// if need stop propagation
+					p_event.propagation = !p_event.stopPropagationAfterHandling;
+				}
+			}
+
+			return captureResult;
 		}
 
 		/**

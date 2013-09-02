@@ -44,8 +44,23 @@ package bb.config
 
 		/**
 		 * Mouse propagation stops immediately after some node handled it.
+		 * Use this param carefully, it could lead to unexpected behaviour, but it can gives more performance.
 		 */
-		public var stopMousePropagationAfterHandling:Boolean = true;
+		public var stopMousePropagationAfterHandling:Boolean = false;
+
+		/**
+		 * Synchronize of dispatching given mouse events with update loop.
+		 * It's help to reduce handling of mouse events by the node's tree and can significant reduce overhead especially for MOVE event.
+		 * It is mean after mouse dispatch event it won't dispatches immediately, but when update happened.
+		 * There is possible three const: BBMouseEvent.UP, BBMouseEvent.DOWN, BBMouseEvent.MOVE.
+		 * E.g. need to synchronize MOVE and UP events:
+		 * <code>
+		 *     synchronizeMouseEventDispatching = BBMouseEvent.UP | BBMouseEvent.MOVE;
+		 * </code>
+		 *
+		 * [startup]
+		 */
+		public var synchronizeMouseEventDispatching:uint = 0;
 
 		/**
 		 * If true uses 'sweep and prune' algorithm for physics engine.

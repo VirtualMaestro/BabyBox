@@ -780,7 +780,7 @@ package bb.core
 				while (lastChild)
 				{
 					p_captured = lastChild.processMouseEvent(p_captured, p_event) || p_captured;
-					lastChild = lastChild.prev;
+					lastChild = p_event.propagation ? lastChild.prev : null;
 				}
 			}
 
@@ -847,12 +847,12 @@ package bb.core
 					}
 				}
 
-				p_event.propagation = !mouseEvent.stopPropagationAfterHandling;
+				p_event.stopPropagationAfterHandling = mouseEvent.stopPropagationAfterHandling;
 				mouseEvent.dispose();
 			}
 
 			//
-			if (parent) parent.handleMouseEvent(p_event, p_mouseEventName);
+			if (parent && !p_event.stopPropagationAfterHandling) parent.handleMouseEvent(p_event, p_mouseEventName);
 		}
 
 		/**

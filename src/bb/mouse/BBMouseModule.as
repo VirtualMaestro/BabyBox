@@ -33,6 +33,11 @@ package bb.mouse
 		private var _viewRect:Rectangle = null;
 		private var _mapNativeMouseEventsConst:Array;
 
+		//
+		private var _pendingEventsMap:Array;
+		private var _pendingEventsQueue:Vector.<MouseEvent>;
+		private var _synchronizeDispatching:uint = 0;
+
 		/**
 		 */
 		public function BBMouseModule()
@@ -59,6 +64,7 @@ package bb.mouse
 			_viewRect = (engine as BabyBox).config.getViewRect();
 
 			mouseSettings = (engine as BabyBox).config.mouseSettings;
+			synchronizeDispatching = (engine as BabyBox).config.synchronizeMouseEventDispatching;
 		}
 
 		/**
@@ -97,18 +103,25 @@ package bb.mouse
 		 */
 		private function mouseHandler(p_event:MouseEvent):void
 		{
-			var stageX:Number = p_event.stageX;
-			var stageY:Number = p_event.stageY;
+			var eventType:uint = _mapNativeMouseEventsConst[p_event.type];
 
-			var event:BBMouseEvent = BBMouseEvent.get(_mapNativeMouseEventsConst[p_event.type], null, null, 0, 0, p_event.buttonDown, p_event.ctrlKey);
-			event.stageX = stageX;
-			event.stageY = stageY;
+			if ((_synchronizeDispatching & eventType) != 0) addEventToQueue(p_event);
+			else mouseProcess(eventType, p_event.stageX, p_event.stageY, p_event.buttonDown, p_event.ctrlKey);
+		}
+
+		/**
+		 */
+		private function mouseProcess(p_type:uint, p_mouseX:Number, p_mouseY:Number, p_buttonDown:Boolean, p_ctrlKey:Boolean):void
+		{
+			var event:BBMouseEvent = BBMouseEvent.get(p_type, null, null, 0, 0, p_buttonDown, p_ctrlKey);
+			event.stageX = p_mouseX;
+			event.stageY = p_mouseY;
 			event.stopPropagationAfterHandling = (engine as BabyBox).config.stopMousePropagationAfterHandling;
 
-			if (_viewRect.contains(stageX, stageY))
+			if (_viewRect.contains(p_mouseX, p_mouseY))
 			{
-				event.viewRectX = stageX - _viewRect.x;
-				event.viewRectY = stageY - _viewRect.y;
+				event.viewRectX = p_mouseX - _viewRect.x;
+				event.viewRectY = p_mouseY - _viewRect.y;
 
 				// set mouse position
 				var mousePosition:Point = BBNativePool.getPoint(event.viewRectX, event.viewRectY);
@@ -178,6 +191,71 @@ package bb.mouse
 		}
 
 		/**
+		 * Synchronize of dispatching given mouse events with update loop.
+		 * It's help to reduce handling of mouse events by the node's tree and can significant reduce overhead especially for MOVE event.
+		 * It is mean after mouse dispatch event it won't dispatches immediately, but when update happened.
+		 * There is possible three const: BBMouseEvent.UP, BBMouseEvent.DOWN, BBMouseEvent.MOVE.
+		 * E.g. need to synchronize MOVE and UP events:
+		 * <code>
+		 *     synchronizeDispatching = BBMouseEvent.UP | BBMouseEvent.MOVE;
+		 * </code>
+		 */
+		public function set synchronizeDispatching(p_val:uint):void
+		{
+			if (_synchronizeDispatching == p_val) return;
+			_synchronizeDispatching = p_val;
+
+			if (_synchronizeDispatching != 0)
+			{
+				updateEnable = true;
+				_pendingEventsMap = [];
+				_pendingEventsQueue = new <MouseEvent>[];
+			}
+			else
+			{
+				updateEnable = false;
+				_pendingEventsMap = null;
+				_pendingEventsQueue = null;
+			}
+		}
+
+		/**
+		 */
+		public function get synchronizeDispatching():uint
+		{
+			return _synchronizeDispatching;
+		}
+
+		/**
+		 */
+		[Inline]
+		final private function addEventToQueue(p_event:MouseEvent):void
+		{
+			if (_pendingEventsMap[p_event.type] == null)
+			{
+				_pendingEventsQueue.push(p_event);
+				_pendingEventsMap[p_event.type] = true;
+			}
+		}
+
+		/**
+		 */
+		override public function update(p_deltaTime:int):void
+		{
+			var mouseEvent:MouseEvent;
+			var numEvents:uint = _pendingEventsQueue.length;
+			for (var i:int = 0; i < numEvents; i++)
+			{
+				mouseEvent = _pendingEventsQueue[i];
+				mouseProcess(_mapNativeMouseEventsConst[mouseEvent.type], mouseEvent.stageX, mouseEvent.stageY, mouseEvent.buttonDown, mouseEvent.ctrlKey);
+
+				_pendingEventsMap[mouseEvent.type] = null;
+			}
+
+			_pendingEventsQueue.length = 0;
+		}
+
+		/**
 		 */
 		override public function dispose():void
 		{
@@ -195,7 +273,9 @@ package bb.mouse
 			super.dispose();
 		}
 
+		/////////////////////////
 		// setters and getters //
+		/////////////////////////
 
 		public function get onUp():BBSignal
 		{
