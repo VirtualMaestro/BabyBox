@@ -16,7 +16,6 @@ package bb.prototyping
 	import bb.vo.BBColor;
 
 	import nape.dynamics.InteractionFilter;
-
 	import nape.geom.Vec2;
 	import nape.phys.BodyType;
 	import nape.phys.Material;
@@ -142,7 +141,11 @@ package bb.prototyping
 			var downState:BBTexture = BBTexture.createFromColorRect(100, 25, "", 0xffff0000);
 			var overState:BBTexture = BBTexture.createFromColorRect(100, 25, "", 0xffa3d5ba);
 			var button:BBButton = BBButton.get(upState, downState, overState);
-			button.node.addChild(BBLabel.getWithNode(p_text).node);
+			var label:BBLabel = BBLabel.getWithNode(p_text);
+			button.node.addChild(label.node);
+
+			label.node.name = "label";
+			button.node.name = "button";
 
 			return button;
 		}
