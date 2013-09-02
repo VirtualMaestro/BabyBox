@@ -6,6 +6,7 @@
 package bb.core
 {
 	import bb.bb_spaces.bb_private;
+	import bb.pools.BBNativePool;
 
 	import flash.geom.Matrix;
 	import flash.geom.Point;
@@ -189,12 +190,21 @@ package bb.core
 		}
 
 		/**
-		 * Returns new transformed world matrix by given parameters.
+		 * Returns new instance of Matrix of transformed world matrix by given parameters.
+		 * If after using instance is not need anymore there is possible to take back it to pool - BBNativePool.putMatrix(matrix);
 		 * NOTICE: scale and rotation won't change the translation of matrix (tx/ty).
 		 */
 		public function transformWorldMatrix(p_scaleX:Number = 1.0, p_scaleY:Number = 1.0, p_rotation:Number = 0.0, p_x:Number = 0, p_y:Number = 0, p_invert:Boolean = false):Matrix
 		{
-			var matrix:Matrix = worldTransformMatrix.clone();
+			var matrix:Matrix = BBNativePool.getMatrix();
+			var worldMatrix:Matrix = worldTransformMatrix;
+			matrix.a = worldMatrix.a;
+			matrix.b = worldMatrix.b;
+			matrix.c = worldMatrix.c;
+			matrix.d = worldMatrix.d;
+			matrix.tx = worldMatrix.tx;
+			matrix.ty = worldMatrix.ty;
+
 			var tx:Number = matrix.tx + p_x;
 			var ty:Number = matrix.ty + p_y;
 
@@ -220,7 +230,7 @@ package bb.core
 				var sX:Number = (worldScaleX == 0) ? 0.000001 : worldScaleX;
 				var sY:Number = (worldScaleY == 0) ? 0.000001 : worldScaleY;
 
-				if (_worldTransformMatrix == null) _worldTransformMatrix = new Matrix();
+				if (_worldTransformMatrix == null) _worldTransformMatrix = BBNativePool.getMatrix();
 				_worldTransformMatrix.createBox(sX, sY, worldRotation, worldX, worldY);
 				_isWorldTransformMatrixChanged = false;
 			}
@@ -233,7 +243,7 @@ package bb.core
 		 */
 		public function get localTransformMatrix():Matrix
 		{
-			if (_localTransformMatrix == null) _localTransformMatrix = new Matrix();
+			if (_localTransformMatrix == null) _localTransformMatrix = BBNativePool.getMatrix();
 			_localTransformMatrix.createBox(_localScaleX, _localScaleY, _localRotation, _localX, _localY);
 			return _localTransformMatrix;
 		}
@@ -519,26 +529,49 @@ package bb.core
 
 		/**
 		 * Transform given point from local coordinate system to world.
+		 * Returns new Point instance.
+		 * After use if point instance not need it is possible back it to pool - BBNativePool.putPoint(point);
 		 */
-		public function localToWorld(p_point:Point):Point
+		public function localToWorld(p_x:Number, p_y:Number):Point
 		{
-			if (node) p_point = worldTransformMatrix.transformPoint(p_point);
-			return p_point;
+			var resultPoint:Point = BBNativePool.getPoint(p_x, p_y);
+
+			if (node)
+			{
+				var matrix:Matrix = worldTransformMatrix;
+				resultPoint.setTo(p_x * matrix.a + p_y * matrix.c + matrix.tx, p_x * matrix.b + p_y * matrix.d + matrix.ty);
+			}
+
+			return resultPoint;
 		}
 
 		/**
 		 * Transform given point from world coordinate system to local.
+		 * Returns new Point instance.
+		 * After use if point instance not need it is possible back it to pool - BBNativePool.putPoint(point);
 		 */
-		public function worldToLocal(p_point:Point):Point
+		public function worldToLocal(p_x:Number, p_y:Number):Point
 		{
+			var resultPoint:Point = BBNativePool.getPoint(p_x, p_y);
+
 			if (node)
 			{
-				var matrix:Matrix = worldTransformMatrix.clone();
+				var matrix:Matrix = BBNativePool.getMatrix();
+				var worldMatrix:Matrix = worldTransformMatrix;
+				matrix.a = worldMatrix.a;
+				matrix.b = worldMatrix.b;
+				matrix.c = worldMatrix.c;
+				matrix.d = worldMatrix.d;
+				matrix.tx = worldMatrix.tx;
+				matrix.ty = worldMatrix.ty;
 				matrix.invert();
-				p_point = matrix.transformPoint(p_point);
+
+				resultPoint.setTo(p_x * matrix.a + p_y * matrix.c + matrix.tx, p_x * matrix.b + p_y * matrix.d + matrix.ty);
+
+				BBNativePool.putMatrix(matrix);
 			}
 
-			return p_point;
+			return resultPoint;
 		}
 
 		/**
