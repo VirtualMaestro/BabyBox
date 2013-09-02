@@ -92,6 +92,7 @@ package bb.render.components
 
 		/**
 		 * Returns bounds of renderable component in world coordinates.
+		 * It is not creates new instance, so if need own instance need to make 'clone' - rectangle.clone();
 		 */
 		public function getWorldBounds():Rectangle
 		{
