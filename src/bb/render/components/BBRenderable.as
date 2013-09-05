@@ -87,7 +87,13 @@ package bb.render.components
 		 */
 		public function render(p_context:BBContext):void
 		{
-			if (z_texture) p_context.renderComponent(this);
+			if (z_texture)
+			{
+				var transform:BBTransform = node.transform;
+				p_context.draw(z_texture, transform.worldX, transform.worldY, (allowRotation ? transform.worldRotation : 0), transform.worldScaleX, transform.worldScaleY,
+						offsetX, offsetY, offsetRotation, scaleX, scaleY,
+						transform.worldAlpha, transform.worldRed, transform.worldGreen, transform.worldBlue);
+			}
 		}
 
 		/**
