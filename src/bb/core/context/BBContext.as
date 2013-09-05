@@ -47,7 +47,7 @@ package bb.core.context
 
 		/**
 		 */
-		public var PRECISE_COLOR:Number = 0.01;
+		public var PRECISE_COLOR:Number = 0.001;
 
 		private var PI2:Number = Math.PI * 2;
 
@@ -401,22 +401,6 @@ package bb.core.context
 			}
 
 			return false;
-		}
-
-		/**
-		 * Render texture.
-		 * TODO:
-		 */
-		public function renderTexture(p_texture:BBTexture):void
-		{
-			if (_isStage3d)
-			{
-
-			}
-			else
-			{
-
-			}
 		}
 
 		/**
