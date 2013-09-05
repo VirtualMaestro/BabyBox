@@ -7,6 +7,7 @@ package bb.render.textures
 {
 	import bb.bb_spaces.bb_private;
 	import bb.core.BabyBox;
+	import bb.pools.BBNativePool;
 	import bb.vo.BBColor;
 
 	import com.genome2d.textures.GTexture;
@@ -15,6 +16,8 @@ package bb.render.textures
 	import flash.display.Bitmap;
 	import flash.display.BitmapData;
 	import flash.display.DisplayObject;
+	import flash.display.GradientType;
+	import flash.display.Shape;
 	import flash.display.Sprite;
 	import flash.geom.Matrix;
 	import flash.geom.Point;
@@ -275,8 +278,8 @@ package bb.render.textures
 		}
 
 		//
-		static private var MATRIX:Matrix = new Matrix();
-		static private var DESTINATION_POINT:Point = new Point();
+		static private var MATRIX:Matrix = BBNativePool.getMatrix();
+		static private var DESTINATION_POINT:Point = BBNativePool.getPoint();
 
 		/**
 		 */
@@ -341,23 +344,19 @@ package bb.render.textures
 		}
 
 		/**
-		 * Creates texture circle with given color.
+		 * p_colors - array with colors for gradient. If set one color it uses for solid fill.
+		 * If p_colors null or empty it is use default color.
 		 */
-		static public function createFromColorCircle(p_radius:int, p_textureId:String = "", p_color:uint = 0xff9abe5e, p_outlineColor:uint = 0x00000000, p_thicknessOutline:uint = 1, p_alignByCenter:Boolean = true):BBTexture
+		static public function createFromColorCircle(p_radius:int, p_textureId:String = "", p_colors:Array = null, p_outlineColor:uint = 0x00000000, p_thicknessOutline:uint = 0, p_alignByCenter:Boolean = true):BBTexture
 		{
 			var texture:BBTexture = getTextureById(p_textureId);
 			if (texture) return texture;
 
-			//
 			var bitmapData:BitmapData = new BitmapData(p_radius * 2, p_radius * 2, true, 0x00000000);
-			var circle:Sprite = new Sprite();
-
-			var alpha:Number = BBColor.getAlpha(p_color, true);
-			p_color = p_color & 0x00ffffff;
+			var circle:Shape = new Shape();
 
 			var thickness:int = 0;
-
-			if (p_outlineColor > 0)
+			if (p_thicknessOutline > 0)
 			{
 				thickness = p_thicknessOutline;
 				var alphaOutline:Number = BBColor.getAlpha(p_outlineColor, true);
@@ -367,13 +366,48 @@ package bb.render.textures
 				thickness += (thickness % 2) == 0 ? 0 : 1;
 			}
 
-			circle.graphics.beginFill(p_color, alpha);
-			circle.graphics.drawCircle(0, 0, p_radius-thickness);
-			circle.graphics.endFill();
+			var color:uint = 0xff9abe5e;
+			var alpha:Number;
 
-			var matrix:Matrix = new Matrix();
+			if (p_colors == null || p_colors.length <= 1)
+			{
+
+				alpha = BBColor.getAlpha(color, true);
+				color = color & 0x00ffffff;
+
+				circle.graphics.beginFill(color, alpha);
+				circle.graphics.drawCircle(0, 0, p_radius - thickness);
+				circle.graphics.endFill();
+			}
+			else
+			{
+				var colors:Array = [];
+				var alphas:Array = [];
+				var numColors:int = p_colors.length;
+				var ratio:Number = 255 / (numColors - 1);
+				var ratios:Array = [];
+
+				for (var i:int = 0; i < numColors; i++)
+				{
+					color = p_colors[i];
+					alpha = BBColor.getAlpha(color, true);
+					color = color & 0x00ffffff;
+
+					colors[i] = color;
+					alphas[i] = alpha;
+					ratios[i] = Math.ceil(i * ratio);
+				}
+
+				circle.graphics.beginGradientFill(GradientType.RADIAL, colors, alphas, ratios);
+				circle.graphics.drawCircle(0, 0, p_radius - thickness);
+				circle.graphics.endFill();
+			}
+
+			var matrix:Matrix = BBNativePool.getMatrix();
 			matrix.translate(p_radius, p_radius);
 			bitmapData.draw(circle, matrix, null, null, null, true);
+			BBNativePool.putMatrix(matrix);
+
 			return createFromBitmapData(bitmapData, p_textureId, p_alignByCenter);
 		}
 
@@ -395,8 +429,10 @@ package bb.render.textures
 			circle.graphics.drawEllipse(0, 0, p_radiusX, p_radiusY);
 			circle.graphics.endFill();
 
-			var matrix:Matrix = new Matrix();
+			var matrix:Matrix = BBNativePool.getMatrix();
 			bitmapData.draw(circle, matrix, null, null, null, true);
+			BBNativePool.putMatrix(matrix);
+
 			return createFromBitmapData(bitmapData, p_textureId, p_alignByCenter);
 		}
 
