@@ -71,7 +71,7 @@ package bb.ai.components
 
 		/**
 		 */
-		override public function update(p_deltaTime:Number):void
+		override public function update(p_deltaTime:int):void
 		{
 			_fsm.update(p_deltaTime);
 		}

@@ -221,7 +221,7 @@ package bb.render.components
 
 		/**
 		 */
-		override public function update(p_deltaTime:Number):void
+		override public function update(p_deltaTime:int):void
 		{
 			_accumulatedTime += p_deltaTime;
 

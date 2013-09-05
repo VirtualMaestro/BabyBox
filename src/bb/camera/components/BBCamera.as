@@ -23,9 +23,6 @@ package bb.camera.components
 	import flash.geom.Point;
 	import flash.geom.Rectangle;
 
-	import vm.math.rand.Noise;
-	import vm.math.rand.RandUtil;
-
 	CONFIG::debug
 	{
 		import vm.debug.Assert;
@@ -459,7 +456,7 @@ package bb.camera.components
 
 		/**
 		 */
-		override public function update(p_deltaTime:Number):void
+		override public function update(p_deltaTime:int):void
 		{
 			invalidate();
 
@@ -613,7 +610,7 @@ package bb.camera.components
 			{
 				_shiftPositionX = _shaker.getX(_timeAccumulator);
 				_shiftPositionY = _shaker.getY(_timeAccumulator);
-				_shiftRotation  = _shaker.getRotation(_timeAccumulator);
+				_shiftRotation = _shaker.getRotation(_timeAccumulator);
 
 				_transform.shiftPositionAndRotation(_shiftPositionX, _shiftPositionY, _shiftRotation);
 			}
