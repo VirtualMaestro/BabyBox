@@ -262,7 +262,7 @@ package bb.core.context
 		 *
 		 * All color multipliers must be in range [0, 1].
 		 */
-		public function draw(p_texture:BBTexture, p_x:Number, p_y:Number, p_rotation:Number = 0, p_scaleX:Number = 1.0, p_scaleY:Number = 1.0, p_offsetX:Number = 0, p_offsetY:Number = 0, p_offsetRotation:Number = 0, p_offsetScaleX:Number = 0, p_offsetScaleY:Number = 0, p_alphaMultiplier:Number = 1.0, p_redMultiplier:Number = 1.0, p_greenMultiplier:Number = 1.0, p_blueMultiplier:Number = 1.0):void
+		public function draw(p_texture:BBTexture, p_x:Number, p_y:Number, p_rotation:Number = 0, p_scaleX:Number = 1.0, p_scaleY:Number = 1.0, p_offsetX:Number = 0, p_offsetY:Number = 0, p_offsetRotation:Number = 0, p_offsetScaleX:Number = 1.0, p_offsetScaleY:Number = 1.0, p_alphaMultiplier:Number = 1.0, p_redMultiplier:Number = 1.0, p_greenMultiplier:Number = 1.0, p_blueMultiplier:Number = 1.0):void
 		{
 			var bitmap:BitmapData = p_texture.bitmapData;
 			var textureWidth:Number = bitmap.width;
