@@ -18,8 +18,7 @@ package bb.particles
 		public var gravityX:Number = 0;
 		public var gravityY:Number = 0;
 
-		public var scaleX:Number = 1.0;
-		public var scaleY:Number = 1.0;
+		public var scale:Number = 1.0;
 
 		//
 		internal var next:BBParticle = null;
@@ -32,6 +31,18 @@ package bb.particles
 
 		private var _speedX:Number;
 		private var _speedY:Number;
+
+		// scale params
+		private var _isScaleSequence:Boolean = false;
+		private var _scaleSequence:Array = null;
+		private var _scaleRatio:Number = 1.0;
+		private var _scaleNext:Number = 1.0;
+		private var _currentScaleIndex:int = 0;
+		private var _numScales:int = 0;
+		private var _scaleLifePeriod:Number;
+		private var _initScaleLifePeriod:Number;
+		private var _dtScale:Number;
+		private var _initScale:Number;
 
 		/**
 		 */
@@ -57,6 +68,24 @@ package bb.particles
 			_speedX += gravityX * dt;
 			_speedY -= gravityY * dt;
 
+			//
+			if (_isScaleSequence)
+			{
+				if (_scaleLifePeriod <= 0)
+				{
+					_scaleLifePeriod = _lifeTime / _numScales;
+					_initScaleLifePeriod = _scaleLifePeriod;
+					_scaleNext = _scaleSequence[++_currentScaleIndex] * _scaleRatio;
+					_initScale = scale;
+					_dtScale = _scaleNext - _initScale;
+				}
+
+				scale = _initScale + (_dtScale * (1 - _scaleLifePeriod / _initScaleLifePeriod));
+
+				_scaleLifePeriod -= p_deltaTime;
+			}
+
+			//
 			_currentLifeTime -= p_deltaTime;
 		}
 
@@ -78,11 +107,34 @@ package bb.particles
 
 		/**
 		 */
+		public function scaleSetup(p_initScale:Number, p_scaleSequence:Array = null, p_scaleRatio:Number = 1.0):void
+		{
+			scale = _initScale = p_initScale * p_scaleRatio;
+			_scaleSequence = p_scaleSequence;
+			_scaleRatio = p_scaleRatio;
+
+			if (p_scaleSequence && (_numScales = p_scaleSequence.length) > 0)
+			{
+				_isScaleSequence = true;
+				_scaleNext = p_scaleSequence[_currentScaleIndex] * p_scaleRatio;
+				_scaleLifePeriod = _lifeTime / _numScales;
+				_initScaleLifePeriod = _scaleLifePeriod;
+				_dtScale = _scaleNext - _initScale;
+			}
+		}
+
+		/**
+		 */
 		public function dispose():void
 		{
 			emitter.unlinkParticle(this);
 			emitter = null;
 			next = prev = null;
+			_isScaleSequence = false;
+			_scaleSequence = null;
+			_scaleRatio = 1.0;
+			_scaleRatio = 1.0;
+			_currentScaleIndex = 0;
 
 			put(this);
 		}

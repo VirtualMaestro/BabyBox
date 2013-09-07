@@ -44,6 +44,12 @@ package bb.particles
 		private var _lifeTimeTo:int = 500;
 
 		//
+		private var _scale:Number = 1.0;
+		private var _scaleSequence:Array = null;
+		private var _scaleRatioFrom:Number = 1.0;
+		private var _scaleRatioTo:Number = 1.0;
+
+		//
 		private var _head:BBParticle;
 		private var _tail:BBParticle;
 
@@ -111,7 +117,7 @@ package bb.particles
 			var particle:BBParticle = _head;
 			while (particle)
 			{
-				p_context.draw(z_texture, particle.posX, particle.posY, 0, particle.scaleX * scaleX, particle.scaleY * scaleY);
+				p_context.draw(z_texture, particle.posX, particle.posY, 0, particle.scale * scaleX, particle.scale * scaleY);
 
 				particle = particle.next;
 			}
@@ -147,6 +153,8 @@ package bb.particles
 				particle.dirY = Math.sin(rot + RandUtil.getFloatRange(_angleFrom, _angleTo));
 
 				particle.lifeTime = RandUtil.getIntRange(_lifeTimeFrom, _lifeTimeTo);
+
+				particle.scaleSetup(_scale, _scaleSequence, RandUtil.getFloatRange(_scaleRatioFrom, _scaleRatioTo));
 
 				addParticle(particle);
 			}
@@ -194,6 +202,17 @@ package bb.particles
 		{
 			_gravityX = p_gravityX;
 			_gravityY = p_gravityY;
+		}
+
+		/**
+		 *
+		 */
+		public function scale(p_initScale:Number, p_scaleSequence:Array = null, p_scaleRatioFrom:Number = 1.0, p_scaleRatioTo:Number = 1.0):void
+		{
+			_scale = p_initScale;
+			_scaleSequence = p_scaleSequence;
+			_scaleRatioFrom = p_scaleRatioFrom;
+			_scaleRatioTo = p_scaleRatioTo;
 		}
 
 		/**
