@@ -43,11 +43,17 @@ package bb.particles
 		private var _lifeTimeFrom:int = 100;
 		private var _lifeTimeTo:int = 500;
 
-		//
+		// scale setup
 		private var _scale:Number = 1.0;
 		private var _scaleSequence:Array = null;
 		private var _scaleRatioFrom:Number = 1.0;
 		private var _scaleRatioTo:Number = 1.0;
+
+		// color setup
+		private var _color:uint = 0xffffffff;
+		private var _colorSequence:Array = null;
+		private var _colorRatioFrom:Number = 1.0;
+		private var _colorRatioTo:Number = 1.0;
 
 		//
 		private var _head:BBParticle;
@@ -56,6 +62,10 @@ package bb.particles
 		private var _numParticles:uint = 0;
 
 		private var _transform:BBTransform;
+
+		// default particle texture settings
+		private var _defParticleColor:uint = 0xffffffff;
+		private var _defParticleRadius:uint = 20;
 
 		/**
 		 */
@@ -108,16 +118,18 @@ package bb.particles
 		 */
 		override public function render(p_context:BBContext):void
 		{
-//			var posX:Number = _transform.worldX;
-//			var posY:Number = _transform.worldY;
-//			var rotation:Number = _transform.rotationWorld;
 			var scaleX:Number = _transform.worldScaleX;
 			var scaleY:Number = _transform.worldScaleY;
+			var alpha:Number = _transform.worldAlpha;
+			var red:Number = _transform.worldRed;
+			var green:Number = _transform.worldGreen;
+			var blue:Number = _transform.worldBlue;
 
 			var particle:BBParticle = _head;
 			while (particle)
 			{
-				p_context.draw(z_texture, particle.posX, particle.posY, 0, particle.scale * scaleX, particle.scale * scaleY);
+				p_context.draw(z_texture, particle.posX, particle.posY, 0, particle.scale * scaleX, particle.scale * scaleY,
+						0, 0, 0, 1.0, 1.0, particle.alpha * alpha, particle.red * red, particle.green * green, particle.blue * blue);
 
 				particle = particle.next;
 			}
@@ -155,6 +167,7 @@ package bb.particles
 				particle.lifeTime = RandUtil.getIntRange(_lifeTimeFrom, _lifeTimeTo);
 
 				particle.scaleSetup(_scale, _scaleSequence, RandUtil.getFloatRange(_scaleRatioFrom, _scaleRatioTo));
+				particle.colorSetup(_color, _colorSequence, RandUtil.getFloatRange(_colorRatioFrom, _colorRatioTo));
 
 				addParticle(particle);
 			}
@@ -213,6 +226,28 @@ package bb.particles
 			_scaleSequence = p_scaleSequence;
 			_scaleRatioFrom = p_scaleRatioFrom;
 			_scaleRatioTo = p_scaleRatioTo;
+		}
+
+		/**
+		 * ARGB
+		 */
+		public function color(p_initColor:uint, p_colorSequence:Array = null, p_colorRatioFrom:Number = 1.0, p_colorRatioTo:Number = 1.0):void
+		{
+			_color = p_initColor;
+			_colorSequence = p_colorSequence;
+			_colorRatioFrom = p_colorRatioFrom;
+			_colorRatioTo = p_colorRatioTo;
+		}
+
+		/**
+		 * Settings for generating particle.
+		 * Useful if don't use external texture for particle.
+		 * Also method gives possible for optimization - creates texture with specify size to avoid scale effect.
+		 */
+		public function defaultParticle(p_radius:uint, p_color:uint):void
+		{
+			_defParticleRadius = p_radius < 1 ? 1 : p_radius;
+			_defParticleColor = p_color;
 		}
 
 		/**
@@ -280,6 +315,7 @@ package bb.particles
 		public function set texture(p_texture:BBTexture):void
 		{
 			z_texture = p_texture;
+			if (z_texture == null && node && node.isOnStage) z_texture = getDefaultTexture();
 		}
 
 		/**
@@ -314,10 +350,20 @@ package bb.particles
 
 		/**
 		 */
-		static private function getDefaultTexture():BBTexture
+		private function getDefaultTexture():BBTexture
 		{
-			var texture:BBTexture = BBTexture.createFromColorCircle(20, "defaultParticleTexture", [0xffffffff, 0x00ffffff]);
-			return texture;
+			var particleId:String = "def_particle_" + _defParticleRadius + "_" + _defParticleColor;
+			var gradient:Array = [_defParticleColor, _defParticleColor, _defParticleColor & 0x00ffffff];
+
+			return BBTexture.createFromColorCircle(_defParticleRadius, particleId, gradient);
+		}
+
+		/**
+		 * Rid some resource e.g. caches.
+		 */
+		static public function rid():void
+		{
+			BBParticle.rid();
 		}
 	}
 }

@@ -5,6 +5,8 @@
  */
 package bb.particles
 {
+	import bb.vo.BBColor;
+
 	/**
 	 */
 	internal class BBParticle
@@ -17,8 +19,6 @@ package bb.particles
 
 		public var gravityX:Number = 0;
 		public var gravityY:Number = 0;
-
-		public var scale:Number = 1.0;
 
 		//
 		internal var next:BBParticle = null;
@@ -33,6 +33,8 @@ package bb.particles
 		private var _speedY:Number;
 
 		// scale params
+		public var scale:Number = 1.0;
+
 		private var _isScaleSequence:Boolean = false;
 		private var _scaleSequence:Array = null;
 		private var _scaleRatio:Number = 1.0;
@@ -43,6 +45,15 @@ package bb.particles
 		private var _initScaleLifePeriod:Number;
 		private var _dtScale:Number;
 		private var _initScale:Number;
+
+		// color params
+		public var alpha:Number = 1.0;
+		public var red:Number = 1.0;
+		public var green:Number = 1.0;
+		public var blue:Number = 1.0;
+
+		private var _colorRatio:Number = 1.0;
+		private var _colorSequence:Array = null;
 
 		/**
 		 */
@@ -121,6 +132,19 @@ package bb.particles
 				_initScaleLifePeriod = _scaleLifePeriod;
 				_dtScale = _scaleNext - _initScale;
 			}
+		}
+
+		/**
+		 */
+		public function colorSetup(p_initColor:uint, p_colorSequence:Array = null, p_colorRatio:Number = 1.0):void
+		{
+			_colorRatio = p_colorRatio;
+			alpha = BBColor.getAlpha(p_initColor, true) * p_colorRatio;
+			red = BBColor.getRed(p_initColor, true) * p_colorRatio;
+			green = BBColor.getGreen(p_initColor, true) * p_colorRatio;
+			blue = BBColor.getBlue(p_initColor, true) * p_colorRatio;
+
+			_colorSequence = p_colorSequence;
 		}
 
 		/**
