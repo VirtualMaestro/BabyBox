@@ -37,8 +37,8 @@ package bb.render.components
 		 */
 		public var allowRotation:Boolean = true;
 
-		public var scaleX:Number = 1.0;
-		public var scaleY:Number = 1.0;
+		public var offsetScaleX:Number = 1.0;
+		public var offsetScaleY:Number = 1.0;
 
 		public var offsetX:Number = 0.0;
 		public var offsetY:Number = 0.0;
@@ -91,7 +91,7 @@ package bb.render.components
 			{
 				var transform:BBTransform = node.transform;
 				p_context.draw(z_texture, transform.worldX, transform.worldY, (allowRotation ? transform.worldRotation : 0), transform.worldScaleX, transform.worldScaleY,
-						offsetX, offsetY, offsetRotation, scaleX, scaleY,
+						offsetX, offsetY, offsetRotation, offsetScaleX, offsetScaleY,
 						transform.worldAlpha, transform.worldRed, transform.worldGreen, transform.worldBlue);
 			}
 		}
@@ -110,7 +110,7 @@ package bb.render.components
 				var halfWidth:Number = z_texture.width * 0.5;
 				var halfHeight:Number = z_texture.height * 0.5;
 				var transform:BBTransform = node.transform;
-				var transMatrix:Matrix = transform.transformWorldMatrix(scaleX, scaleY, offsetRotation, offsetX, offsetY);
+				var transMatrix:Matrix = transform.transformWorldMatrix(offsetScaleX, offsetScaleY, offsetRotation, offsetX, offsetY);
 				var a:Number = transMatrix.a;
 				var b:Number = transMatrix.b;
 				var c:Number = transMatrix.c;
@@ -171,7 +171,7 @@ package bb.render.components
 			}
 			else
 			{
-				var matrix:Matrix = currentNode.transform.transformWorldMatrix(scaleX, scaleY, offsetRotation, offsetX, offsetY, true);
+				var matrix:Matrix = currentNode.transform.transformWorldMatrix(offsetScaleX, offsetScaleY, offsetRotation, offsetX, offsetY, true);
 				var camX:Number = p_event.cameraX;
 				var camY:Number = p_event.cameraY;
 				var localMouseX:Number = camX * matrix.a + camY * matrix.c + matrix.tx;
@@ -226,14 +226,14 @@ package bb.render.components
 		 */
 		public function set width(p_val:Number):void
 		{
-			if (z_texture && p_val > 1) scaleX = p_val / z_texture.width;
+			if (z_texture && p_val > 1) offsetScaleX = p_val / z_texture.width;
 		}
 
 		/**
 		 */
 		public function get width():Number
 		{
-			return z_texture ? z_texture.width * scaleX : 0;
+			return z_texture ? z_texture.width * offsetScaleX : 0;
 		}
 
 		/**
@@ -243,14 +243,14 @@ package bb.render.components
 		 */
 		public function set height(p_val:Number):void
 		{
-			if (z_texture && p_val > 1) scaleY = p_val / z_texture.height;
+			if (z_texture && p_val > 1) offsetScaleY = p_val / z_texture.height;
 		}
 
 		/**
 		 */
 		public function get height():Number
 		{
-			return z_texture ? z_texture.height * scaleY : 0;
+			return z_texture ? z_texture.height * offsetScaleY : 0;
 		}
 
 		/**
@@ -266,8 +266,8 @@ package bb.render.components
 			}
 
 			allowRotation = true;
-			scaleX = 1.0;
-			scaleY = 1.0;
+			offsetScaleX = 1.0;
+			offsetScaleY = 1.0;
 			offsetX = 0.0;
 			offsetY = 0.0;
 			offsetRotation = 0.0;
@@ -280,7 +280,7 @@ package bb.render.components
 		override public function toString():String
 		{
 			var output:String = super.toString();
-			output += "{allowRotation: " + allowRotation + "}-{scaleX: " + scaleX + "}-{scaleY: " + scaleY + "}-{offsetX: " + offsetX + "}-{offsetY: " + offsetY + "}-{offsetRotation: " + offsetRotation + "}\n";
+			output += "{allowRotation: " + allowRotation + "}-{scaleX: " + offsetScaleX + "}-{scaleY: " + offsetScaleY + "}-{offsetX: " + offsetX + "}-{offsetY: " + offsetY + "}-{offsetRotation: " + offsetRotation + "}\n";
 
 			return output;
 		}
@@ -291,8 +291,8 @@ package bb.render.components
 		{
 			var renderable:BBRenderable = super.copy() as BBRenderable;
 			renderable.allowRotation = allowRotation;
-			renderable.scaleX = scaleX;
-			renderable.scaleY = scaleY;
+			renderable.offsetScaleX = offsetScaleX;
+			renderable.offsetScaleY = offsetScaleY;
 			renderable.offsetX = offsetX;
 			renderable.offsetY = offsetY;
 			renderable.offsetRotation = offsetRotation;

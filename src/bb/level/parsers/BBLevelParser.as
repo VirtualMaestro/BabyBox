@@ -715,8 +715,8 @@ package bb.level.parsers
 				p_graphics.playFrom > 0 ? movie.gotoAndPlay(p_graphics.playFrom) : movie.stop();
 			}
 
-			renderComponent.scaleX = p_graphics.scaleX;
-			renderComponent.scaleY = p_graphics.scaleY;
+			renderComponent.offsetScaleX = p_graphics.scaleX;
+			renderComponent.offsetScaleY = p_graphics.scaleY;
 			renderComponent.offsetX = p_graphics.x;
 			renderComponent.offsetY = p_graphics.y;
 			renderComponent.offsetRotation = p_graphics.rotation * TrigUtil.DEG_TO_RAD;
