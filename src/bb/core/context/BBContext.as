@@ -329,11 +329,11 @@ package bb.core.context
 
 			//
 			var totalRotABS:Number = Math.abs(totalRotation);
-			var PI_sub_RAD:Number = PI2 - totalRotABS;
 			var isScaleNotChanged:Boolean = Math.abs(1 - totalScaleX) < PRECISE_SCALE && Math.abs(1 - totalScaleY) < PRECISE_SCALE;
+			var isRotationNotChanged:Boolean = totalRotABS < PRECISE_ROTATION || (PI2 - totalRotABS) < PRECISE_ROTATION;
 
 			//
-			if ((PI_sub_RAD < PRECISE_ROTATION || totalRotABS < PRECISE_ROTATION) && isScaleNotChanged && (colorTransform == null))
+			if (isRotationNotChanged && isScaleNotChanged && !colorTransform)
 			{
 				_rect.setTo(0, 0, textureWidth, textureHeight);
 				_point.setTo(newTextureX + texturePivotX, newTextureY + texturePivotY);
