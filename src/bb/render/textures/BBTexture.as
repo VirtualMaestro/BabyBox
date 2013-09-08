@@ -390,17 +390,18 @@ package bb.render.textures
 				for (var i:int = 0; i < numColors; i++)
 				{
 					color = p_colors[i];
-					alpha = BBColor.getAlpha(color, true);
-					color = color & 0x00ffffff;
-
-					colors[i] = color;
-					alphas[i] = alpha;
+					alphas[i] = BBColor.getAlpha(color, true);
+					colors[i] = color & 0x00ffffff;
 					ratios[i] = Math.ceil(i * ratio);
 				}
 
-				circle.graphics.beginGradientFill(GradientType.RADIAL, colors, alphas, ratios);
+				var matrixGrad:Matrix = BBNativePool.getMatrix();
+				matrixGrad.createGradientBox(p_radius * 2, p_radius * 2, 0, -p_radius, -p_radius);
+
+				circle.graphics.beginGradientFill(GradientType.RADIAL, colors, alphas, ratios, matrixGrad);
 				circle.graphics.drawCircle(0, 0, p_radius - thickness);
 				circle.graphics.endFill();
+				BBNativePool.putMatrix(matrixGrad);
 			}
 
 			var matrix:Matrix = BBNativePool.getMatrix();
