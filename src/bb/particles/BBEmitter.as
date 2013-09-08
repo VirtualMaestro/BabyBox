@@ -316,7 +316,7 @@ package bb.particles
 		 */
 		static private function getDefaultTexture():BBTexture
 		{
-			var texture:BBTexture = BBTexture.createFromColorCircle(10, "defaultParticleTexture", [0xffff0000, 0x00ffffff]);
+			var texture:BBTexture = BBTexture.createFromColorCircle(20, "defaultParticleTexture", [0xffffffff, 0x00ffffff]);
 			return texture;
 		}
 	}
