@@ -44,6 +44,13 @@ package bb.render.components
 		public var offsetY:Number = 0.0;
 		public var offsetRotation:Number = 0.0;
 
+		/**
+		 * Blend mode for renderable component.
+		 * Need to use constants from BlendMode class.
+		 * By default no blend.
+		 */
+		public var blendMode:String = null;
+
 		//
 		private var _worldBounds:Rectangle = null;
 
@@ -92,7 +99,7 @@ package bb.render.components
 				var transform:BBTransform = node.transform;
 				p_context.draw(z_texture, transform.worldX, transform.worldY, (allowRotation ? transform.worldRotation : 0), transform.worldScaleX, transform.worldScaleY,
 						offsetX, offsetY, offsetRotation, offsetScaleX, offsetScaleY,
-						transform.worldAlpha, transform.worldRed, transform.worldGreen, transform.worldBlue);
+						transform.worldAlpha, transform.worldRed, transform.worldGreen, transform.worldBlue, blendMode);
 			}
 		}
 
