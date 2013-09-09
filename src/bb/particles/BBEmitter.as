@@ -13,6 +13,7 @@ package bb.particles
 	import bb.render.components.BBRenderable;
 	import bb.render.textures.BBTexture;
 	import bb.signals.BBSignal;
+	import bb.vo.BBColor;
 
 	import vm.math.rand.RandUtil;
 
@@ -50,8 +51,11 @@ package bb.particles
 		private var _scaleRatioTo:Number = 1.0;
 
 		// color setup
-		private var _color:uint = 0xffffffff;
-		private var _colorSequence:Array = null;
+		private var _alpha:Number = 1.0;
+		private var _red:Number = 1.0;
+		private var _green:Number = 1.0;
+		private var _blue:Number = 1.0;
+		private var _colorSequence:Vector.<Number> = null;
 		private var _colorRatioFrom:Number = 1.0;
 		private var _colorRatioTo:Number = 1.0;
 
@@ -129,7 +133,7 @@ package bb.particles
 			while (particle)
 			{
 				p_context.draw(z_texture, particle.posX, particle.posY, 0, particle.scale * scaleX, particle.scale * scaleY,
-						0, 0, 0, 1.0, 1.0, particle.alpha * alpha, particle.red * red, particle.green * green, particle.blue * blue);
+						0, 0, 0, 1.0, 1.0, particle.alpha * alpha, particle.red * red, particle.green * green, particle.blue * blue, blendMode);
 
 				particle = particle.next;
 			}
@@ -167,7 +171,7 @@ package bb.particles
 				particle.lifeTime = RandUtil.getIntRange(_lifeTimeFrom, _lifeTimeTo);
 
 				particle.scaleSetup(_scale, _scaleSequence, RandUtil.getFloatRange(_scaleRatioFrom, _scaleRatioTo));
-				particle.colorSetup(_color, _colorSequence, RandUtil.getFloatRange(_colorRatioFrom, _colorRatioTo));
+				particle.colorSetup(_alpha, _red, _green, _blue, _colorSequence, RandUtil.getFloatRange(_colorRatioFrom, _colorRatioTo));
 
 				addParticle(particle);
 			}
@@ -230,13 +234,50 @@ package bb.particles
 
 		/**
 		 * ARGB
+		 * ratio in range [0, 1]
 		 */
 		public function color(p_initColor:uint, p_colorSequence:Array = null, p_colorRatioFrom:Number = 1.0, p_colorRatioTo:Number = 1.0):void
 		{
-			_color = p_initColor;
-			_colorSequence = p_colorSequence;
-			_colorRatioFrom = p_colorRatioFrom;
-			_colorRatioTo = p_colorRatioTo;
+			_alpha = BBColor.getAlpha(p_initColor, true);
+			_red = BBColor.getRed(p_initColor, true);
+			_green = BBColor.getGreen(p_initColor, true);
+			_blue = BBColor.getBlue(p_initColor, true);
+
+			_colorRatioFrom = p_colorRatioFrom > 1.0 ? 1.0 : p_colorRatioFrom < 0 ? 0 : p_colorRatioFrom;
+			_colorRatioTo = p_colorRatioTo > 1.0 ? 1.0 : p_colorRatioTo < 0 ? 0 : p_colorRatioTo;
+
+			//
+			var numColors:uint;
+			if (p_colorSequence && (numColors = p_colorSequence.length) > 0)
+			{
+				_colorSequence = new <Number>[];
+
+				var colorStart:uint = p_initColor;
+				var colorEnd:uint;
+				var gradient:Vector.<uint>;
+				var numGradientColors:uint;
+				var curGradColor:uint;
+				var colorSeqIndex:int;
+
+				for (var i:int = 0; i < numColors; i++)
+				{
+					colorEnd = p_colorSequence[i];
+					gradient = BBColor.getGradientStrip(colorStart, colorEnd, 100);
+					colorStart = colorEnd;
+
+					numGradientColors = gradient.length;
+					for (var j:int = 0; j < numGradientColors; j++)
+					{
+						curGradColor = gradient[j];
+
+						colorSeqIndex = _colorSequence.length;
+						_colorSequence[colorSeqIndex] = BBColor.getAlpha(curGradColor, true);
+						_colorSequence[++colorSeqIndex] = BBColor.getRed(curGradColor, true);
+						_colorSequence[++colorSeqIndex] = BBColor.getGreen(curGradColor, true);
+						_colorSequence[++colorSeqIndex] = BBColor.getBlue(curGradColor, true);
+					}
+				}
+			}
 		}
 
 		/**
@@ -244,7 +285,7 @@ package bb.particles
 		 * Useful if don't use external texture for particle.
 		 * Also method gives possible for optimization - creates texture with specify size to avoid scale effect.
 		 */
-		public function defaultParticle(p_radius:uint, p_color:uint):void
+		public function defaultParticle(p_radius:uint = 20, p_color:uint = 0xffffffff):void
 		{
 			_defParticleRadius = p_radius < 1 ? 1 : p_radius;
 			_defParticleColor = p_color;

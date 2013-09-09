@@ -5,8 +5,6 @@
  */
 package bb.particles
 {
-	import bb.vo.BBColor;
-
 	/**
 	 */
 	internal class BBParticle
@@ -53,7 +51,9 @@ package bb.particles
 		public var blue:Number = 1.0;
 
 		private var _colorRatio:Number = 1.0;
-		private var _colorSequence:Array = null;
+		private var _colorSequence:Vector.<Number> = null;
+		private var _isColorSequence:Boolean = false;
+		private var _numColors:uint = 0;
 
 		/**
 		 */
@@ -96,6 +96,15 @@ package bb.particles
 				_scaleLifePeriod -= p_deltaTime;
 			}
 
+			if (_isColorSequence)
+			{
+				var index:int = int(_numColors * (1.0 - _currentLifeTime / _lifeTime)) * 4;
+				alpha = _colorSequence[index] * _colorRatio;
+				red = _colorSequence[++index] * _colorRatio;
+				green = _colorSequence[++index] * _colorRatio;
+				blue = _colorSequence[++index] * _colorRatio;
+			}
+
 			//
 			_currentLifeTime -= p_deltaTime;
 		}
@@ -136,15 +145,20 @@ package bb.particles
 
 		/**
 		 */
-		public function colorSetup(p_initColor:uint, p_colorSequence:Array = null, p_colorRatio:Number = 1.0):void
+		public function colorSetup(p_alpha:Number, p_red:Number, p_green:Number, p_blue:Number, p_colorSequence:Vector.<Number> = null, p_colorRatio:Number = 1.0):void
 		{
 			_colorRatio = p_colorRatio;
-			alpha = BBColor.getAlpha(p_initColor, true) * p_colorRatio;
-			red = BBColor.getRed(p_initColor, true) * p_colorRatio;
-			green = BBColor.getGreen(p_initColor, true) * p_colorRatio;
-			blue = BBColor.getBlue(p_initColor, true) * p_colorRatio;
+			alpha = p_alpha * p_colorRatio;
+			red = p_red * p_colorRatio;
+			green = p_green * p_colorRatio;
+			blue = p_blue * p_colorRatio;
 
-			_colorSequence = p_colorSequence;
+			if (p_colorSequence)
+			{
+				_colorSequence = p_colorSequence;
+				_numColors = p_colorSequence.length / 4;
+				_isColorSequence = true;
+			}
 		}
 
 		/**
@@ -159,6 +173,9 @@ package bb.particles
 			_scaleRatio = 1.0;
 			_scaleRatio = 1.0;
 			_currentScaleIndex = 0;
+			_isColorSequence = false;
+			_colorSequence = null;
+			_colorRatio = 1.0;
 
 			put(this);
 		}
