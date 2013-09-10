@@ -24,16 +24,26 @@ package bb.particles
 	 */
 	public class BBEmitter extends BBRenderable
 	{
-		private var _widthField:uint = 1;
-		private var _heightField:uint = 1;
-
 		/**
 		 * Number of emission particles per second.
 		 */
 		public var emissionRate:uint = 100;
 
-		private var _speedFrom:Number = 100;
-		private var _speedTo:Number = 200;
+		/**
+		 * Dampening of particle. 0 - absolute dampening, 1 - no dampening.
+		 */
+		public var dampening:Number = 1.0;
+
+		/**
+		 * If emitter moving very fast it is possible set this props to true, it makes creation particles more smoothly.
+		 */
+		public var fastMoving:Boolean = false;
+
+		private var _widthField:uint = 1;
+		private var _heightField:uint = 1;
+
+		private var _speedFrom:uint = 0;
+		private var _speedTo:uint = 0;
 
 		private var _gravityX:Number = 0;
 		private var _gravityY:Number = 0;
@@ -42,7 +52,7 @@ package bb.particles
 		private var _angleTo:Number = 0;
 
 		private var _lifeTimeFrom:int = 100;
-		private var _lifeTimeTo:int = 500;
+		private var _lifeTimeTo:int = 100;
 
 		// scale setup
 		private var _scale:Number = 1.0;
@@ -71,6 +81,11 @@ package bb.particles
 		private var _defParticleColor:uint = 0xffffffff;
 		private var _defParticleRadius:uint = 20;
 
+		private var _prevX:Number;
+		private var _prevY:Number;
+		private var _nextX:Number;
+		private var _nextY:Number;
+
 		/**
 		 */
 		public function BBEmitter()
@@ -96,6 +111,9 @@ package bb.particles
 				_transform = node.transform;
 				if (z_texture == null) z_texture = getDefaultTexture();
 
+				_prevX = _transform.worldX;
+				_prevY = _transform.worldY;
+
 				updateEnable = true;
 			}
 		}
@@ -104,6 +122,9 @@ package bb.particles
 		 */
 		override public function update(p_deltaTime:int):void
 		{
+			_nextX = _transform.worldX;
+			_nextY = _transform.worldY;
+
 			var particle:BBParticle = _head;
 			var currentParticle:BBParticle;
 			while (particle)
@@ -114,8 +135,12 @@ package bb.particles
 				currentParticle.update(p_deltaTime);
 			}
 
-			var numNewParticles:uint = Math.round(emissionRate * p_deltaTime / 1000.0);
-			createParticles(numNewParticles, p_deltaTime);
+			var dt:Number = p_deltaTime / 1000.0;
+			var numNewParticles:uint = Math.round(emissionRate * dt);
+			createParticles(numNewParticles, dt);
+
+			_prevX = _nextX;
+			_prevY = _nextY;
 		}
 
 		/**
@@ -141,34 +166,68 @@ package bb.particles
 
 		/**
 		 */
-		private function createParticles(p_numParticles:int, p_deltaTime:int):void
+		private function createParticles(p_numParticles:int, p_deltaTime:Number):void
 		{
 			var posX:Number = _transform.worldX;
 			var posY:Number = _transform.worldY;
 			var rot:Number = _transform.worldRotation;
 
-			var posXFrom:int = posX - _widthField * 0.5;
-			var posXTo:int = posX + _widthField * 0.5;
-			var posYFrom:int = posY - _heightField * 0.5;
-			var posYTo:int = posY + _heightField * 0.5;
+			var randX:int = _widthField * 0.5;
+			var randY:int = _heightField * 0.5;
+
+			var rPosX:Number;
+			var rPosY:Number;
+			var rDirX:Number;
+			var rDirY:Number;
+			var rSpeed:Number;
+			var rLifeTime:int;
+			var startLife:Number = 0;
 
 			var particle:BBParticle;
 
 			for (var i:int = 0; i < p_numParticles; i++)
 			{
 				particle = BBParticle.get(this);
-				particle.posX = RandUtil.getIntRange(posXFrom, posXTo);
-				particle.posY = RandUtil.getIntRange(posYFrom, posYTo);
 
-				particle.speed = RandUtil.getIntRange(_speedFrom, _speedTo);
+				rPosX = RandUtil.getIntRange(-randX, randX);
+				rPosY = RandUtil.getIntRange(-randY, randY);
+
+				rDirX = Math.cos(rot + RandUtil.getFloatRange(_angleFrom, _angleTo));
+				rDirY = Math.sin(rot + RandUtil.getFloatRange(_angleFrom, _angleTo));
+
+				rSpeed = RandUtil.getIntRange(_speedFrom, _speedTo);
+				rLifeTime = RandUtil.getIntRange(_lifeTimeFrom, _lifeTimeTo);
+
+				if (fastMoving)
+				{
+
+					var t:Number = i / Number(p_numParticles);
+					var elapsedTime:Number = (1.0 - t) * p_deltaTime;
+
+					rPosX += (_prevX + (_nextX - _prevX) * t) + (rDirX * rSpeed * elapsedTime);
+					rPosY += (_prevY + (_nextY - _prevY) * t) + (rDirY * rSpeed * elapsedTime);
+
+					particle.posX = rPosX;
+					particle.posY = rPosY;
+
+					startLife = 1 - (rLifeTime - elapsedTime * 1000.0) / rLifeTime;
+				}
+				else
+				{
+					particle.posX = rPosX + posX;
+					particle.posY = rPosY + posY;
+				}
+
+				particle.dirX = rDirX;
+				particle.dirY = rDirY;
+
+				particle.speed = rSpeed;
+				particle.lifeTime(rLifeTime, startLife);
 
 				particle.gravityX = _gravityX;
 				particle.gravityY = _gravityY;
 
-				particle.dirX = Math.cos(rot + RandUtil.getFloatRange(_angleFrom, _angleTo));
-				particle.dirY = Math.sin(rot + RandUtil.getFloatRange(_angleFrom, _angleTo));
-
-				particle.lifeTime = RandUtil.getIntRange(_lifeTimeFrom, _lifeTimeTo);
+				particle.dampening = dampening;
 
 				particle.scaleSetup(_scale, _scaleSequence, RandUtil.getFloatRange(_scaleRatioFrom, _scaleRatioTo));
 				particle.colorSetup(_alpha, _red, _green, _blue, _colorSequence, RandUtil.getFloatRange(_colorRatioFrom, _colorRatioTo));
@@ -180,7 +239,7 @@ package bb.particles
 		/**
 		 * Speed of particle - pixel per second.
 		 */
-		public function speed(p_from:Number, p_to:Number):void
+		public function speed(p_from:uint, p_to:uint):void
 		{
 			_speedFrom = p_from;
 			_speedTo = p_to;

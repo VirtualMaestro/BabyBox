@@ -36,13 +36,12 @@ package bb.particles
 		private var _isScaleSequence:Boolean = false;
 		private var _scaleSequence:Array = null;
 		private var _scaleRatio:Number = 1.0;
-		private var _scaleNext:Number = 1.0;
-		private var _currentScaleIndex:int = 0;
+		private var _curIndexScale:int = -1;
 		private var _numScales:int = 0;
-		private var _scaleLifePeriod:Number;
-		private var _initScaleLifePeriod:Number;
+		private var _scaleLifePeriod:Number = 0;
 		private var _dtScale:Number;
-		private var _initScale:Number;
+		private var _scaleFrom:Number = 0;
+		private var _scaleTo:Number = 0;
 
 		// color params
 		public var alpha:Number = 1.0;
@@ -54,6 +53,9 @@ package bb.particles
 		private var _colorSequence:Vector.<Number> = null;
 		private var _isColorSequence:Boolean = false;
 		private var _numColors:uint = 0;
+
+		// dampening
+		public var dampening:Number = 1.0;
 
 		/**
 		 */
@@ -73,27 +75,28 @@ package bb.particles
 			}
 
 			var dt:Number = p_deltaTime / 1000.0;
-			posX += dirX * _speedX * dt;
-			posY += dirY * _speedY * dt;
+			posX += dirX * _speedX * dt + gravityX * dt;
+			posY += dirY * _speedY * dt + gravityY * dt;
 
-			_speedX += gravityX * dt;
-			_speedY -= gravityY * dt;
+			_speedX *= dampening;
+			_speedY *= dampening;
 
 			//
 			if (_isScaleSequence)
 			{
-				if (_scaleLifePeriod <= 0)
+				var indexScale:uint = Number(1.0 - _currentLifeTime / Number(_lifeTime)) * _numScales;
+				var percentElapsedTimeScale:Number = ((_lifeTime - _currentLifeTime) - _scaleLifePeriod * indexScale) / _scaleLifePeriod;
+
+				// changes
+				if (indexScale != _curIndexScale)
 				{
-					_scaleLifePeriod = _lifeTime / _numScales;
-					_initScaleLifePeriod = _scaleLifePeriod;
-					_scaleNext = _scaleSequence[++_currentScaleIndex] * _scaleRatio;
-					_initScale = scale;
-					_dtScale = _scaleNext - _initScale;
+					_curIndexScale = indexScale;
+					_scaleFrom = _scaleTo;
+					_scaleTo = _scaleSequence[_curIndexScale] * _scaleRatio;
+					_dtScale = _scaleTo - _scaleFrom;
 				}
 
-				scale = _initScale + (_dtScale * (1 - _scaleLifePeriod / _initScaleLifePeriod));
-
-				_scaleLifePeriod -= p_deltaTime;
+				scale = _scaleFrom + _dtScale * percentElapsedTimeScale;
 			}
 
 			if (_isColorSequence)
@@ -111,11 +114,12 @@ package bb.particles
 
 		/**
 		 * Time of life of particle in milliseconds.
+		 * p_startsLive - time from which particle starts live. It gives in percents from 0.0 (begin of life) - 1.0 (end of life).
 		 */
-		public function set lifeTime(p_val:int):void
+		public function lifeTime(p_val:int, p_startsLive:Number = 0.0):void
 		{
 			_lifeTime = p_val;
-			_currentLifeTime = p_val;
+			_currentLifeTime = _lifeTime - _lifeTime * p_startsLive;
 		}
 
 		/**
@@ -129,17 +133,14 @@ package bb.particles
 		 */
 		public function scaleSetup(p_initScale:Number, p_scaleSequence:Array = null, p_scaleRatio:Number = 1.0):void
 		{
-			scale = _initScale = p_initScale * p_scaleRatio;
+			scale = _scaleFrom = _scaleTo = p_initScale * p_scaleRatio;
 			_scaleSequence = p_scaleSequence;
 			_scaleRatio = p_scaleRatio;
 
 			if (p_scaleSequence && (_numScales = p_scaleSequence.length) > 0)
 			{
 				_isScaleSequence = true;
-				_scaleNext = p_scaleSequence[_currentScaleIndex] * p_scaleRatio;
 				_scaleLifePeriod = _lifeTime / _numScales;
-				_initScaleLifePeriod = _scaleLifePeriod;
-				_dtScale = _scaleNext - _initScale;
 			}
 		}
 
@@ -172,10 +173,14 @@ package bb.particles
 			_scaleSequence = null;
 			_scaleRatio = 1.0;
 			_scaleRatio = 1.0;
-			_currentScaleIndex = 0;
+			_curIndexScale = -1;
+			_scaleFrom = 0;
+			_scaleTo = 0;
 			_isColorSequence = false;
 			_colorSequence = null;
 			_colorRatio = 1.0;
+			_scaleLifePeriod = 0;
+			dampening = 1;
 
 			put(this);
 		}
