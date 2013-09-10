@@ -39,7 +39,6 @@ package bb.particles
 		private var _curIndexScale:int = -1;
 		private var _numScales:int = 0;
 		private var _scaleLifePeriod:Number = 0;
-		private var _dtScale:Number;
 		private var _scaleFrom:Number = 0;
 		private var _scaleTo:Number = 0;
 
@@ -93,10 +92,9 @@ package bb.particles
 					_curIndexScale = indexScale;
 					_scaleFrom = _scaleTo;
 					_scaleTo = _scaleSequence[_curIndexScale] * _scaleRatio;
-					_dtScale = _scaleTo - _scaleFrom;
 				}
 
-				scale = _scaleFrom + _dtScale * percentElapsedTimeScale;
+				scale = _scaleFrom + (_scaleTo - _scaleFrom) * percentElapsedTimeScale;
 			}
 
 			if (_isColorSequence)
