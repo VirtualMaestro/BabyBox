@@ -27,10 +27,6 @@ package bb.core
 
 	/**
 	 * Enter point to engine.
-	 *
-	 * - TODO: Добавить вывод ошибок на экран, чтобы когда происходит критическая ошибка (напр. рендер не инициализировался) вывело на экран,
-	 *   а не в дебаг консоль.
-	 * -
 	 */
 	final public class BabyBox extends BBModuleEngine
 	{
