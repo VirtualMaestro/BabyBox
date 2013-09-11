@@ -266,7 +266,7 @@ package bb.ui
 
 		/**
 		 */
-		override public function update(p_deltaTime:Number):void
+		override public function update(p_deltaTime:int):void
 		{
 			invalidate();
 			updateEnable = false;

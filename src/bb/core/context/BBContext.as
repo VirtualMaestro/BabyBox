@@ -8,9 +8,7 @@ package bb.core.context
 	import bb.bb_spaces.bb_private;
 	import bb.camera.components.BBCamera;
 	import bb.config.BBConfig;
-	import bb.core.BBTransform;
 	import bb.core.BabyBox;
-	import bb.render.components.BBRenderable;
 	import bb.render.constants.BBRenderMode;
 	import bb.render.textures.BBTexture;
 	import bb.signals.BBSignal;
@@ -49,7 +47,7 @@ package bb.core.context
 
 		/**
 		 */
-		public var PRECISE_COLOR:Number = 0.1;
+		public var PRECISE_COLOR:Number = 0.001;
 
 		private var PI2:Number = Math.PI * 2;
 
@@ -114,7 +112,7 @@ package bb.core.context
 			_stage = p_stage;
 			_config = BabyBox.get().config;
 			_canvasViewRect = _config.getViewRect();
-			isFrustum = _config.isCulling;
+			isCulling = _config.isCulling;
 
 			if (_config.renderMode == BBRenderMode.BLITTING) initBlitting();
 			else initGenome();
@@ -229,7 +227,7 @@ package bb.core.context
 			else
 			{
 				_smoothingDraw = _config.smoothingDraw;
-				isFrustum = _config.isCulling;
+				isCulling = _config.isCulling;
 				_canvas.lock();
 
 				// fill whole canvas with given color
@@ -256,115 +254,102 @@ package bb.core.context
 		 * If apply frustum culling test.
 		 * Mean before render object will be tested on getting on screen.
 		 */
-		public var isFrustum:Boolean = false;
+		public var isCulling:Boolean = false;
 
 		/**
-		 * Render the renderable component to screen.
+		 * Method draw texture with given parameters.
+		 * It takes into account camera parameters, so it is impossible to use it if camera isn't set.
+		 *
+		 * All color multipliers must be in range [0, 1].
 		 */
-		public function renderComponent(p_renderableComponent:BBRenderable):void
+		public function draw(p_texture:BBTexture, p_x:Number, p_y:Number, p_rotation:Number = 0, p_scaleX:Number = 1.0, p_scaleY:Number = 1.0, p_offsetX:Number = 0, p_offsetY:Number = 0, p_offsetRotation:Number = 0, p_offsetScaleX:Number = 1.0, p_offsetScaleY:Number = 1.0, p_alphaMultiplier:Number = 1.0, p_redMultiplier:Number = 1.0, p_greenMultiplier:Number = 1.0, p_blueMultiplier:Number = 1.0, p_blendMode:String = null):void
 		{
-			var texture:BBTexture = p_renderableComponent.getTexture();
-			var textureTransform:BBTransform = p_renderableComponent.node.transform;
-			var textureBitmapData:BitmapData = texture.bitmapData;
+			var bitmap:BitmapData = p_texture.bitmapData;
+			var textureWidth:Number = bitmap.width;
+			var textureHeight:Number = bitmap.height;
 
-			// Color update
+			var sin:Number = _currentCameraSIN;
+			var cos:Number = _currentCameraCOS;
+			var dx:Number = p_x - _currentCameraX;
+			var dy:Number = p_y - _currentCameraY;
+
+			var newTextureX:Number = (dx * cos - sin * dy) * _currentCameraTotalScaleX + _currentCameraViewportCenterX + p_offsetX;
+			var newTextureY:Number = (dx * sin + cos * dy) * _currentCameraTotalScaleY + _currentCameraViewportCenterY + p_offsetY;
+
+			var totalRotation:Number = (p_rotation - _currentCameraRotation + p_offsetRotation) % PI2;
+			var totalScaleX:Number = p_scaleX * _currentCameraTotalScaleX * p_offsetScaleX;
+			var totalScaleY:Number = p_scaleY * _currentCameraTotalScaleY * p_offsetScaleY;
+
+			var texturePivotX:Number = p_texture.pivotX * totalScaleX;
+			var texturePivotY:Number = p_texture.pivotY * totalScaleY;
+
+			///  Test for getting into the viewport /////////////
+			if (isCulling)
+			{
+				var rightX:Number = texturePivotX + textureWidth * totalScaleX;
+				var bottomY:Number = texturePivotY + textureHeight * totalScaleY;
+
+				var totalRotCos:Number = Math.cos(totalRotation);
+				var totalRotSin:Number = Math.sin(totalRotation);
+
+				var topLeftX:Number = (texturePivotX * totalRotCos - totalRotSin * texturePivotY) + newTextureX;
+				var topLeftY:Number = (texturePivotX * totalRotSin + totalRotCos * texturePivotY) + newTextureY;
+
+				var topRightX:Number = (rightX * totalRotCos - totalRotSin * texturePivotY) + newTextureX;
+				var topRightY:Number = (rightX * totalRotSin + totalRotCos * texturePivotY) + newTextureY;
+
+				var bottomRightX:Number = (rightX * totalRotCos - totalRotSin * bottomY) + newTextureX;
+				var bottomRightY:Number = (rightX * totalRotSin + totalRotCos * bottomY) + newTextureY;
+
+				var bottomLeftX:Number = (texturePivotX * totalRotCos - totalRotSin * bottomY) + newTextureX;
+				var bottomLeftY:Number = (texturePivotX * totalRotSin + totalRotCos * bottomY) + newTextureY;
+
+				var boundingBoxTopLeftX:Number = min(min(topLeftX, topRightX), min(bottomRightX, bottomLeftX));
+				var boundingBoxTopLeftY:Number = min(min(topLeftY, topRightY), min(bottomRightY, bottomLeftY));
+
+				var boundingBoxBottomRightX:Number = max(max(topLeftX, topRightX), max(bottomRightX, bottomLeftX));
+				var boundingBoxBottomRightY:Number = max(max(topLeftY, topRightY), max(bottomRightY, bottomLeftY));
+
+				if (!isIntersect(boundingBoxTopLeftX, boundingBoxTopLeftY, boundingBoxBottomRightX, boundingBoxBottomRightY,
+						_currentCameraViewportX, _currentCameraViewportY,
+						_currentCameraViewportWidth_add_X, _currentCameraViewportHeight_add_Y)) return;
+			}
+			////////////////////////////////
+
+			// if need apply color transformation
 			var colorTransform:ColorTransform = null;
-			if (textureTransform.isColorShouldBeDisplayed)
+			if ((1.0 - (p_alphaMultiplier * p_redMultiplier * p_greenMultiplier * p_blueMultiplier)) > PRECISE_COLOR)
 			{
 				colorTransform = _colorTransform;
-				colorTransform.redMultiplier = textureTransform.worldRed;
-				colorTransform.greenMultiplier = textureTransform.worldGreen;
-				colorTransform.blueMultiplier = textureTransform.worldBlue;
-				colorTransform.alphaMultiplier = textureTransform.worldAlpha;
+				colorTransform.alphaMultiplier = p_alphaMultiplier;
+				colorTransform.redMultiplier = p_redMultiplier;
+				colorTransform.greenMultiplier = p_greenMultiplier;
+				colorTransform.blueMultiplier = p_blueMultiplier;
 			}
 
 			//
-			var textureX:Number = textureTransform.worldX;
-			var textureY:Number = textureTransform.worldY;
-			var textureScaleX:Number = textureTransform.worldScaleX;
-			var textureScaleY:Number = textureTransform.worldScaleY;
-			var textureRotation:Number = p_renderableComponent.allowRotation ? textureTransform.worldRotation : 0;
+			var totalRotABS:Number = Math.abs(totalRotation);
+			var isScaleNotChanged:Boolean = Math.abs(1 - totalScaleX) < PRECISE_SCALE && Math.abs(1 - totalScaleY) < PRECISE_SCALE;
+			var isRotationNotChanged:Boolean = totalRotABS < PRECISE_ROTATION || (PI2 - totalRotABS) < PRECISE_ROTATION;
 
-			if (_isStage3d)
+			//
+			if (isRotationNotChanged && isScaleNotChanged && !colorTransform && !p_blendMode)
 			{
-				// TODO: Implement stage3d
+				_rect.setTo(0, 0, textureWidth, textureHeight);
+				_point.setTo(newTextureX + texturePivotX, newTextureY + texturePivotY);
 
-//				_genomeContext.draw();
-//				_genomeContext.blit();
+				_canvas.copyPixels(bitmap, _rect, _point, null, null, bitmap.transparent);
 			}
 			else
 			{
-				var sin:Number = _currentCameraSIN;
-				var cos:Number = _currentCameraCOS;
-				var dx:Number = textureX - _currentCameraX;
-				var dy:Number = textureY - _currentCameraY;
+				// tuning of matrix
+				_matrix.identity();
+				_matrix.scale(totalScaleX, totalScaleY);
+				_matrix.translate(texturePivotX, texturePivotY);
+				_matrix.rotate(totalRotation);
+				_matrix.translate(newTextureX, newTextureY);
 
-				var newTextureX:Number = (dx * cos - sin * dy) * _currentCameraTotalScaleX + _currentCameraViewportCenterX + p_renderableComponent.offsetX;
-				var newTextureY:Number = (dx * sin + cos * dy) * _currentCameraTotalScaleY + _currentCameraViewportCenterY + p_renderableComponent.offsetY;
-
-				var totalRotation:Number = (textureRotation - _currentCameraRotation + p_renderableComponent.offsetRotation) % PI2;
-				var totalScaleX:Number = textureScaleX * _currentCameraTotalScaleX * p_renderableComponent.scaleX;
-				var totalScaleY:Number = textureScaleY * _currentCameraTotalScaleY * p_renderableComponent.scaleY;
-
-				var texturePivotX:Number = texture.pivotX * totalScaleX;
-				var texturePivotY:Number = texture.pivotY * totalScaleY;
-
-				///  Test for getting into the viewport /////////////
-				if (isFrustum)
-				{
-					var rightX:Number = texturePivotX + textureBitmapData.width * totalScaleX;
-					var bottomY:Number = texturePivotY + textureBitmapData.height * totalScaleY;
-
-					var totalRotCos:Number = Math.cos(totalRotation);
-					var totalRotSin:Number = Math.sin(totalRotation);
-
-					var topLeftX:Number = (texturePivotX * totalRotCos - totalRotSin * texturePivotY) + newTextureX;
-					var topLeftY:Number = (texturePivotX * totalRotSin + totalRotCos * texturePivotY) + newTextureY;
-
-					var topRightX:Number = (rightX * totalRotCos - totalRotSin * texturePivotY) + newTextureX;
-					var topRightY:Number = (rightX * totalRotSin + totalRotCos * texturePivotY) + newTextureY;
-
-					var bottomRightX:Number = (rightX * totalRotCos - totalRotSin * bottomY) + newTextureX;
-					var bottomRightY:Number = (rightX * totalRotSin + totalRotCos * bottomY) + newTextureY;
-
-					var bottomLeftX:Number = (texturePivotX * totalRotCos - totalRotSin * bottomY) + newTextureX;
-					var bottomLeftY:Number = (texturePivotX * totalRotSin + totalRotCos * bottomY) + newTextureY;
-
-					var boundingBoxTopLeftX:Number = min(min(topLeftX, topRightX), min(bottomRightX, bottomLeftX));
-					var boundingBoxTopLeftY:Number = min(min(topLeftY, topRightY), min(bottomRightY, bottomLeftY));
-
-					var boundingBoxBottomRightX:Number = max(max(topLeftX, topRightX), max(bottomRightX, bottomLeftX));
-					var boundingBoxBottomRightY:Number = max(max(topLeftY, topRightY), max(bottomRightY, bottomLeftY));
-
-					if (!isIntersect(boundingBoxTopLeftX, boundingBoxTopLeftY, boundingBoxBottomRightX, boundingBoxBottomRightY,
-							_currentCameraViewportX, _currentCameraViewportY,
-							_currentCameraViewportWidth_add_X, _currentCameraViewportHeight_add_Y)) return;
-				}
-				////////////////////////////////
-
-				var totalRotABS:Number = Math.abs(totalRotation);
-				var PI_sub_RAD:Number = PI2 - totalRotABS;
-				var isScaleNotChanged:Boolean = Math.abs(1-totalScaleX) < PRECISE_SCALE && Math.abs(1-totalScaleY) < PRECISE_SCALE;
-
-				//
-				if ((PI_sub_RAD < PRECISE_ROTATION || totalRotABS < PRECISE_ROTATION) && isScaleNotChanged && (!colorTransform))
-				{
-					_rect.setTo(0, 0, textureBitmapData.width, textureBitmapData.height);
-					_point.setTo(newTextureX + texturePivotX, newTextureY + texturePivotY);
-
-					_canvas.copyPixels(textureBitmapData, _rect, _point, null, null, textureBitmapData.transparent);
-				}
-				else
-				{
-					// tuning of matrix
-					_matrix.identity();
-					_matrix.scale(totalScaleX, totalScaleY);
-					_matrix.translate(texturePivotX, texturePivotY);
-					_matrix.rotate(totalRotation);
-					_matrix.translate(newTextureX, newTextureY);
-
-					_canvas.draw(textureBitmapData, _matrix, colorTransform, null, _currentCameraViewport, _smoothingDraw);
-				}
+				_canvas.draw(bitmap, _matrix, colorTransform, p_blendMode, _currentCameraViewport, _smoothingDraw);
 			}
 		}
 
@@ -416,22 +401,6 @@ package bb.core.context
 			}
 
 			return false;
-		}
-
-		/**
-		 * Render texture.
-		 * TODO:
-		 */
-		public function renderTexture(p_texture:BBTexture):void
-		{
-			if (_isStage3d)
-			{
-
-			}
-			else
-			{
-
-			}
 		}
 
 		/**

@@ -698,7 +698,7 @@ package bb.core
 		/**
 		 * Invokes by engine to update node and all nested nodes.
 		 */
-		bb_private function update(p_deltaTime:Number, p_parentTransformUpdate:Boolean, p_parentColorUpdate:Boolean):void
+		bb_private function update(p_deltaTime:int, p_parentTransformUpdate:Boolean, p_parentColorUpdate:Boolean):void
 		{
 			if (!_active) return;
 

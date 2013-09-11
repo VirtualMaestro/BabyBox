@@ -194,7 +194,7 @@ package bb.core
 		 * It is should be override in children if need some logic update.
 		 * If invoke of this method doesn't need it is possible to disable it by 'updateEnable = false' method.
 		 */
-		public function update(p_deltaTime:Number):void
+		public function update(p_deltaTime:int):void
 		{
 			// Should be override in children if need some updates.
 		}

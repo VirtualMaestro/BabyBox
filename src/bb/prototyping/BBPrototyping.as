@@ -53,7 +53,7 @@ package bb.prototyping
 			physics.addCircle(p_radius, "", null, material, p_filter);
 			circle.addComponent(physics);
 
-			var view:BBSprite = BBSprite.get(BBTexture.createFromColorCircle(p_radius, "", p_color));
+			var view:BBSprite = BBSprite.get(BBTexture.createFromColorCircle(p_radius, "", [p_color]));
 			circle.addComponent(view);
 
 			return circle;

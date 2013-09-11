@@ -14,6 +14,7 @@ package bb.core
 	import bb.level.BBLevelsModule;
 	import bb.mouse.BBMouseModule;
 	import bb.mouse.events.BBMouseEvent;
+	import bb.particles.BBEmitter;
 	import bb.physics.BBPhysicsModule;
 	import bb.physics.joints.BBJoint;
 	import bb.pools.BBMasterPool;
@@ -79,6 +80,7 @@ package bb.core
 			BBMasterPool.addRidPoolMethod(BBJoint.rid);
 			BBMasterPool.addRidPoolMethod(BBActionData.rid);
 			BBMasterPool.addRidPoolMethod(BBShaker.rid);
+			BBMasterPool.addRidPoolMethod(BBEmitter.rid);
 
 			//
 			isStage3d = _context.isStage3d;

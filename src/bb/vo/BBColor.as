@@ -134,10 +134,10 @@ package bb.vo
 		 */
 		public function setARGB255(p_alpha:uint, p_red:uint, p_green:uint, p_blue:uint):void
 		{
-			z_alpha = cutToRange255(p_alpha)/255.0;
-			z_red = cutToRange255(p_red)/255.0;
-			z_green = cutToRange255(p_green)/255.0;
-			z_blue = cutToRange255(p_blue)/255.0;
+			z_alpha = cutToRange255(p_alpha) / 255.0;
+			z_red = cutToRange255(p_red) / 255.0;
+			z_green = cutToRange255(p_green) / 255.0;
+			z_blue = cutToRange255(p_blue) / 255.0;
 		}
 
 		/**
@@ -179,6 +179,8 @@ package bb.vo
 
 		static public const SKY:uint = 0xff73bdd5;
 		static public const GRASS:uint = 0xff9abe5e;
+		static public const BLOOD:uint = 0xffe7402d;
+		static public const POISON:uint = 0xff85D118;
 
 		/**
 		 * Extract alpha channel.
@@ -234,10 +236,11 @@ package bb.vo
 		public static const INTERPOLATION_COS_LINEAR:uint = 2;
 
 		/**
+		 * Returns Vector.<uint> with color's values for gradient rectangle.
 		 */
-		static public function getGradient(x1:uint, y1:uint, color1:uint, x2:uint, y2:uint, color2:uint, width:uint, height:uint = 1, interpolation:uint = 2):Array
+		static public function getGradient(x1:uint, y1:uint, color1:uint, x2:uint, y2:uint, color2:uint, width:uint, height:uint = 1, interpolation:uint = 2):Vector.<uint>
 		{
-			var rgb:Array = [];
+			var rgb:Vector.<uint> = new <uint>[];
 			var dx:Number = x1 - x2;
 			var dy:Number = y1 - y2;
 			var AB:Number = Math.sqrt(dx * dx + dy * dy);
@@ -315,17 +318,18 @@ package bb.vo
 
 		/**
 		 */
-		static private function clip(num:int):int
+		[Inline]
+		static private function clip(num:int):uint
 		{
 			return num <= 0 ? 0 : (num >= 255 ? 255 : num);
 		}
 
 		/**
-		 *
+		 * Returns Vector.<uint> with color's values for gradient strip.
 		 */
-		static public function getGradientStrip(p_colorStart:uint, p_colorEnd:uint, p_length:int = 100, p_interpolation:uint = 0):Array
+		static public function getGradientStrip(p_colorStart:uint, p_colorEnd:uint, p_length:int = 100, p_interpolation:uint = 0):Vector.<uint>
 		{
-			return getGradient(0,0, p_colorStart, p_length, 0, p_colorEnd, p_length, 1, p_interpolation);
+			return getGradient(0, 0, p_colorStart, p_length, 0, p_colorEnd, p_length, 1, p_interpolation);
 		}
 	}
 }

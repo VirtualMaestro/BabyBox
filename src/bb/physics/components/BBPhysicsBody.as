@@ -875,7 +875,7 @@ package bb.physics.components
 
 		/**
 		 */
-		override public function update(p_deltaTime:Number):void
+		override public function update(p_deltaTime:int):void
 		{
 			if (_transform.isInvalidated || _lock)
 			{
@@ -894,17 +894,17 @@ package bb.physics.components
 					var airDampening:Number = -airFriction * _physicsModule.timeStep;
 
 					var velX:Number = velocity.x;
-					var velXInt:int = (velX + velX*airDampening) * 1000;
+					var velXInt:int = (velX + velX * airDampening) * 1000;
 
 					var velY:Number = velocity.y;
-					var velYInt:int = (velY + velY*airDampening) * 1000;
+					var velYInt:int = (velY + velY * airDampening) * 1000;
 
-					velocity.x = velXInt/1000.0;
-					velocity.y = velYInt/1000.0;
+					velocity.x = velXInt / 1000.0;
+					velocity.y = velYInt / 1000.0;
 
 					var angularVelocity:Number = _body.angularVel;
-					var angularVelocityInt:int = (angularVelocity + angularVelocity*airDampening) * 1000;
-					_body.angularVel = angularVelocityInt/1000.0;
+					var angularVelocityInt:int = (angularVelocity + angularVelocity * airDampening) * 1000;
+					_body.angularVel = angularVelocityInt / 1000.0;
 				}
 
 				_transform.worldX = _bodyPosition.x;
@@ -923,7 +923,7 @@ package bb.physics.components
 				var child:BBNode = _transform.node.childrenHead;
 				var currentChild:BBNode;
 
-				while(child)
+				while (child)
 				{
 					currentChild = child;
 					child = child.next;
@@ -1155,7 +1155,7 @@ package bb.physics.components
 			addPrototypeProperty("velocity", _body.velocity.x + "," + _body.velocity.y, "point");
 			var bodyType:String = (_body.type == BodyType.DYNAMIC) ? "DYNAMIC" : ((_body.type == BodyType.STATIC) ? "STATIC" : "KINEMATIC");
 			addPrototypeProperty("type", bodyType, "String");
-			if (gravity != null) addPrototypeProperty("gravity", gravity.x+","+gravity.y, "point");
+			if (gravity != null) addPrototypeProperty("gravity", gravity.x + "," + gravity.y, "point");
 
 			// parse shapes
 			physicsPrototype.shapes = <shapes/>;
