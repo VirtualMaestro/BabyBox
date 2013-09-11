@@ -16,6 +16,7 @@ package bb.camera.components
 	import bb.core.BabyBox;
 	import bb.core.context.BBContext;
 	import bb.mouse.events.BBMouseEvent;
+	import bb.pools.BBNativePool;
 	import bb.signals.BBSignal;
 	import bb.tree.BBTreeModule;
 	import bb.vo.BBColor;
@@ -164,11 +165,6 @@ package bb.camera.components
 		{
 			super();
 
-			_config = BabyBox.get().config;
-			_viewPort = new Rectangle();
-			backgroundColor = new BBColor();
-			cacheable = false;
-
 			onAdded.add(cameraAddedToNode);
 		}
 
@@ -218,6 +214,11 @@ package bb.camera.components
 		 */
 		private function cameraAddedToNode(p_signal:BBSignal):void
 		{
+			_config = BabyBox.get().config;
+			_viewPort = BBNativePool.getRect();
+			backgroundColor = new BBColor();
+			cacheable = false;
+
 			_transform = node.transform;
 			_transform.setScale(_zoom, _zoom);
 			setViewport(0, 0, _config.getViewRect().width, _config.getViewRect().height);
@@ -648,23 +649,29 @@ package bb.camera.components
 		 */
 		override public function dispose():void
 		{
-			if (_core)
+			if (!isDisposed)
 			{
-				(_core.getModule(BBCamerasModule) as BBCamerasModule).removeCamera(this);
-				_core = null;
+				if (_core)
+				{
+					(_core.getModule(BBCamerasModule) as BBCamerasModule).removeCamera(this);
+					_core = null;
+				}
+
+				if (_onShakeComplete) _onShakeComplete.dispose();
+				_onShakeComplete = null;
+
+				_parentCamera = null;
+				_parentCameraTransform = null;
+
+				BBNativePool.putRect(_viewPort);
+
+				_config = null;
+				_viewPort = null;
+				_transform = null;
+				backgroundColor = null;
+
+				super.dispose();
 			}
-
-			if (_onShakeComplete) _onShakeComplete.dispose();
-			_onShakeComplete = null;
-
-			_parentCamera = null;
-			_parentCameraTransform = null;
-			_config = null;
-			_viewPort = null;
-			_transform = null;
-			backgroundColor = null;
-
-			super.dispose();
 		}
 
 		// static pool methods
