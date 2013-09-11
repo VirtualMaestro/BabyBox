@@ -1,6 +1,5 @@
 package bb.core
 {
-	import bb.BBModuleEngine;
 	import bb.assets.BBAssetsManager;
 	import bb.camera.BBCamerasModule;
 	import bb.camera.BBShaker;
@@ -12,6 +11,7 @@ package bb.core
 	import bb.input.BBKeyboardModule;
 	import bb.layer.BBLayerModule;
 	import bb.level.BBLevelsModule;
+	import bb.modules.BBModuleEngine;
 	import bb.mouse.BBMouseModule;
 	import bb.mouse.events.BBMouseEvent;
 	import bb.particles.BBEmitter;
