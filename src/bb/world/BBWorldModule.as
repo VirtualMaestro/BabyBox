@@ -54,15 +54,18 @@ package bb.world
 		/**
 		 * Adds actors (nodes) to world (scene).
 		 * p_layerName - name of layer that actor should be added to it.
+		 * Returns added actor.
 		 */
-		public function add(p_actor:BBNode, p_layerName:String = BBLayerNames.MIDDLEGROUND):void
+		public function add(p_actor:BBNode, p_layerName:String = BBLayerNames.MIDDLEGROUND):BBNode
 		{
 			CONFIG::debug
 			{
-				if (p_actor.isDisposed) return;
+				if (p_actor.isDisposed) return p_actor;
 			}
 
 			_layerManager.get(p_layerName).add(p_actor);
+
+			return p_actor;
 		}
 
 		/**

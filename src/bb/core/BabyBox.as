@@ -1,6 +1,5 @@
 package bb.core
 {
-	import bb.BBModuleEngine;
 	import bb.assets.BBAssetsManager;
 	import bb.camera.BBCamerasModule;
 	import bb.camera.BBShaker;
@@ -12,6 +11,7 @@ package bb.core
 	import bb.input.BBKeyboardModule;
 	import bb.layer.BBLayerModule;
 	import bb.level.BBLevelsModule;
+	import bb.modules.BBModuleEngine;
 	import bb.mouse.BBMouseModule;
 	import bb.mouse.events.BBMouseEvent;
 	import bb.particles.BBEmitter;
@@ -27,10 +27,6 @@ package bb.core
 
 	/**
 	 * Enter point to engine.
-	 *
-	 * - TODO: Добавить вывод ошибок на экран, чтобы когда происходит критическая ошибка (напр. рендер не инициализировался) вывело на экран,
-	 *   а не в дебаг консоль.
-	 * -
 	 */
 	final public class BabyBox extends BBModuleEngine
 	{
