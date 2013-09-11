@@ -143,19 +143,20 @@ package bb.camera.components
 		bb_private var cameraX:Number = 0;
 		bb_private var cameraY:Number = 0;
 
-		//
-		private var _dependOnCamera:BBCamera;
-		private var _dependOnCameraTransform:BBTransform;
 		private var _offsetX:Number = 1.0;
 		private var _offsetY:Number = 1.0;
 		private var _offsetZoom:Number = 1.0;
 		private var _offsetRotation:Number = 1.0;
 
+		//
+		private var _parentCamera:BBCamera;
+		private var _parentCameraTransform:BBTransform;
+
 		// previous parent camera position
-		private var _parentCameraX:Number = 0;
-		private var _parentCameraY:Number = 0;
-		private var _parentCameraZ:Number = 0;
-		private var _parentCameraR:Number = 0;
+		private var _previousParentCameraX:Number = 0;
+		private var _previousParentCameraY:Number = 0;
+		private var _previousParentCameraZ:Number = 0;
+		private var _previousParentCameraR:Number = 0;
 
 		/**
 		 */
@@ -350,19 +351,19 @@ package bb.camera.components
 		[Inline]
 		final private function updateDependOn():void
 		{
-			if (_dependOnCamera)
+			if (_parentCamera)
 			{
-				var nParentCameraX:Number = _dependOnCameraTransform.x;
-				var nParentCameraY:Number = _dependOnCameraTransform.y;
-				var nParentCameraZ:Number = _dependOnCamera.zoom;
-				var nParentCameraR:Number = _dependOnCameraTransform.rotation;
+				var nParentCameraX:Number = _parentCameraTransform.x;
+				var nParentCameraY:Number = _parentCameraTransform.y;
+				var nParentCameraZ:Number = _parentCamera.zoom;
+				var nParentCameraR:Number = _parentCameraTransform.rotation;
 
-				var shiftX:Number = nParentCameraX - _parentCameraX;
-				var shiftY:Number = nParentCameraY - _parentCameraY;
-				var shiftZ:Number = nParentCameraZ - _parentCameraZ;
-				var shiftR:Number = nParentCameraR - _parentCameraR;
+				var shiftX:Number = nParentCameraX - _previousParentCameraX;
+				var shiftY:Number = nParentCameraY - _previousParentCameraY;
+				var shiftZ:Number = nParentCameraZ - _previousParentCameraZ;
+				var shiftR:Number = nParentCameraR - _previousParentCameraR;
 
-				if ((shiftX + shiftY + shiftR + shiftZ) != 0)
+				if ((Math.abs(shiftX) + Math.abs(shiftY) + Math.abs(shiftR) + Math.abs(shiftZ)) > 0.001)
 				{
 					_transform.shiftPositionAndRotation(shiftX * _offsetX, shiftY * _offsetY, shiftR * _offsetRotation);
 					_transform.shiftScale(shiftZ * _offsetZoom, shiftZ * _offsetZoom);
@@ -371,10 +372,10 @@ package bb.camera.components
 					invalidate();
 				}
 
-				_parentCameraX = nParentCameraX;
-				_parentCameraY = nParentCameraY;
-				_parentCameraZ = nParentCameraZ;
-				_parentCameraR = nParentCameraR;
+				_previousParentCameraX = nParentCameraX;
+				_previousParentCameraY = nParentCameraY;
+				_previousParentCameraZ = nParentCameraZ;
+				_previousParentCameraR = nParentCameraR;
 			}
 		}
 
@@ -412,15 +413,15 @@ package bb.camera.components
 				Assert.isTrue((p_camera.node != null), "current camera hasn't node", "BBCamera.dependOnCamera");
 			}
 
-			_dependOnCamera = p_camera;
-			_dependOnCameraTransform = _dependOnCamera.node.transform;
+			_parentCamera = p_camera;
+			_parentCameraTransform = _parentCamera.node.transform;
 			_offsetX = p_offsetX;
 			_offsetY = p_offsetY;
 			_offsetZoom = p_offsetZoom;
 
-			_parentCameraX = _dependOnCameraTransform.x;
-			_parentCameraY = _dependOnCameraTransform.y;
-			_parentCameraZ = _dependOnCamera.zoom;
+			_previousParentCameraX = _parentCameraTransform.x;
+			_previousParentCameraY = _parentCameraTransform.y;
+			_previousParentCameraZ = _parentCamera.zoom;
 		}
 
 		/**
@@ -656,8 +657,8 @@ package bb.camera.components
 			if (_onShakeComplete) _onShakeComplete.dispose();
 			_onShakeComplete = null;
 
-			_dependOnCamera = null;
-			_dependOnCameraTransform = null;
+			_parentCamera = null;
+			_parentCameraTransform = null;
 			_config = null;
 			_viewPort = null;
 			_transform = null;
