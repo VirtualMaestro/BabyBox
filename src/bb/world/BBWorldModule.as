@@ -10,11 +10,14 @@ package bb.world
 	import bb.config.BBConfig;
 	import bb.core.BBNode;
 	import bb.core.BabyBox;
+	import bb.layer.BBLayer;
 	import bb.layer.BBLayerModule;
 	import bb.layer.constants.BBLayerNames;
 	import bb.modules.*;
 	import bb.signals.BBSignal;
 	import bb.world.profiles.BBGameType;
+
+	import vm.debug.Assert;
 
 	use namespace bb_private;
 
@@ -58,12 +61,15 @@ package bb.world
 		 */
 		public function add(p_actor:BBNode, p_layerName:String = BBLayerNames.MIDDLEGROUND):BBNode
 		{
+			var layer:BBLayer = _layerManager.get(p_layerName);
+
 			CONFIG::debug
 			{
-				if (p_actor.isDisposed) return p_actor;
+				Assert.isTrue(!p_actor.isDisposed, "Try to add to world disposed actor", "BBWorldModule.add");
+				Assert.isTrue(layer != null, "Layer with such name '" + p_layerName + "' doesn't exist", "BBWorldModule.add");
 			}
 
-			_layerManager.get(p_layerName).add(p_actor);
+			layer.add(p_actor);
 
 			return p_actor;
 		}
