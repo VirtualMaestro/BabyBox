@@ -56,11 +56,7 @@ package bb.camera
 				Assert.isTrue(p_camera.node != null, "Instance of camera should be attached to node", "BBTreeModule.setCamera");
 			}
 
-			if (p_camera.node.parent)
-			{
-				if (p_camera.node.parent != _rootNode) _rootNode.addChild(p_camera.node);
-			}
-			else _rootNode.addChild(p_camera.node);
+			_rootNode.addChild(p_camera.node);
 
 			if (!isCameraAlreadyAdded(p_camera)) _camerasList.push(p_camera);
 		}

@@ -404,7 +404,11 @@ package bb.core
 		public function addChild(p_node:BBNode):void
 		{
 			// If node already attached to another node it is detached from previous node and attached to this
-			if (p_node.parent != null) p_node.parent.removeChild(p_node);
+			if (p_node.parent != null)
+			{
+				if (p_node.parent == this) return;
+				p_node.parent.removeChild(p_node);
+			}
 
 			// add to list
 			if (childrenTail)
