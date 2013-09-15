@@ -56,6 +56,7 @@ package bb.level.parsers
 		//
 		static private var externalHandlersTable:Array = [];
 		externalHandlersTable["actors::ActorScheme"] = externalActorHandler;
+		externalHandlersTable["layers::LayerScheme"] = layerHandler;
 		externalHandlersTable["joints::PivotJointScheme"] = externalJointHandler;
 		externalHandlersTable["joints::DistanceJointScheme"] = externalJointHandler;
 		externalHandlersTable["joints::WeldJointScheme"] = externalJointHandler;
@@ -142,6 +143,31 @@ package bb.level.parsers
 			_externalActorsSchemes = null;
 
 			return _currentLevel;
+		}
+
+		/**
+		 *
+		 */
+		static private function layerHandler(p_layerScheme:MovieClip):void
+		{
+			if (!_currentLevel.hasOwnProperty("layers")) _currentLevel.layers = <layers/>;
+			var layers:XMLList = _currentLevel.layers;
+
+			var layer:XML = <layer/>;
+			layer.appendChild(<name>{String(p_layerScheme.layerName).toLowerCase()}</name>);
+			layer.appendChild(<addToLayer>{String(p_layerScheme.addToLayer).toLowerCase()}</addToLayer>);
+
+			var attachCamera:Boolean = p_layerScheme.attachCamera;
+			layer.appendChild(<attachCamera>{attachCamera}</attachCamera>);
+
+			if (attachCamera)
+			{
+				var dependOnCamera:String = String(p_layerScheme.dependOnCamera).toLowerCase();
+				layer.appendChild(<dependOnCamera>{dependOnCamera}</dependOnCamera>);
+				if (dependOnCamera != "none") layer.appendChild(<dependOffset>{p_layerScheme.dependX + "," + p_layerScheme.dependX + "," + p_layerScheme.dependZoom}</dependOffset>);
+			}
+
+			layers.appendChild(layer);
 		}
 
 		/**
@@ -491,7 +517,7 @@ package bb.level.parsers
 			CONFIG::debug
 			{
 				Assert.isTrue(jointedActor != null, "Internal actor with name '" + jointedActorName + "' doesn't exist. Error in joint's options", "BBLevelParser.internalDistanceHandler");
-				Assert.isTrue(endJoint != null, "End jointwith name '" + jointName + "' couldn't find. Maybe forgotten to put it", "BBLevelParser.internalDistanceHandler");
+				Assert.isTrue(endJoint != null, "End joint with name '" + jointName + "' couldn't find. Maybe forgotten to put it", "BBLevelParser.internalDistanceHandler");
 			}
 
 			var jointedAnchor:Vec2 = jointedActorName == "" ? null : getLocalPosition(endJoint, jointedActor);

@@ -5,7 +5,11 @@
  */
 package bb.level
 {
+	import bb.camera.BBCamerasModule;
+	import bb.camera.components.BBCamera;
 	import bb.core.BBNode;
+	import bb.layer.BBLayer;
+	import bb.layer.BBLayerModule;
 	import bb.level.parsers.BBLevelParser;
 	import bb.modules.*;
 	import bb.physics.components.BBPhysicsBody;
@@ -27,6 +31,8 @@ package bb.level
 		//
 		private var _levelsCache:Dictionary;
 		private var _world:BBWorldModule;
+		private var _layerModule:BBLayerModule;
+		private var _cameraModule:BBCamerasModule;
 
 		/**
 		 */
@@ -43,6 +49,8 @@ package bb.level
 		private function readyToUseHandler(p_signal:BBSignal):void
 		{
 			_world = getModule(BBWorldModule) as BBWorldModule;
+			_layerModule = getModule(BBLayerModule) as BBLayerModule;
+			_cameraModule = getModule(BBCamerasModule) as BBCamerasModule;
 		}
 
 		/**
@@ -58,6 +66,82 @@ package bb.level
 				_levelsCache[p_level] = level;
 			}
 
+			// creates levels
+			if (level.hasOwnProperty("layers"))
+			{
+				var layersXMLList:XMLList = level.layers.children();
+				var layerXML:XML;
+				var layer:BBLayer;
+				var layerName:String;
+				var numLayers:int;
+				var camera:BBCamera;
+				var dependOnCameraName:String;
+				var dependOffset:Array;
+
+				var layersIndependent:XMLList = layersXMLList.(addToLayer == "none");
+				var layersHasCamera:XMLList = layersIndependent.(attachCamera == "true");
+				var layersCameraIndependent:XMLList = layersHasCamera.(dependOnCamera == "none");
+				var layersCameraDependent:XMLList = layersHasCamera.(dependOnCamera != "none");
+
+				// creates independent layers with independent cameras
+				numLayers = layersCameraIndependent.length();
+				for (var j:int = 0; j < numLayers; j++)
+				{
+					layerXML = layersCameraIndependent[j];
+
+					layerName = String(layerXML.elements("name"));
+					_layerModule.add(layerName, true).attachCamera(BBCamera.get(layerName));
+				}
+
+				// creates independent layers with dependent cameras
+				numLayers = layersCameraDependent.length();
+				for (j = 0; j < numLayers; j++)
+				{
+					layerXML = layersCameraDependent[j];
+
+					layerName = String(layerXML.elements("name"));
+					camera = BBCamera.get(layerName);
+					dependOnCameraName = String(layerXML.elements("dependOnCamera"));
+					dependOffset = String(layerXML.elements("dependOffset")).split(",");
+					camera.dependOnCamera(_cameraModule.getCameraByName(dependOnCameraName), parseFloat(dependOffset[0]), parseFloat(dependOffset[1]), parseFloat(dependOffset[2]));
+					_layerModule.add(layerName, true).attachCamera(camera);
+				}
+
+				// creates dependent layers
+				var layersDependent:XMLList = layersXMLList.(addToLayer != "none");
+				var layersDependWithoutCamera:XMLList = layersDependent.(attachCamera == "false");
+
+				// creates depend layers without cameras
+				numLayers = layersDependWithoutCamera.length();
+				for (j = 0; j < numLayers; j++)
+				{
+					layerXML = layersDependWithoutCamera[j];
+					_layerModule.addTo(String(layerXML.elements("name")), String(layerXML.elements("addToLayer")));
+				}
+
+				// creates depend layers with cameras
+				var layersDependWithCamera:XMLList = layersDependent.(attachCamera == "true");
+				numLayers = layersDependWithCamera.length();
+				for (j = 0; j < numLayers; j++)
+				{
+					layerXML = layersDependWithCamera[j];
+					layerName = String(layerXML.elements("name"));
+					camera = BBCamera.get(layerName);
+
+					dependOnCameraName = layerXML.elements("dependOnCamera");
+
+					if (dependOnCameraName != "none")
+					{
+						dependOffset = String(layerXML.elements("dependOffset")).split(",");
+						camera.dependOnCamera(_cameraModule.getCameraByName(dependOnCameraName), parseFloat(dependOffset[0]), parseFloat(dependOffset[1]), parseFloat(dependOffset[2]));
+					}
+
+					layer = _layerModule.addTo(layerName, String(layerXML.elements("addToLayer")));
+					layer.attachCamera(camera);
+				}
+			}
+
+			// creates actors
 			var actorsList:XMLList = level.actors.children();
 			var actorXML:XML;
 			var actor:BBNode;
