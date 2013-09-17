@@ -178,7 +178,7 @@ package bb.assets
 				if (assetXML) textureBase = BBTextureAtlas.createFromBitmapDataAndXML((assetInstance as Bitmap).bitmapData, assetXML, assetId);
 				else textureBase = BBTexture.createFromBitmapData((assetInstance as Bitmap).bitmapData, assetId);
 			}
-			else if (assetInstance is MovieClip) textureBase = BBTextureAtlas.createFromMovieClip(assetInstance as MovieClip, assetId);
+			else if (assetInstance is MovieClip && (assetInstance as MovieClip).totalFrames > 1) textureBase = BBTextureAtlas.createFromMovieClip(assetInstance as MovieClip, assetId);
 			else textureBase = BBTexture.createFromVector(assetInstance as DisplayObject, assetId);
 
 			_assetIdList[assetClass] = textureBase.id;
