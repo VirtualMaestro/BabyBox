@@ -124,6 +124,7 @@ package bb.layer
 
 		/**
 		 * Returns attached camera (if some camera was attached at all).
+		 * If any cameras isn't attached returns null;
 		 */
 		public function get camera():BBCamera
 		{

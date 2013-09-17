@@ -63,13 +63,12 @@ package bb.layer
 		 */
 		public function add(p_layer:String, p_setOwnGroup:Boolean = false):BBLayer
 		{
-			var addingLayer:BBLayer = get(p_layer);
 			CONFIG::debug
 			{
-				Assert.isTrue((addingLayer == null), "Layer with such name '" + p_layer + "' already exist. Layer name should be unique", "BBLayerModule.add");
+				Assert.isTrue(!isExist(p_layer), "Layer with such name '" + p_layer + "' already exist. Layer name should be unique", "BBLayerModule.add");
 			}
 
-			addingLayer = new BBLayer(p_layer, p_setOwnGroup);
+			var addingLayer:BBLayer = new BBLayer(p_layer, p_setOwnGroup);
 			_root.addChild(addingLayer.node);
 			_layersTable[p_layer] = addingLayer;
 
@@ -93,11 +92,12 @@ package bb.layer
 		{
 			CONFIG::debug
 			{
-				Assert.isTrue((get(p_addToLayer) != null), "Layer  ('" + p_addToLayer + "') to which new layer is attached ('" + p_layer + "') is not exist. Layer ('" + p_addToLayer + "') have to already exist and added to layer module", "BBLayerModule.addTo");
+				Assert.isTrue(isExist(p_addToLayer), "Layer  ('" + p_addToLayer + "') to which new layer is attached ('" + p_layer + "') is not exist. Layer ('" + p_addToLayer + "') have to already exist and added to layer module", "BBLayerModule.addTo");
 			}
 
-			var addingLayer:BBLayer = get(p_layer);
-			if (!addingLayer) addingLayer = new BBLayer(p_layer);
+			var addingLayer:BBLayer;
+			if (isExist(p_layer)) addingLayer = get(p_layer);
+			else addingLayer = new BBLayer(p_layer);
 
 			var parentLayer:BBLayer = get(p_addToLayer);
 			parentLayer.addChild(addingLayer);
@@ -158,7 +158,20 @@ package bb.layer
 		 */
 		public function get(p_layerName:String):BBLayer
 		{
+			CONFIG::debug
+			{
+				Assert.isTrue(isExist(p_layerName), "Layer with name '" + p_layerName + "' doesn't exist", "BBLayerModule.get");
+			}
+
 			return _layersTable[p_layerName];
+		}
+
+		/**
+		 * Check if given name of layer exist.
+		 */
+		public function isExist(p_layerName:String):Boolean
+		{
+			return _layersTable[p_layerName] != null;
 		}
 
 		/**
