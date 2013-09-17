@@ -36,7 +36,6 @@ package bb.layer
 		{
 			super();
 			onInit.add(onInitHandler);
-			onReadyToUse.add(readyToUseHandler);
 		}
 
 		/**
@@ -46,13 +45,6 @@ package bb.layer
 			_layersTable = new Dictionary();
 			_graph = getModule(BBTreeModule) as BBTreeModule;
 			_root = _graph.root;
-		}
-
-		/**
-		 */
-		private function readyToUseHandler(p_signal:BBSignal):void
-		{
-			//
 		}
 
 		/**
