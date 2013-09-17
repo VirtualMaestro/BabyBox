@@ -8,7 +8,6 @@ package bb.level
 	import bb.camera.BBCamerasModule;
 	import bb.camera.components.BBCamera;
 	import bb.core.BBNode;
-	import bb.layer.BBLayer;
 	import bb.layer.BBLayerModule;
 	import bb.level.parsers.BBLevelParser;
 	import bb.modules.*;
@@ -19,6 +18,8 @@ package bb.level
 
 	import flash.display.MovieClip;
 	import flash.utils.Dictionary;
+
+	import vm.debug.Assert;
 
 	/**
 	 * Manager of creating and destroying levels.
@@ -71,7 +72,6 @@ package bb.level
 			{
 				var layersXMLList:XMLList = level.layers.children();
 				var layerXML:XML;
-				var layer:BBLayer;
 				var layerName:String;
 				var numLayers:int;
 				var camera:BBCamera;
@@ -79,65 +79,82 @@ package bb.level
 				var dependOffset:Array;
 
 				var layersIndependent:XMLList = layersXMLList.(addToLayer == "none");
-				var layersHasCamera:XMLList = layersIndependent.(attachCamera == "true");
-				var layersCameraIndependent:XMLList = layersHasCamera.(dependOnCamera == "none");
-				var layersCameraDependent:XMLList = layersHasCamera.(dependOnCamera != "none");
-
-				// creates independent layers with independent cameras
-				numLayers = layersCameraIndependent.length();
-				for (var j:int = 0; j < numLayers; j++)
-				{
-					layerXML = layersCameraIndependent[j];
-
-					layerName = String(layerXML.elements("name"));
-					_layerModule.add(layerName, true).attachCamera(BBCamera.get(layerName));
-				}
-
-				// creates independent layers with dependent cameras
-				numLayers = layersCameraDependent.length();
-				for (j = 0; j < numLayers; j++)
-				{
-					layerXML = layersCameraDependent[j];
-
-					layerName = String(layerXML.elements("name"));
-					camera = BBCamera.get(layerName);
-					dependOnCameraName = String(layerXML.elements("dependOnCamera"));
-					dependOffset = String(layerXML.elements("dependOffset")).split(",");
-					camera.dependOnCamera(_cameraModule.getCameraByName(dependOnCameraName), parseFloat(dependOffset[0]), parseFloat(dependOffset[1]), parseFloat(dependOffset[2]));
-					_layerModule.add(layerName, true).attachCamera(camera);
-				}
-
-				// creates dependent layers
 				var layersDependent:XMLList = layersXMLList.(addToLayer != "none");
-				var layersDependWithoutCamera:XMLList = layersDependent.(attachCamera == "false");
+				var layersHasCamera:XMLList = layersIndependent.(attachCamera == "true");
 
-				// creates depend layers without cameras
-				numLayers = layersDependWithoutCamera.length();
-				for (j = 0; j < numLayers; j++)
+				// adds all independent layers
+				var layers:Vector.<XML> = getVectorXMLLayersSortedByDeepIndex(layersIndependent);
+				numLayers = layers.length;
+				for (var i:int = 0; i < numLayers; i++)
 				{
-					layerXML = layersDependWithoutCamera[j];
-					_layerModule.addTo(String(layerXML.elements("name")), String(layerXML.elements("addToLayer")));
+					layerXML = layers[i];
+					_layerModule.add(String(layerXML.elements("name")), true);
 				}
 
-				// creates depend layers with cameras
-				var layersDependWithCamera:XMLList = layersDependent.(attachCamera == "true");
-				numLayers = layersDependWithCamera.length();
-				for (j = 0; j < numLayers; j++)
+				// adds all dependent layers
+				layers = getVectorXMLLayersSortedByDeepIndex(layersDependent);
+				var addToLayerName:String;
+				var infiniteCounter:uint = 0;
+				i = 0;
+				while (layers.length > 0)
 				{
-					layerXML = layersDependWithCamera[j];
-					layerName = String(layerXML.elements("name"));
-					camera = BBCamera.get(layerName);
+					layerXML = layers[i];
+					addToLayerName = layerXML.elements("addToLayer");
 
-					dependOnCameraName = layerXML.elements("dependOnCamera");
-
-					if (dependOnCameraName != "none")
+					if (_layerModule.isExist(addToLayerName))
 					{
-						dependOffset = String(layerXML.elements("dependOffset")).split(",");
-						camera.dependOnCamera(_cameraModule.getCameraByName(dependOnCameraName), parseFloat(dependOffset[0]), parseFloat(dependOffset[1]), parseFloat(dependOffset[2]));
+						_layerModule.addTo(layerXML.elements("name"), addToLayerName);
+						layers.splice(i, 1);
+						--i;
 					}
 
-					layer = _layerModule.addTo(layerName, String(layerXML.elements("addToLayer")));
-					layer.attachCamera(camera);
+					if (++i >= layers.length) i = 0;
+
+					CONFIG::debug
+					{
+						++infiniteCounter;
+						Assert.isTrue(infiniteCounter < 1000, "Infinite loop during creating depending layers. Cause: seems like some layers to which dependent layers should be added doesn't exist", "BBLevelsModule.createLevelFromMC");
+					}
+				}
+
+				// adds all cameras
+				layers = getVectorXMLLayersSortedByDeepIndex(layersHasCamera, false);
+				i = 0;
+				infiniteCounter = 0;
+				var dependOnCamera:BBCamera;
+				while (layers.length > 0)
+				{
+					layerXML = layers[i];
+					layerName = layerXML.elements("name");
+					dependOnCameraName = layerXML.elements("dependOnCamera");
+
+					if (dependOnCameraName == "none")  // independent camera
+					{
+						_layerModule.get(layerName).attachCamera(BBCamera.get(layerName));
+						layers.splice(i, 1);
+						--i;
+					}
+					else   // dependent camera
+					{
+						dependOnCamera = _layerModule.get(dependOnCameraName).camera;
+						if (dependOnCamera)
+						{
+							camera = BBCamera.get(layerName);
+							dependOffset = String(layerXML.elements("dependOffset")).split(",");
+							camera.dependOnCamera(dependOnCamera, dependOffset[0], dependOffset[1], dependOffset[2]);
+							_layerModule.get(layerName).attachCamera(camera);
+							layers.splice(i, 1);
+							--i;
+						}
+					}
+
+					if (++i >= layers.length) i = 0;
+
+					CONFIG::debug
+					{
+						++infiniteCounter;
+						Assert.isTrue(infiniteCounter < 1000, "Infinite loop during creating cameras. Cause: seems like some 'dependentOn' cameras doesn't exist", "BBLevelsModule.createLevelFromMC");
+					}
 				}
 			}
 
@@ -156,7 +173,7 @@ package bb.level
 			var actorsWithNameTable:Array = [];
 			var numActors:int = actorsList.length();
 
-			for (var i:int = 0; i < numActors; i++)
+			for (i = 0; i < numActors; i++)
 			{
 				actorXML = actorsList[i];
 
@@ -202,6 +219,34 @@ package bb.level
 
 			//
 			if (_onLevelComplete) _onLevelComplete.dispatch();
+		}
+
+		/**
+		 */
+		static private function getVectorXMLLayersSortedByDeepIndex(p_layers:XMLList, p_isNeedSort:Boolean = true):Vector.<XML>
+		{
+			var layers:Vector.<XML> = new <XML>[];
+			var numLayers:int = p_layers.length();
+			for (var i:int = 0; i < numLayers; i++)
+			{
+				layers[i] = p_layers[i];
+			}
+
+			if (p_isNeedSort) layers.sort(compare);
+
+			return layers;
+		}
+
+		/**
+		 */
+		static private function compare(p_x:XML, p_y:XML):int
+		{
+			var xIndex:int = parseInt(p_x.elements("layerIndex"));
+			var yIndex:int = parseInt(p_y.elements("layerIndex"));
+
+			if (xIndex < yIndex) return -1;
+			else if (xIndex == yIndex) return 0;
+			else return 1;
 		}
 
 		/**
