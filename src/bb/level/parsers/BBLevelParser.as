@@ -186,6 +186,8 @@ package bb.level.parsers
 				var dependOnCamera:String = String(p_layerScheme.dependOnCamera).toLowerCase();
 				layer.appendChild(<dependOnCamera>{dependOnCamera}</dependOnCamera>);
 				if (dependOnCamera != "none") layer.appendChild(<dependOffset>{p_layerScheme.dependX + "," + p_layerScheme.dependX + "," + p_layerScheme.dependZoom}</dependOffset>);
+				layer.appendChild(<cameraPosition>{p_layerScheme.cameraX + "," + p_layerScheme.cameraY}</cameraPosition>);
+				layer.appendChild(<cameraMouseEnable>{p_layerScheme.cameraMouseEnable}</cameraMouseEnable>);
 			}
 
 			//
@@ -198,12 +200,22 @@ package bb.level.parsers
 		 */
 		static private function parseExternalGraphicsHandler(p_graphics:MovieClip):void
 		{
+			var assetId:String = getQualifiedClassName(p_graphics);
+
+			if (!BBAssetsManager.isAssetExist(assetId))
+			{
+				assetId = BBAssetsManager.add(p_graphics, assetId);
+				BBAssetsManager.initAssets(true);
+			}
+
 			var graphics:XML = <graphics/>;
-			graphics.appendChild(<alias>{getQualifiedClassName(p_graphics)}</alias>);
+			graphics.appendChild(<alias>{assetId}</alias>);
 			graphics.appendChild(<name>{p_graphics.graphicsName}</name>);
 			graphics.appendChild(<playFrom>{p_graphics.playFrom}</playFrom>);
 			graphics.appendChild(<frameRate>{p_graphics.frameRate}</frameRate>);
 			graphics.appendChild(<layer>{String(p_graphics.layerName).toLowerCase()}</layer>);
+			graphics.appendChild(<position>{p_graphics.x + "," + p_graphics.y}</position>);
+			graphics.appendChild(<rotation>{p_graphics.rotation}</rotation>);
 			graphics.appendChild(<deepIndex>{_deepIndex++}</deepIndex>);
 
 			//
