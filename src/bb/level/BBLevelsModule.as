@@ -77,7 +77,6 @@ package bb.level
 				var layerXML:XML;
 				var numLayers:int;
 				var camera:BBCamera;
-				var dependOnCameraName:String;
 
 				var layersIndependent:XMLList = layersXMLList.(addToLayer == "none");
 				var layersDependent:XMLList = layersXMLList.(addToLayer != "none");
@@ -124,7 +123,6 @@ package bb.level
 				var position:Array;
 				var camX:Number;
 				var camY:Number;
-				var cameraMouseEnable:Boolean;
 				var cameraName:String;
 				var dependentCamerasList:Vector.<XML> = new <XML>[];
 				numLayers = layers.length;
@@ -133,18 +131,16 @@ package bb.level
 				{
 					layerXML = layers[i];
 					cameraName = layerXML.elements("name");
-					dependOnCameraName = layerXML.elements("dependOnCamera");
 					position = String(layerXML.elements("cameraPosition")).split(",");
 					camX = parseFloat(position[0]);
 					camY = parseFloat(position[1]);
-					cameraMouseEnable = layerXML.elements("cameraMouseEnable") == "true";
 					camera = BBCamera.get(cameraName);
 					camera.node.transform.setPosition(camX, camY);
-					camera.mouseEnable = cameraMouseEnable;
+					camera.mouseEnable = layerXML.elements("cameraMouseEnable") == "true";
 					camera.displayLayers = [cameraName];
 					_cameraModule.addCamera(camera);
 
-					if (dependOnCameraName != "none")  // independent camera
+					if (String(layerXML.elements("dependOnCamera")) != "none")  // dependent camera
 					{
 						dependentCamerasList.push(layerXML);
 					}
