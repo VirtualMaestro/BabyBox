@@ -22,9 +22,6 @@ package bb.layer
 	 */
 	public class BBLayer
 	{
-		public var keepGroup:Boolean = false;
-
-		//
 		private var _name:String;
 		private var _node:BBNode;
 		private var _children:Vector.<BBLayer>;

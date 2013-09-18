@@ -91,7 +91,7 @@ package bb.layer
 			var parentLayer:BBLayer = get(p_addToLayer);
 			parentLayer.addChild(addingLayer);
 
-			if (!addingLayer.keepGroup) addingLayer.group = parentLayer.group;
+			if (!addingLayer.node.keepGroup) addingLayer.group = parentLayer.group;
 			_layersTable[addingLayer.name] = addingLayer;
 
 			return addingLayer;
