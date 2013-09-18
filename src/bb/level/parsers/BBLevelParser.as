@@ -212,6 +212,8 @@ package bb.level.parsers
 			graphics.appendChild(<alias>{assetId}</alias>);
 			graphics.appendChild(<name>{p_graphics.graphicsName}</name>);
 			graphics.appendChild(<playFrom>{p_graphics.playFrom}</playFrom>);
+			graphics.appendChild(<repeatable>{p_graphics.repeatable}</repeatable>);
+			graphics.appendChild(<keepSequence>{p_graphics.keepSequence}</keepSequence>);
 			graphics.appendChild(<frameRate>{p_graphics.frameRate}</frameRate>);
 			graphics.appendChild(<layer>{String(p_graphics.layerName).toLowerCase()}</layer>);
 			graphics.appendChild(<position>{p_graphics.x + "," + p_graphics.y}</position>);
@@ -781,6 +783,8 @@ package bb.level.parsers
 				var movie:BBMovieClip = renderComponent as BBMovieClip;
 				movie.frameRate = p_graphics.frameRate;
 				p_graphics.playFrom > 0 ? movie.gotoAndPlay(p_graphics.playFrom) : movie.stop();
+				movie.repeatable = p_graphics.repeatable;
+				movie.keepSequence = p_graphics.keepSequence;
 			}
 
 			renderComponent.offsetScaleX = p_graphics.scaleX;

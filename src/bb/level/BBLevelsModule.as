@@ -247,9 +247,14 @@ package bb.level
 
 			if (renderable is BBMovieClip)
 			{
-				(renderable as BBMovieClip).frameRate = parseInt(p_graphicsXML.elements("frameRate"));
+				var movie:BBMovieClip = renderable as BBMovieClip;
+				movie.frameRate = parseInt(p_graphicsXML.elements("frameRate"));
+
 				var playFrom:int = parseInt(p_graphicsXML.elements("playFrom"));
-				if (playFrom > 0) (renderable as BBMovieClip).gotoAndPlay(playFrom);
+				if (playFrom > 0) movie.gotoAndPlay(playFrom);
+
+				movie.repeatable = p_graphicsXML.elements("repeatable") == "true";
+				movie.keepSequence = p_graphicsXML.elements("keepSequence") == "true";
 			}
 
 			graphics.addComponent(renderable);
