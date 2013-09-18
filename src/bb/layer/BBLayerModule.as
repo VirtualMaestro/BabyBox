@@ -9,7 +9,6 @@ package bb.layer
 	import bb.core.BBNode;
 	import bb.modules.*;
 	import bb.signals.BBSignal;
-	import bb.tools.BBGroupMask;
 	import bb.tree.BBTreeModule;
 
 	import flash.utils.Dictionary;
@@ -53,18 +52,16 @@ package bb.layer
 		 *
 		 * @return - instance of BBLayer - adding p_layer
 		 */
-		public function add(p_layer:String, p_setOwnGroup:Boolean = false):BBLayer
+		public function add(p_layer:String):BBLayer
 		{
 			CONFIG::debug
 			{
 				Assert.isTrue(!isExist(p_layer), "Layer with such name '" + p_layer + "' already exist. Layer name should be unique", "BBLayerModule.add");
 			}
 
-			var addingLayer:BBLayer = new BBLayer(p_layer, p_setOwnGroup);
+			var addingLayer:BBLayer = new BBLayer(p_layer, true);
 			_root.addChild(addingLayer.node);
 			_layersTable[p_layer] = addingLayer;
-
-			if (p_setOwnGroup) addingLayer.group = BBGroupMask.getGroup();
 
 			return addingLayer;
 		}
@@ -146,7 +143,7 @@ package bb.layer
 
 		/**
 		 * Returns layer by given name.
-		 * If such layer doesn't exist returns null.
+		 * If such layer doesn't exist generates exception.
 		 */
 		public function get(p_layerName:String):BBLayer
 		{
