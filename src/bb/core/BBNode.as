@@ -58,7 +58,7 @@ package bb.core
 		private var _id:int = 0;
 
 		/**
-		 * Group which is used to determine whether current node should be rendered with current camera or not.
+		 * Group which is used to determine whether current node should be rendered with current camera or not (camera has a mask).
 		 */
 		public var group:int = 1;
 
