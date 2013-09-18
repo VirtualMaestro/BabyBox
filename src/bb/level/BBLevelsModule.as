@@ -75,11 +75,9 @@ package bb.level
 			{
 				var layersXMLList:XMLList = level.layers.children();
 				var layerXML:XML;
-				var layerName:String;
 				var numLayers:int;
 				var camera:BBCamera;
 				var dependOnCameraName:String;
-				var dependOffset:Array;
 
 				var layersIndependent:XMLList = layersXMLList.(addToLayer == "none");
 				var layersDependent:XMLList = layersXMLList.(addToLayer != "none");
@@ -91,7 +89,7 @@ package bb.level
 				for (var i:int = 0; i < numLayers; i++)
 				{
 					layerXML = layers[i];
-					_layerModule.add(String(layerXML.elements("name")), true);
+					_layerModule.add(String(layerXML.elements("name")));
 				}
 
 				// adds all dependent layers
@@ -122,60 +120,53 @@ package bb.level
 
 				// adds all cameras
 				layers = getVectorXMLLayersSortedByDeepIndex(layersHasCamera);
-				i = 0;
-				infiniteCounter = 0;
 				var dependOnCamera:BBCamera;
 				var position:Array;
 				var camX:Number;
 				var camY:Number;
 				var cameraMouseEnable:Boolean;
-				while (layers.length > 0)
+				var cameraName:String;
+				var dependentCamerasList:Vector.<XML> = new <XML>[];
+				numLayers = layers.length;
+
+				for (i = 0; i < numLayers; i++)
 				{
 					layerXML = layers[i];
-					layerName = layerXML.elements("name");
+					cameraName = layerXML.elements("name");
 					dependOnCameraName = layerXML.elements("dependOnCamera");
+					position = String(layerXML.elements("cameraPosition")).split(",");
+					camX = parseFloat(position[0]);
+					camY = parseFloat(position[1]);
+					cameraMouseEnable = layerXML.elements("cameraMouseEnable") == "true";
+					camera = BBCamera.get(cameraName);
+					camera.node.transform.setPosition(camX, camY);
+					camera.mouseEnable = cameraMouseEnable;
+					camera.displayLayers = [cameraName];
+					_cameraModule.addCamera(camera);
 
-					if (dependOnCameraName == "none")  // independent camera
+					if (dependOnCameraName != "none")  // independent camera
 					{
-						position = String(layerXML.elements("cameraPosition")).split(",");
-						camX = parseFloat(position[0]);
-						camY = parseFloat(position[1]);
-						cameraMouseEnable = layerXML.elements("cameraMouseEnable") == "true";
-						camera = BBCamera.get(layerName);
-						camera.node.transform.setPosition(camX, camY);
-						camera.mouseEnable = cameraMouseEnable;
-						_layerModule.get(layerName).attachCamera(camera);
-						layers.splice(i, 1);
-						--i;
-					}
-					else   // dependent camera
-					{
-						dependOnCamera = _layerModule.get(dependOnCameraName).camera;
-						if (dependOnCamera)
-						{
-							position = String(layerXML.elements("cameraPosition")).split(",");
-							camX = parseFloat(position[0]);
-							camY = parseFloat(position[1]);
-							cameraMouseEnable = layerXML.elements("cameraMouseEnable") == "true";
-							camera = BBCamera.get(layerName);
-							camera.node.transform.setPosition(camX, camY);
-							camera.mouseEnable = cameraMouseEnable;
-							dependOffset = String(layerXML.elements("dependOffset")).split(",");
-							camera.dependOnCamera(dependOnCamera, dependOffset[0], dependOffset[1], dependOffset[2]);
-							_layerModule.get(layerName).attachCamera(camera);
-							layers.splice(i, 1);
-							--i;
-						}
-					}
-
-					if (++i >= layers.length) i = 0;
-
-					CONFIG::debug
-					{
-						++infiniteCounter;
-						Assert.isTrue(infiniteCounter < 1000, "Infinite loop during creating cameras. Cause: seems like some 'dependentOn' cameras doesn't exist", "BBLevelsModule.createLevelFromMC");
+						dependentCamerasList.push(layerXML);
 					}
 				}
+
+				var dependOffset:Array;
+				numLayers = dependentCamerasList.length;
+
+				for (i = 0; i < numLayers; i++)
+				{
+					layerXML = dependentCamerasList[i];
+					dependentCamerasList[i] = null;
+
+					camera = _cameraModule.getCameraByName(layerXML.elements("name"));
+					dependOnCamera = _cameraModule.getCameraByName(layerXML.elements("dependOnCamera"));
+					dependOffset = String(layerXML.elements("dependOffset")).split(",");
+					camera.dependOnCamera(dependOnCamera, dependOffset[0], dependOffset[1], dependOffset[2]);
+				}
+
+				dependentCamerasList = null;
+				camera = null;
+				dependOnCamera = null;
 			}
 
 			// combine all entities which should be added to world into one vector
