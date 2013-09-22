@@ -92,13 +92,14 @@ package bb.particles
 		{
 			super();
 
-			onAdded.add(addedToNode);
+			onAdded.add(addedToNodeHandler);
 		}
 
 		/**
 		 */
-		private function addedToNode(p_signal:BBSignal):void
+		private function addedToNodeHandler(p_signal:BBSignal):void
 		{
+			isCulling = true;
 			node.onAdded.add(addedToStage);
 		}
 
@@ -158,7 +159,9 @@ package bb.particles
 			while (particle)
 			{
 				p_context.draw(z_texture, particle.posX, particle.posY, 0, particle.scale * scaleX, particle.scale * scaleY,
-						0, 0, 0, 1.0, 1.0, particle.alpha * alpha, particle.red * red, particle.green * green, particle.blue * blue, blendMode);
+						0, 0, 0, 1.0, 1.0,
+						particle.alpha * alpha, particle.red * red, particle.green * green, particle.blue * blue,
+						isCulling, blendMode);
 
 				particle = particle.next;
 			}
