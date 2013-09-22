@@ -104,6 +104,7 @@ package bb.config
 		/**
 		 * Whether need to apply a culling test.
 		 * Mean before render object will be tested on getting on screen.
+		 * This param applies by default for all renderable components, but each component has 'isCulling' prop which could be changed manually.
 		 *
 		 * [runtime]
 		 */

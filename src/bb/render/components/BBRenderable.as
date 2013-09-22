@@ -14,6 +14,7 @@ package bb.render.components
 	import bb.mouse.events.BBMouseEvent;
 	import bb.pools.BBNativePool;
 	import bb.render.textures.BBTexture;
+	import bb.signals.BBSignal;
 
 	import flash.geom.Matrix;
 	import flash.geom.Rectangle;
@@ -47,9 +48,15 @@ package bb.render.components
 		/**
 		 * Blend mode for renderable component.
 		 * Need to use constants from BlendMode class.
-		 * By default no blend.
+		 * By default null (no blend).
 		 */
 		public var blendMode:String = null;
+
+		/**
+		 * If apply frustum culling test.
+		 * Mean before render object will be tested on getting on screen.
+		 */
+		public var isCulling:Boolean = false;
 
 		//
 		private var _worldBounds:Rectangle = null;
@@ -59,8 +66,15 @@ package bb.render.components
 		public function BBRenderable()
 		{
 			super();
+			onAdded.add(onAddedToNodeHandler);
+		}
 
+		/**
+		 */
+		public function onAddedToNodeHandler(p_signal:BBSignal):void
+		{
 			mousePixelEnabled = BabyBox.get().config.mousePixelEnable;
+			isCulling = BabyBox.get().config.isCulling;
 		}
 
 		/**
@@ -99,7 +113,8 @@ package bb.render.components
 				var transform:BBTransform = node.transform;
 				p_context.draw(z_texture, transform.worldX, transform.worldY, (allowRotation ? transform.worldRotation : 0), transform.worldScaleX, transform.worldScaleY,
 						offsetX, offsetY, offsetRotation, offsetScaleX, offsetScaleY,
-						transform.worldAlpha, transform.worldRed, transform.worldGreen, transform.worldBlue, blendMode);
+						transform.worldAlpha, transform.worldRed, transform.worldGreen, transform.worldBlue,
+						isCulling, blendMode);
 			}
 		}
 

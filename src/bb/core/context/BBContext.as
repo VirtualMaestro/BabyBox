@@ -112,7 +112,6 @@ package bb.core.context
 			_stage = p_stage;
 			_config = BabyBox.get().config;
 			_canvasViewRect = _config.getViewRect();
-			isCulling = _config.isCulling;
 
 			if (_config.renderMode == BBRenderMode.BLITTING) initBlitting();
 			else initGenome();
@@ -227,7 +226,6 @@ package bb.core.context
 			else
 			{
 				_smoothingDraw = _config.smoothingDraw;
-				isCulling = _config.isCulling;
 				_canvas.lock();
 
 				// fill whole canvas with given color
@@ -251,18 +249,12 @@ package bb.core.context
 		}
 
 		/**
-		 * If apply frustum culling test.
-		 * Mean before render object will be tested on getting on screen.
-		 */
-		public var isCulling:Boolean = false;
-
-		/**
 		 * Method draw texture with given parameters.
 		 * It takes into account camera parameters, so it is impossible to use it if camera isn't set.
 		 *
 		 * All color multipliers must be in range [0, 1].
 		 */
-		public function draw(p_texture:BBTexture, p_x:Number, p_y:Number, p_rotation:Number = 0, p_scaleX:Number = 1.0, p_scaleY:Number = 1.0, p_offsetX:Number = 0, p_offsetY:Number = 0, p_offsetRotation:Number = 0, p_offsetScaleX:Number = 1.0, p_offsetScaleY:Number = 1.0, p_alphaMultiplier:Number = 1.0, p_redMultiplier:Number = 1.0, p_greenMultiplier:Number = 1.0, p_blueMultiplier:Number = 1.0, p_blendMode:String = null):void
+		public function draw(p_texture:BBTexture, p_x:Number, p_y:Number, p_rotation:Number = 0, p_scaleX:Number = 1.0, p_scaleY:Number = 1.0, p_offsetX:Number = 0, p_offsetY:Number = 0, p_offsetRotation:Number = 0, p_offsetScaleX:Number = 1.0, p_offsetScaleY:Number = 1.0, p_alphaMultiplier:Number = 1.0, p_redMultiplier:Number = 1.0, p_greenMultiplier:Number = 1.0, p_blueMultiplier:Number = 1.0, p_isCulling:Boolean = false, p_blendMode:String = null):void
 		{
 			var bitmap:BitmapData = p_texture.bitmapData;
 			var textureWidth:Number = bitmap.width;
@@ -284,7 +276,7 @@ package bb.core.context
 			var texturePivotY:Number = p_texture.pivotY * totalScaleY;
 
 			///  Test for getting into the viewport /////////////
-			if (isCulling)
+			if (p_isCulling)
 			{
 				var rightX:Number = texturePivotX + textureWidth * totalScaleX;
 				var bottomY:Number = texturePivotY + textureHeight * totalScaleY;
