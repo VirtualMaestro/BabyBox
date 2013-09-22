@@ -389,7 +389,7 @@ package bb.core
 			// remove it from lookup table
 			delete _lookupComponentTable[p_componentLookupClass];
 
-			// send signal to component that it was unlinked
+			// send signal to component when it was unlinked
 			component.onRemoved.dispatch();
 
 			//

@@ -63,7 +63,7 @@ package bb.core
 			onUpdate = BBSignal.get(this);
 
 			_onAdded = BBSignal.get(this);
-			_onAdded.add(onComponentAddedHandler);
+			_onAdded.add(onAddedToNodeHandler);
 
 			_onRemoved = BBSignal.get(this);
 
@@ -72,7 +72,7 @@ package bb.core
 
 		/**
 		 */
-		private function onComponentAddedHandler(p_signal:BBSignal):void
+		private function onAddedToNodeHandler(p_signal:BBSignal):void
 		{
 			var params:Object = p_signal.params;
 			_node = params.node;
@@ -219,7 +219,7 @@ package bb.core
 
 			if (cacheable)
 			{
-				_onAdded.add(onComponentAddedHandler);
+				_onAdded.addFirst(onAddedToNodeHandler);
 				put(this);
 			}
 			else rid();
