@@ -59,7 +59,7 @@ package bb.world
 		 * p_layerName - name of layer that actor should be added to it.
 		 * Returns added actor.
 		 */
-		public function add(p_actor:BBNode, p_layerName:String = BBLayerNames.MIDDLEGROUND):BBNode
+		public function add(p_actor:BBNode, p_layerName:String):BBNode
 		{
 			CONFIG::debug
 			{
