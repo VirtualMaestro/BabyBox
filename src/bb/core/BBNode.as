@@ -390,7 +390,7 @@ package bb.core
 			delete _lookupComponentTable[p_componentLookupClass];
 
 			// send signal to component when it was unlinked
-			component.onRemoved.dispatch();
+			if (component._onRemoved) component._onRemoved.dispatch();
 
 			//
 			component._node = null;
