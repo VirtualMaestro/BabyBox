@@ -14,6 +14,10 @@ package bb.config
 	 */
 	public class BBConfig
 	{
+		static public var ROTATION_PRECISE:Number = Math.PI / 180.0;
+		static public var SCALE_PRECISE:Number = 0.01;
+		static public var COLOR_PRECISE:Number = 0.001;
+
 		/**
 		 * If property set in 'true' mean If stage3d is initialized in 'software' mode it turn to blitting mode instead.
 		 *

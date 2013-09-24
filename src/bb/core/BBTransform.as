@@ -6,6 +6,7 @@
 package bb.core
 {
 	import bb.bb_spaces.bb_private;
+	import bb.config.BBConfig;
 	import bb.pools.BBNativePool;
 
 	import flash.geom.Matrix;
@@ -21,13 +22,11 @@ package bb.core
 	 */
 	final public class BBTransform extends BBComponent
 	{
-		private const PI2:Number = Math.PI * 2;
+		private const PI2_RAD:Number = Math.PI * 2;
 		private const RAD_TO_DEG:Number = 180.0 / Math.PI;
 		private const DEG_TO_RAD:Number = Math.PI / 180.0;
 
 		//
-		private var PRECISE_ROTATION:Number = (Math.PI / 180.0) / 10;
-
 		private var _localX:Number = 0;
 		private var _localY:Number = 0;
 		bb_private var worldX:Number = 0;
@@ -42,10 +41,10 @@ package bb.core
 		bb_private var worldScaleY:Number = 1;
 
 		// TODO: Add able to skew
-		private var _localSkewX:Number = 0;
-		private var _localSkewY:Number = 0;
-		bb_private var worldSkewX:Number = 0;
-		bb_private var worldSkewY:Number = 0;
+//		private var _localSkewX:Number = 0;
+//		private var _localSkewY:Number = 0;
+//		bb_private var worldSkewX:Number = 0;
+//		bb_private var worldSkewY:Number = 0;
 
 		private var _worldTransformMatrix:Matrix = null;
 		private var _localTransformMatrix:Matrix = null;
@@ -287,7 +286,6 @@ package bb.core
 		[Inline]
 		final public function set x(p_x:Number):void
 		{
-			/*worldX = */
 			_localX = p_x;
 			isTransformChanged = true;
 			isPositionChanged = true;
@@ -315,7 +313,6 @@ package bb.core
 		[Inline]
 		final public function set y(p_y:Number):void
 		{
-			/*worldY = */
 			_localY = p_y;
 			isTransformChanged = true;
 			isPositionChanged = true;
@@ -352,10 +349,9 @@ package bb.core
 		[Inline]
 		final public function set rotation(p_angle:Number):void
 		{
-			p_angle %= PI2;
-			if (Math.abs(p_angle) < PRECISE_ROTATION) p_angle = 0;
+			p_angle %= PI2_RAD;
+			if (Math.abs(p_angle) < BBConfig.ROTATION_PRECISE) p_angle = 0;
 
-			/*worldRotation = */
 			_localRotation = p_angle;
 
 			isTransformChanged = true;
@@ -407,8 +403,22 @@ package bb.core
 		[Inline]
 		final public function setScale(p_scaleX:Number, p_scaleY:Number):void
 		{
-			_localScaleX = p_scaleX;
-			_localScaleY = p_scaleY;
+			var sign:int = p_scaleX < 0 ? -1 : 1;
+			var absScale:Number = p_scaleX * sign;
+
+			if (absScale < BBConfig.SCALE_PRECISE) absScale = BBConfig.SCALE_PRECISE;
+			else if (Math.abs(1 - absScale) < BBConfig.SCALE_PRECISE) absScale = 1.0;
+
+			_localScaleX = absScale * sign;
+
+			sign = p_scaleY < 0 ? -1 : 1;
+			absScale = p_scaleY * sign;
+
+			if (absScale < BBConfig.SCALE_PRECISE) absScale = BBConfig.SCALE_PRECISE;
+			else if (Math.abs(1 - absScale) < BBConfig.SCALE_PRECISE) absScale = 1.0;
+
+			_localScaleY = absScale * sign;
+
 			isTransformChanged = true;
 			isScaleChanged = true;
 
@@ -419,7 +429,14 @@ package bb.core
 		 */
 		public function set scaleX(p_val:Number):void
 		{
-			_localScaleX = p_val;
+			var sign:int = p_val < 0 ? -1 : 1;
+			var absScale:Number = p_val * sign;
+
+			if (absScale < BBConfig.SCALE_PRECISE) absScale = BBConfig.SCALE_PRECISE;
+			else if (Math.abs(1 - absScale) < BBConfig.SCALE_PRECISE) absScale = 1.0;
+
+			_localScaleX = absScale * sign;
+
 			isTransformChanged = true;
 			isScaleChanged = true;
 
@@ -438,7 +455,14 @@ package bb.core
 		 */
 		public function set scaleY(p_val:Number):void
 		{
-			_localScaleY = p_val;
+			var sign:int = p_val < 0 ? -1 : 1;
+			var absScale:Number = p_val * sign;
+
+			if (absScale < BBConfig.SCALE_PRECISE) absScale = BBConfig.SCALE_PRECISE;
+			else if (Math.abs(1 - absScale) < BBConfig.SCALE_PRECISE) absScale = 1.0;
+
+			_localScaleY = absScale * sign;
+
 			isTransformChanged = true;
 			isScaleChanged = true;
 
@@ -500,7 +524,12 @@ package bb.core
 		 */
 		public function shiftScale(p_shiftScaleX:Number, p_shiftScaleY:Number):void
 		{
-			setScale(_localScaleX + p_shiftScaleX, _localScaleY + p_shiftScaleY);
+			_localScaleX += p_shiftScaleX;
+			_localScaleY += p_shiftScaleY;
+			isTransformChanged = true;
+			isScaleChanged = true;
+
+			keepSamePositionWhenScaled();
 		}
 
 		/**
@@ -516,7 +545,13 @@ package bb.core
 		 */
 		public function set shiftRotation(p_offsetAngle:Number):void
 		{
-			rotation = _localRotation + p_offsetAngle;
+			_localRotation += p_offsetAngle;
+			_localRotation %= PI2_RAD;
+
+			isTransformChanged = true;
+			isRotationChanged = true;
+
+			if (independentUpdateWorldParameters && node.parent) invalidate(true, false);
 		}
 
 		/**
@@ -665,6 +700,26 @@ package bb.core
 
 		/**
 		 */
+		public function markChildrenForInvalidation():void
+		{
+			if (node && node.numChildren > 0)
+			{
+				var child:BBNode = node.childrenHead;
+				var currentChild:BBNode;
+
+				while (child)
+				{
+					currentChild = child;
+					child = child.next;
+
+					currentChild.transform.isTransformChanged = true;
+					currentChild.transform.markChildrenForInvalidation();
+				}
+			}
+		}
+
+		/**
+		 */
 		override public function dispose():void
 		{
 			super.dispose();
@@ -679,10 +734,10 @@ package bb.core
 			_localScaleY = 1;
 			worldScaleX = 1;
 			worldScaleY = 1;
-			_localSkewX = 0;
-			_localSkewY = 0;
-			worldSkewX = 0;
-			worldSkewY = 0;
+//			_localSkewX = 0;
+//			_localSkewY = 0;
+//			worldSkewX = 0;
+//			worldSkewY = 0;
 			_alpha = 1;
 			worldAlpha = 1;
 			_red = 1;
@@ -693,8 +748,6 @@ package bb.core
 			worldBlue = 1;
 			COS = 1;
 			SIN = 0;
-
-			PRECISE_ROTATION = (Math.PI / 180.0) / 10;
 
 			isScaleChanged = false;
 			isRotationChanged = false;
@@ -726,10 +779,10 @@ package bb.core
 			component._localScaleY = _localScaleY;
 			component.worldScaleX = worldScaleX;
 			component.worldScaleY = worldScaleY;
-			component._localSkewX = _localSkewX;
-			component._localSkewY = _localSkewY;
-			component.worldSkewX = worldSkewX;
-			component.worldSkewY = worldSkewY;
+//			component._localSkewX = _localSkewX;
+//			component._localSkewY = _localSkewY;
+//			component.worldSkewX = worldSkewX;
+//			component.worldSkewY = worldSkewY;
 			component._alpha = _alpha;
 			component.worldAlpha = worldAlpha;
 			component._red = _red;
@@ -740,7 +793,6 @@ package bb.core
 			component.worldBlue = worldBlue;
 			component.COS = COS;
 			component.SIN = SIN;
-			component.PRECISE_ROTATION = PRECISE_ROTATION;
 
 			return component;
 		}
@@ -756,7 +808,7 @@ package bb.core
 					"{scale local: " + _localScaleX + " / " + _localScaleY + "}-{ scale world: " + worldScaleX + " / " + worldScaleY + "}" + "\n" +
 					"{isTransformChanged: " + isTransformChanged + "}-{isScaleInvalidated: " + isScaleInvalidated + "}-{isColorChanged: " + isColorChanged + "}-" +
 					"{local/world ARGB: " + _alpha + ";" + _red + ";" + _green + ";" + _blue + " / " + worldAlpha + ";" + worldRed + ";" + worldGreen + ";" + worldBlue + "}] \n" +
-					"{COS: " + COS + "}-{SIN: " + SIN + "}-{PRECISE_ROTATION: " + PRECISE_ROTATION + "}" +
+					"{COS: " + COS + "}-{SIN: " + SIN + "}" +
 					"\n" + "------------------------------------------------------------------------------------------------------------------------\n";
 		}
 	}

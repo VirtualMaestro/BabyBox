@@ -6,6 +6,7 @@
 package bb.physics.components
 {
 	import bb.bb_spaces.bb_private;
+	import bb.config.BBConfig;
 	import bb.core.BBComponent;
 	import bb.core.BBNode;
 	import bb.core.BBTransform;
@@ -51,8 +52,6 @@ package bb.physics.components
 	 */
 	public class BBPhysicsBody extends BBComponent
 	{
-		static private const SCALE_PRECISE:Number = 0.01;
-
 		/**
 		 * Allow to use hand for this object.
 		 */
@@ -318,7 +317,7 @@ package bb.physics.components
 			if (p_filter) p_shape.filter = p_filter;
 
 			// scale shape if need
-			if (Math.abs(_scaleX - 1.0) > SCALE_PRECISE || Math.abs(_scaleY - 1.0) > SCALE_PRECISE)
+			if (Math.abs(_scaleX - 1.0) > BBConfig.SCALE_PRECISE || Math.abs(_scaleY - 1.0) > BBConfig.SCALE_PRECISE)
 			{
 				scaleShape(p_shape, _scaleX, _scaleY);
 			}
@@ -416,7 +415,7 @@ package bb.physics.components
 				// creates new joints if need
 				if (_initJointList)
 				{
-					var isNeedToScale:Boolean = Math.abs(1 - _scaleX) > SCALE_PRECISE || Math.abs(1 - _scaleY) > SCALE_PRECISE;
+					var isNeedToScale:Boolean = Math.abs(1 - _scaleX) > BBConfig.SCALE_PRECISE || Math.abs(1 - _scaleY) > BBConfig.SCALE_PRECISE;
 					var currentNodeName:String = node.name;
 					var jointsNum:int = _initJointList.length;
 					var joint:BBJoint;
@@ -745,7 +744,7 @@ package bb.physics.components
 			p_scaleX = Math.abs(p_scaleX);
 			p_scaleY = Math.abs(p_scaleY);
 
-			if (Math.abs(p_scaleX - _scaleX) >= SCALE_PRECISE || Math.abs(p_scaleY - _scaleY) >= SCALE_PRECISE)
+			if (Math.abs(p_scaleX - _scaleX) >= BBConfig.SCALE_PRECISE || Math.abs(p_scaleY - _scaleY) >= BBConfig.SCALE_PRECISE)
 			{
 				var nScaleX:Number = NumberUtil.round(1.0 / _scaleX) * p_scaleX;
 				var nScaleY:Number = NumberUtil.round(1.0 / _scaleY) * p_scaleY;
@@ -883,7 +882,7 @@ package bb.physics.components
 				if (_transform.isPositionInvalidated) _bodyPosition.setxy(_transform.worldX, _transform.worldY);
 				if (_transform.isRotationInvalidated) _body.rotation = _transform.worldRotation;
 
-				invalidateChildren();
+				_transform.markChildrenForInvalidation();
 			}
 			else
 			{
@@ -910,28 +909,31 @@ package bb.physics.components
 				_transform.worldX = _bodyPosition.x;
 				_transform.worldY = _bodyPosition.y;
 				_transform.worldRotation = _body.rotation;
+
+//				_transform.markChildrenForInvalidation();
 			}
 		}
 
-		/**
-		 */
-		[Inline]
-		final private function invalidateChildren():void
-		{
-			if (_transform.node.numChildren > 0)
-			{
-				var child:BBNode = _transform.node.childrenHead;
-				var currentChild:BBNode;
-
-				while (child)
-				{
-					currentChild = child;
-					child = child.next;
-
-					currentChild.transform.isTransformChanged = true;
-				}
-			}
-		}
+//		/**
+//		 */
+//		[Inline]
+//		final private function invalidateChildren():void
+//		{
+//			if (_transform.node.numChildren > 0)
+//			{
+//				var child:BBNode = _transform.node.childrenHead;
+//				var currentChild:BBNode;
+//
+//				while (child)
+//				{
+//					currentChild = child;
+//					child = child.next;
+//
+//					currentChild.transform.isTransformChanged = true;
+//					currentChild.
+//				}
+//			}
+//		}
 
 		/**
 		 */

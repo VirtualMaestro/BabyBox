@@ -474,11 +474,26 @@ package bb.level.parsers
 
 		/**
 		 */
-		static private function internalGraphicsHandler(p_graphics:MovieClip, p_actorScheme:MovieClip, p_actor:BBNode):void
+		static private function internalGraphicsHandler(p_graphicsScheme:MovieClip, p_actorScheme:MovieClip, p_actor:BBNode):void
 		{
-			var renderableComponent:BBRenderable = createGraphics(p_graphics);
+			var renderableComponent:BBRenderable = createGraphics(p_graphicsScheme);
 			renderableComponent.allowRotation = p_actorScheme.graphicsRotation;
-			p_actor.addComponent(renderableComponent);
+
+			if (p_actor.isComponentExist(BBRenderable))
+			{
+				renderableComponent.offsetScaleX = 1.0;
+				renderableComponent.offsetScaleY = 1.0;
+				renderableComponent.offsetX = 0;
+				renderableComponent.offsetY = 0;
+				renderableComponent.offsetRotation = 0;
+
+				var nestedGraphics:BBNode = BBNode.get(p_graphicsScheme.graphicsName);
+				nestedGraphics.addComponent(renderableComponent, BBRenderable);
+				nestedGraphics.transform.setPositionAndRotation(p_graphicsScheme.x, p_graphicsScheme.y, p_graphicsScheme.rotation * TrigUtil.DEG_TO_RAD);
+				nestedGraphics.transform.setScale(p_graphicsScheme.scaleX, p_graphicsScheme.scaleY);
+				p_actor.addChild(nestedGraphics);
+			}
+			else p_actor.addComponent(renderableComponent, BBRenderable);
 		}
 
 		/**
@@ -767,13 +782,13 @@ package bb.level.parsers
 		 * Creates BBRenderable components from scheme.
 		 */
 		[Inline]
-		static private function createGraphics(p_graphics:MovieClip):BBRenderable
+		static private function createGraphics(p_graphicsScheme:MovieClip):BBRenderable
 		{
-			var assetId:String = getQualifiedClassName(p_graphics);
+			var assetId:String = getQualifiedClassName(p_graphicsScheme);
 
 			if (!BBAssetsManager.isAssetExist(assetId))
 			{
-				assetId = BBAssetsManager.add(p_graphics, assetId);
+				assetId = BBAssetsManager.add(p_graphicsScheme, assetId);
 				BBAssetsManager.initAssets(true);
 			}
 
@@ -781,17 +796,17 @@ package bb.level.parsers
 			if (renderComponent is BBMovieClip)
 			{
 				var movie:BBMovieClip = renderComponent as BBMovieClip;
-				movie.frameRate = p_graphics.frameRate;
-				p_graphics.playFrom > 0 ? movie.gotoAndPlay(p_graphics.playFrom) : movie.stop();
-				movie.repeatable = p_graphics.repeatable;
-				movie.keepSequence = p_graphics.keepSequence;
+				movie.frameRate = p_graphicsScheme.frameRate;
+				p_graphicsScheme.playFrom > 0 ? movie.gotoAndPlay(p_graphicsScheme.playFrom) : movie.stop();
+				movie.repeatable = p_graphicsScheme.repeatable;
+				movie.keepSequence = p_graphicsScheme.keepSequence;
 			}
 
-			renderComponent.offsetScaleX = p_graphics.scaleX;
-			renderComponent.offsetScaleY = p_graphics.scaleY;
-			renderComponent.offsetX = p_graphics.x;
-			renderComponent.offsetY = p_graphics.y;
-			renderComponent.offsetRotation = p_graphics.rotation * TrigUtil.DEG_TO_RAD;
+			renderComponent.offsetScaleX = p_graphicsScheme.scaleX;
+			renderComponent.offsetScaleY = p_graphicsScheme.scaleY;
+			renderComponent.offsetX = p_graphicsScheme.x;
+			renderComponent.offsetY = p_graphicsScheme.y;
+			renderComponent.offsetRotation = p_graphicsScheme.rotation * TrigUtil.DEG_TO_RAD;
 
 			return renderComponent;
 		}

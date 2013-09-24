@@ -25,6 +25,8 @@ package bb.core.context
 	import flash.geom.Point;
 	import flash.geom.Rectangle;
 
+	import vm.math.trigonometry.TrigUtil;
+
 	use namespace bb_private;
 
 	/**
@@ -36,20 +38,6 @@ package bb.core.context
 		 * Sends when context was initialized.
 		 */
 		public var onInitialized:BBSignal = null;
-
-		/**
-		 */
-		public var PRECISE_ROTATION:Number = 1.1 * Math.PI / 180.0;
-
-		/**
-		 */
-		public var PRECISE_SCALE:Number = 0.01;
-
-		/**
-		 */
-		public var PRECISE_COLOR:Number = 0.001;
-
-		private var PI2:Number = Math.PI * 2;
 
 		//
 		private var _stage:Stage = null;
@@ -268,7 +256,7 @@ package bb.core.context
 			var newTextureX:Number = (dx * cos - sin * dy) * _currentCameraTotalScaleX + _currentCameraViewportCenterX + p_offsetX;
 			var newTextureY:Number = (dx * sin + cos * dy) * _currentCameraTotalScaleY + _currentCameraViewportCenterY + p_offsetY;
 
-			var totalRotation:Number = (p_rotation - _currentCameraRotation + p_offsetRotation) % PI2;
+			var totalRotation:Number = (p_rotation - _currentCameraRotation + p_offsetRotation) % TrigUtil.PI2;
 			var totalScaleX:Number = p_scaleX * _currentCameraTotalScaleX * p_offsetScaleX;
 			var totalScaleY:Number = p_scaleY * _currentCameraTotalScaleY * p_offsetScaleY;
 
@@ -310,7 +298,7 @@ package bb.core.context
 
 			// if need apply color transformation
 			var colorTransform:ColorTransform = null;
-			if ((1.0 - (p_alphaMultiplier * p_redMultiplier * p_greenMultiplier * p_blueMultiplier)) > PRECISE_COLOR)
+			if ((1.0 - (p_alphaMultiplier * p_redMultiplier * p_greenMultiplier * p_blueMultiplier)) > BBConfig.COLOR_PRECISE)
 			{
 				colorTransform = _colorTransform;
 				colorTransform.alphaMultiplier = p_alphaMultiplier;
@@ -321,8 +309,8 @@ package bb.core.context
 
 			//
 			var totalRotABS:Number = Math.abs(totalRotation);
-			var isScaleNotChanged:Boolean = Math.abs(1 - totalScaleX) < PRECISE_SCALE && Math.abs(1 - totalScaleY) < PRECISE_SCALE;
-			var isRotationNotChanged:Boolean = totalRotABS < PRECISE_ROTATION || (PI2 - totalRotABS) < PRECISE_ROTATION;
+			var isScaleNotChanged:Boolean = Math.abs(1 - totalScaleX) < BBConfig.SCALE_PRECISE && Math.abs(1 - totalScaleY) < BBConfig.SCALE_PRECISE;
+			var isRotationNotChanged:Boolean = totalRotABS < BBConfig.ROTATION_PRECISE || (TrigUtil.PI2 - totalRotABS) < BBConfig.ROTATION_PRECISE;
 
 			//
 			if (isRotationNotChanged && isScaleNotChanged && !colorTransform && !p_blendMode)
