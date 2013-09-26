@@ -47,6 +47,8 @@ package bb.particles
 
 		private var _gravityX:Number = 0;
 		private var _gravityY:Number = 0;
+		private var _gravityRatioFrom:Number = 1.0;
+		private var _gravityRatioTo:Number = 1.0;
 
 		private var _angleFrom:Number = 0;
 		private var _angleTo:Number = 0;
@@ -227,8 +229,8 @@ package bb.particles
 				particle.speed = rSpeed;
 				particle.lifeTime(rLifeTime, startLife);
 
-				particle.gravityX = _gravityX;
-				particle.gravityY = _gravityY;
+				particle.gravityX = _gravityX * RandUtil.getFloatRange(_gravityRatioFrom, _gravityRatioTo);
+				particle.gravityY = _gravityY * RandUtil.getFloatRange(_gravityRatioFrom, _gravityRatioTo);
 
 				particle.dampening = dampening;
 
@@ -277,10 +279,12 @@ package bb.particles
 
 		/**
 		 */
-		public function gravity(p_gravityX:Number, p_gravityY:Number):void
+		public function gravity(p_gravityX:Number, p_gravityY:Number, p_ratioFrom:Number = 1.0, p_ratioTo:Number = 1.0):void
 		{
 			_gravityX = p_gravityX;
 			_gravityY = p_gravityY;
+			_gravityRatioFrom = p_ratioFrom;
+			_gravityRatioTo = p_ratioTo;
 		}
 
 		/**
