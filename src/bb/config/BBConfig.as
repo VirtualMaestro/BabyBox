@@ -35,6 +35,7 @@ package bb.config
 
 		/**
 		 * Should renderer apply anti-aliasing or not. With anti-aliasing image more smooth but it is hit by performance.
+		 * It is global param for default behaviour of all renderable components. Each components could be set  manually.
 		 * [runtime]
 		 */
 		public var smoothingDraw:Boolean = true;
