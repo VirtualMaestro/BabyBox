@@ -103,6 +103,8 @@ package bb.particles
 		{
 			isCulling = true;
 			smoothing = false;
+			allowRotation = false;
+
 			node.onAdded.add(addedToStage);
 		}
 
