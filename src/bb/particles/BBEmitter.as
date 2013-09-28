@@ -102,6 +102,7 @@ package bb.particles
 		private function addedToNodeHandler(p_signal:BBSignal):void
 		{
 			isCulling = true;
+			smoothing = false;
 			node.onAdded.add(addedToStage);
 		}
 
@@ -160,10 +161,9 @@ package bb.particles
 			var particle:BBParticle = _head;
 			while (particle)
 			{
-				p_context.draw(z_texture, particle.posX, particle.posY, 0, particle.scale * scaleX, particle.scale * scaleY,
-						0, 0, 0, 1.0, 1.0,
-						particle.alpha * alpha, particle.red * red, particle.green * green, particle.blue * blue,
-						isCulling, blendMode);
+				p_context.draw(z_texture, particle.posX, particle.posY, 0, particle.scale * scaleX, particle.scale * scaleY, 0, 0, 0, 1.0, 1.0,
+				               particle.alpha * alpha, particle.red * red, particle.green * green, particle.blue * blue,
+				               isCulling, smoothing, allowRotationByCamera, blendMode);
 
 				particle = particle.next;
 			}
@@ -182,6 +182,10 @@ package bb.particles
 
 			var rPosX:Number;
 			var rPosY:Number;
+			var rX:Number;
+			var rY:Number;
+			var cos:Number = _transform.COS;
+			var sin:Number = _transform.SIN;
 			var rDirX:Number;
 			var rDirY:Number;
 			var rSpeed:Number;
@@ -194,8 +198,11 @@ package bb.particles
 			{
 				particle = BBParticle.get(this);
 
-				rPosX = RandUtil.getIntRange(-randX, randX);
-				rPosY = RandUtil.getIntRange(-randY, randY);
+				rX = RandUtil.getIntRange(-randX, randX);
+				rY = RandUtil.getIntRange(-randY, randY);
+
+				rPosX = rX * cos - sin * rY;
+				rPosY = rX * sin + cos * rY;
 
 				rDirX = Math.cos(rot + RandUtil.getFloatRange(_angleFrom, _angleTo));
 				rDirY = Math.sin(rot + RandUtil.getFloatRange(_angleFrom, _angleTo));
@@ -205,7 +212,6 @@ package bb.particles
 
 				if (fastMoving)
 				{
-
 					var t:Number = i / Number(p_numParticles);
 					var elapsedTime:Number = (1.0 - t) * p_deltaTime;
 
