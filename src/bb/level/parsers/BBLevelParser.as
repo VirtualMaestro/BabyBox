@@ -234,7 +234,8 @@ package bb.level.parsers
 			CONFIG::debug
 			{
 				Assert.isTrue(ownerActorName != "", "owner actor name can't be empty string", "BBLevelParser.pivotJointXMLParser");
-				Assert.isTrue(_storedExternalActorsSchemesByActorName[ownerActorName] != null, "owner actor with name '" + ownerActorName + "' doesn't exist", "BBLevelParser.pivotJointXMLParser");
+				Assert.isTrue(_storedExternalActorsSchemesByActorName[ownerActorName] != null, "owner actor with name '" + ownerActorName + "' doesn't exist",
+				              "BBLevelParser.pivotJointXMLParser");
 			}
 
 			var ownerAnchor:Vec2 = getLocalPosition(p_jointScheme, _storedExternalActorsSchemesByActorName[ownerActorName]);
@@ -356,8 +357,11 @@ package bb.level.parsers
 			CONFIG::debug
 			{
 				Assert.isTrue(ownerActorName != "", "owner actor name can't be empty string", "BBLevelParser.distanceJointXMLParser");
-				Assert.isTrue(_storedExternalActorsSchemesByActorName[ownerActorName] != null, "owner actor with name '" + ownerActorName + "' doesn't exist", "BBLevelParser.distanceJointXMLParser");
-				Assert.isTrue(endJointScheme != null, "endJoint with name '" + p_jointScheme.jointName + "' doesn't exist. Maybe forgot to add end joint to scene", "BBLevelParser.distanceJointXMLParser");
+				Assert.isTrue(_storedExternalActorsSchemesByActorName[ownerActorName] != null, "owner actor with name '" + ownerActorName + "' doesn't exist",
+				              "BBLevelParser.distanceJointXMLParser");
+				Assert.isTrue(endJointScheme != null,
+				              "endJoint with name '" + p_jointScheme.jointName + "' doesn't exist. Maybe forgot to add end joint to scene",
+				              "BBLevelParser.distanceJointXMLParser");
 			}
 
 			var ownerAnchor:Vec2 = getLocalPosition(p_jointScheme, _storedExternalActorsSchemesByActorName[ownerActorName]);
@@ -394,9 +398,14 @@ package bb.level.parsers
 			CONFIG::debug
 			{
 				Assert.isTrue(ownerActorName != "", "owner actor name can't be empty string", "BBLevelParser.lineJointXMLParser");
-				Assert.isTrue(_storedExternalActorsSchemesByActorName[ownerActorName] != null, "owner actor with name '" + ownerActorName + "' doesn't exist", "BBLevelParser.lineJointXMLParser");
-				Assert.isTrue(endJointScheme != null, "endJoint with name '" + p_jointScheme.jointName + "' doesn't exist. Maybe forgot to add end joint to scene", "BBLevelParser.lineJointXMLParser");
-				Assert.isTrue((ownerActorName != "" || jointedActorName != ""), "trouble in line joint with name '" + p_jointScheme.jointName + "' - both actor names are empty string ", "BBLevelParser.lineJointXMLParser");
+				Assert.isTrue(_storedExternalActorsSchemesByActorName[ownerActorName] != null, "owner actor with name '" + ownerActorName + "' doesn't exist",
+				              "BBLevelParser.lineJointXMLParser");
+				Assert.isTrue(endJointScheme != null,
+				              "endJoint with name '" + p_jointScheme.jointName + "' doesn't exist. Maybe forgot to add end joint to scene",
+				              "BBLevelParser.lineJointXMLParser");
+				Assert.isTrue((ownerActorName != "" || jointedActorName != ""),
+				              "trouble in line joint with name '" + p_jointScheme.jointName + "' - both actor names are empty string ",
+				              "BBLevelParser.lineJointXMLParser");
 			}
 
 			//
@@ -477,7 +486,7 @@ package bb.level.parsers
 		static private function internalGraphicsHandler(p_graphicsScheme:MovieClip, p_actorScheme:MovieClip, p_actor:BBNode):void
 		{
 			var renderableComponent:BBRenderable = createGraphics(p_graphicsScheme);
-			renderableComponent.allowRotation = p_actorScheme.graphicsRotation;
+			renderableComponent.allowSelfRotation = p_actorScheme.graphicsRotation;
 
 			if (p_actor.isComponentExist(BBRenderable))
 			{
@@ -549,7 +558,8 @@ package bb.level.parsers
 
 			CONFIG::debug
 			{
-				Assert.isTrue(jointedActor != null, "Internal actor with name '" + jointedActorName + "' doesn't exist. Error in joint's options", "BBLevelParser.internalPivotHandler");
+				Assert.isTrue(jointedActor != null, "Internal actor with name '" + jointedActorName + "' doesn't exist. Error in joint's options",
+				              "BBLevelParser.internalPivotHandler");
 			}
 
 			var jointedAnchor:Vec2 = jointedActorName == "" ? null : getLocalPosition(p_pivotScheme, jointedActor);
@@ -573,8 +583,10 @@ package bb.level.parsers
 
 			CONFIG::debug
 			{
-				Assert.isTrue(jointedActor != null, "Internal actor with name '" + jointedActorName + "' doesn't exist. Error in joint's options", "BBLevelParser.internalDistanceHandler");
-				Assert.isTrue(endJoint != null, "End joint with name '" + jointName + "' couldn't find. Maybe forgotten to put it", "BBLevelParser.internalDistanceHandler");
+				Assert.isTrue(jointedActor != null, "Internal actor with name '" + jointedActorName + "' doesn't exist. Error in joint's options",
+				              "BBLevelParser.internalDistanceHandler");
+				Assert.isTrue(endJoint != null, "End joint with name '" + jointName + "' couldn't find. Maybe forgotten to put it",
+				              "BBLevelParser.internalDistanceHandler");
 			}
 
 			var jointedAnchor:Vec2 = jointedActorName == "" ? null : getLocalPosition(endJoint, jointedActor);
@@ -598,8 +610,10 @@ package bb.level.parsers
 
 			CONFIG::debug
 			{
-				Assert.isTrue(jointedActor != null, "Internal actor with name '" + jointedActorName + "' doesn't exist. Error in joint's options", "BBLevelParser.internalDistanceHandler");
-				Assert.isTrue(endJoint != null, "End joint with name '" + jointName + "' couldn't find. Maybe forgotten to put it", "BBLevelParser.internalDistanceHandler");
+				Assert.isTrue(jointedActor != null, "Internal actor with name '" + jointedActorName + "' doesn't exist. Error in joint's options",
+				              "BBLevelParser.internalDistanceHandler");
+				Assert.isTrue(endJoint != null, "End joint with name '" + jointName + "' couldn't find. Maybe forgotten to put it",
+				              "BBLevelParser.internalDistanceHandler");
 			}
 
 			var jointedAnchor:Vec2 = jointedActorName == "" ? null : getLocalPosition(endJoint, jointedActor);
@@ -622,7 +636,8 @@ package bb.level.parsers
 
 			CONFIG::debug
 			{
-				Assert.isTrue(jointedActor != null, "Internal actor with name '" + jointedActorName + "' doesn't exist. Error in joint's options", "BBLevelParser.internalWeldHandler");
+				Assert.isTrue(jointedActor != null, "Internal actor with name '" + jointedActorName + "' doesn't exist. Error in joint's options",
+				              "BBLevelParser.internalWeldHandler");
 			}
 
 			var jointedAnchor:Vec2 = jointedActorName == "" ? null : getLocalPosition(p_weldScheme, jointedActor);
@@ -639,7 +654,8 @@ package bb.level.parsers
 		{
 			var jointedActorName:String = StringUtil.trim(p_angleScheme.jointedActorName);
 			var jointMinMax:Array = p_angleScheme.jointMinMax;
-			var angleJoint:BBJoint = BBJoint.angleJoint(jointedActorName, jointMinMax[0] * TrigUtil.DEG_TO_RAD, jointMinMax[1] * TrigUtil.DEG_TO_RAD, p_angleScheme.ratio);
+			var angleJoint:BBJoint = BBJoint.angleJoint(jointedActorName, jointMinMax[0] * TrigUtil.DEG_TO_RAD, jointMinMax[1] * TrigUtil.DEG_TO_RAD,
+			                                            p_angleScheme.ratio);
 			parseBaseJointProps(p_angleScheme, angleJoint);
 
 			(p_parentActor.getComponent(BBPhysicsBody) as BBPhysicsBody).addJoint(angleJoint);
@@ -825,7 +841,7 @@ package bb.level.parsers
 
 			// init interaction filter
 			var filter:InteractionFilter = new InteractionFilter(p_shape.collisionGroup, p_shape.collisionMask, p_shape.sensorGroup, p_shape.sensorMask,
-					p_shape.fluidGroup, p_shape.fluidMask);
+			                                                     p_shape.fluidGroup, p_shape.fluidMask);
 
 			var className:String = ClassUtil.getClassNameWithoutPackage(p_shape, true);
 			var shape:Shape;
