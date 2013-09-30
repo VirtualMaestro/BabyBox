@@ -6,7 +6,6 @@
 package bb.core
 {
 	import bb.bb_spaces.bb_private;
-	import bb.config.BBConfig;
 	import bb.pools.BBNativePool;
 
 	import flash.geom.Matrix;
@@ -193,7 +192,8 @@ package bb.core
 		 * If after using instance is not need anymore there is possible to take back it to pool - BBNativePool.putMatrix(matrix);
 		 * NOTICE: scale and rotation won't change the translation of matrix (tx/ty).
 		 */
-		public function transformWorldMatrix(p_scaleX:Number = 1.0, p_scaleY:Number = 1.0, p_rotation:Number = 0.0, p_x:Number = 0, p_y:Number = 0, p_invert:Boolean = false):Matrix
+		public function transformWorldMatrix(p_scaleX:Number = 1.0, p_scaleY:Number = 1.0, p_rotation:Number = 0.0, p_x:Number = 0, p_y:Number = 0,
+		                                     p_invert:Boolean = false):Matrix
 		{
 			var matrix:Matrix = BBNativePool.getMatrix();
 			var worldMatrix:Matrix = worldTransformMatrix;
@@ -349,10 +349,7 @@ package bb.core
 		[Inline]
 		final public function set rotation(p_angle:Number):void
 		{
-			p_angle %= PI2_RAD;
-			if (Math.abs(p_angle) < BBConfig.ROTATION_PRECISE) p_angle = 0;
-
-			_localRotation = p_angle;
+			_localRotation = p_angle % PI2_RAD;
 
 			isTransformChanged = true;
 			isRotationChanged = true;
@@ -403,21 +400,8 @@ package bb.core
 		[Inline]
 		final public function setScale(p_scaleX:Number, p_scaleY:Number):void
 		{
-			var sign:int = p_scaleX < 0 ? -1 : 1;
-			var absScale:Number = p_scaleX * sign;
-
-			if (absScale < BBConfig.SCALE_PRECISE) absScale = BBConfig.SCALE_PRECISE;
-			else if (Math.abs(1 - absScale) < BBConfig.SCALE_PRECISE) absScale = 1.0;
-
-			_localScaleX = absScale * sign;
-
-			sign = p_scaleY < 0 ? -1 : 1;
-			absScale = p_scaleY * sign;
-
-			if (absScale < BBConfig.SCALE_PRECISE) absScale = BBConfig.SCALE_PRECISE;
-			else if (Math.abs(1 - absScale) < BBConfig.SCALE_PRECISE) absScale = 1.0;
-
-			_localScaleY = absScale * sign;
+			_localScaleX = p_scaleX;
+			_localScaleY = p_scaleY;
 
 			isTransformChanged = true;
 			isScaleChanged = true;
@@ -429,13 +413,7 @@ package bb.core
 		 */
 		public function set scaleX(p_val:Number):void
 		{
-			var sign:int = p_val < 0 ? -1 : 1;
-			var absScale:Number = p_val * sign;
-
-			if (absScale < BBConfig.SCALE_PRECISE) absScale = BBConfig.SCALE_PRECISE;
-			else if (Math.abs(1 - absScale) < BBConfig.SCALE_PRECISE) absScale = 1.0;
-
-			_localScaleX = absScale * sign;
+			_localScaleX = p_val;
 
 			isTransformChanged = true;
 			isScaleChanged = true;
@@ -455,13 +433,7 @@ package bb.core
 		 */
 		public function set scaleY(p_val:Number):void
 		{
-			var sign:int = p_val < 0 ? -1 : 1;
-			var absScale:Number = p_val * sign;
-
-			if (absScale < BBConfig.SCALE_PRECISE) absScale = BBConfig.SCALE_PRECISE;
-			else if (Math.abs(1 - absScale) < BBConfig.SCALE_PRECISE) absScale = 1.0;
-
-			_localScaleY = absScale * sign;
+			_localScaleY = p_val;
 
 			isTransformChanged = true;
 			isScaleChanged = true;
@@ -524,12 +496,7 @@ package bb.core
 		 */
 		public function shiftScale(p_shiftScaleX:Number, p_shiftScaleY:Number):void
 		{
-			_localScaleX += p_shiftScaleX;
-			_localScaleY += p_shiftScaleY;
-			isTransformChanged = true;
-			isScaleChanged = true;
-
-			keepSamePositionWhenScaled();
+			setScale(_localScaleX + p_shiftScaleX, _localScaleY + p_shiftScaleY);
 		}
 
 		/**
@@ -545,13 +512,7 @@ package bb.core
 		 */
 		public function set shiftRotation(p_offsetAngle:Number):void
 		{
-			_localRotation += p_offsetAngle;
-			_localRotation %= PI2_RAD;
-
-			isTransformChanged = true;
-			isRotationChanged = true;
-
-			if (independentUpdateWorldParameters && node.parent) invalidate(true, false);
+			rotation = _localRotation + p_offsetAngle;
 		}
 
 		/**
