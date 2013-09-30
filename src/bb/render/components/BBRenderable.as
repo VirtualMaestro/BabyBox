@@ -48,6 +48,11 @@ package bb.render.components
 		 */
 		public var allowRotation:Boolean = true;
 
+		/**
+		 * Allow/disallow graphic scale (doesn't matter self-scale or camera's scale)
+		 */
+		public var allowScale:Boolean = true;
+
 		public var offsetScaleX:Number = 1.0;
 		public var offsetScaleY:Number = 1.0;
 
@@ -130,7 +135,7 @@ package bb.render.components
 				var transform:BBTransform = node.transform;
 				p_context.draw(z_texture, transform.worldX, transform.worldY, (allowSelfRotation ? transform.worldRotation : 0), transform.worldScaleX,
 				               transform.worldScaleY, offsetX, offsetY, offsetRotation, offsetScaleX, offsetScaleY, transform.worldAlpha, transform.worldRed,
-				               transform.worldGreen, transform.worldBlue, isCulling, smoothing, allowRotation, blendMode);
+				               transform.worldGreen, transform.worldBlue, isCulling, smoothing, allowRotation, allowScale, blendMode);
 			}
 		}
 

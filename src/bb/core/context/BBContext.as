@@ -109,7 +109,7 @@ package bb.core.context
 		 */
 		private function initBlitting():void
 		{
-			_canvasHolder = new Bitmap(new BitmapData(_canvasViewRect.width, _canvasViewRect.height, true, 0xFFf0f3c7), "auto", true);
+			_canvasHolder = new Bitmap(new BitmapData(_canvasViewRect.width, _canvasViewRect.height, true), "auto", true);
 			_canvasHolder.x = _canvasViewRect.x;
 			_canvasHolder.y = _canvasViewRect.y;
 			_stage.addChild(_canvasHolder);
@@ -244,7 +244,8 @@ package bb.core.context
 		public function draw(p_texture:BBTexture, p_x:Number, p_y:Number, p_rotation:Number = 0, p_scaleX:Number = 1.0, p_scaleY:Number = 1.0,
 		                     p_offsetX:Number = 0, p_offsetY:Number = 0, p_offsetRotation:Number = 0, p_offsetScaleX:Number = 1.0, p_offsetScaleY:Number = 1.0,
 		                     p_alphaMultiplier:Number = 1.0, p_redMultiplier:Number = 1.0, p_greenMultiplier:Number = 1.0, p_blueMultiplier:Number = 1.0,
-		                     p_isCulling:Boolean = false, p_smoothing:Boolean = true, p_allowRotation:Boolean = true, p_blendMode:String = null):void
+		                     p_isCulling:Boolean = false, p_smoothing:Boolean = true, p_allowRotation:Boolean = true, p_allowScale:Boolean = true,
+		                     p_blendMode:String = null):void
 		{
 			var bitmap:BitmapData = p_texture.bitmapData;
 			var textureWidth:Number = bitmap.width;
@@ -259,8 +260,14 @@ package bb.core.context
 			var newTextureY:Number = (dx * sin + cos * dy) * _currentCameraTotalScaleY + _currentCameraViewportCenterY + p_offsetY;
 
 			var totalRotation:Number = p_allowRotation ? (p_rotation - _currentCameraRotation + p_offsetRotation) % TrigUtil.PI2 : 0;
-			var totalScaleX:Number = p_scaleX * _currentCameraTotalScaleX * p_offsetScaleX;
-			var totalScaleY:Number = p_scaleY * _currentCameraTotalScaleY * p_offsetScaleY;
+			var totalScaleX:Number = 1.0;
+			var totalScaleY:Number = 1.0;
+
+			if (p_allowScale)
+			{
+				totalScaleX = p_scaleX * _currentCameraTotalScaleX * p_offsetScaleX;
+				totalScaleY = p_scaleY * _currentCameraTotalScaleY * p_offsetScaleY;
+			}
 
 			var texturePivotX:Number = p_texture.pivotX * totalScaleX;
 			var texturePivotY:Number = p_texture.pivotY * totalScaleY;
@@ -320,6 +327,9 @@ package bb.core.context
 				_rect.setTo(0, 0, textureWidth, textureHeight);
 				_point.setTo(newTextureX + texturePivotX, newTextureY + texturePivotY);
 
+				// TODO:
+//				var bitmapN:BitmapData = new BitmapData(textureWidth, textureHeight, bitmap.transparent);
+//				bitmapN.applyFilter(bitmap, _rect, new Point(0,0), new BlurFilter());
 				_canvas.copyPixels(bitmap, _rect, _point, null, null, bitmap.transparent);
 			}
 			else

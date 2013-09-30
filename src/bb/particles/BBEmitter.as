@@ -165,7 +165,7 @@ package bb.particles
 			{
 				p_context.draw(z_texture, particle.posX, particle.posY, 0, particle.scale * scaleX, particle.scale * scaleY, 0, 0, 0, 1.0, 1.0,
 				               particle.alpha * alpha, particle.red * red, particle.green * green, particle.blue * blue,
-				               isCulling, smoothing, allowRotation, blendMode);
+				               isCulling, smoothing, allowRotation, allowScale, blendMode);
 
 				particle = particle.next;
 			}
