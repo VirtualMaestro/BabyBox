@@ -39,12 +39,6 @@ package bb.core
 		bb_private var worldScaleX:Number = 1;
 		bb_private var worldScaleY:Number = 1;
 
-		// TODO: Add able to skew
-//		private var _localSkewX:Number = 0;
-//		private var _localSkewY:Number = 0;
-//		bb_private var worldSkewX:Number = 0;
-//		bb_private var worldSkewY:Number = 0;
-
 		private var _worldTransformMatrix:Matrix = null;
 		private var _localTransformMatrix:Matrix = null;
 		private var _isWorldTransformMatrixChanged:Boolean = true;
@@ -665,6 +659,9 @@ package bb.core
 		{
 			if (node && node.numChildren > 0)
 			{
+				COS = Math.cos(worldRotation);
+				SIN = Math.sin(worldRotation);
+
 				var child:BBNode = node.childrenHead;
 				var currentChild:BBNode;
 
@@ -695,10 +692,6 @@ package bb.core
 			_localScaleY = 1;
 			worldScaleX = 1;
 			worldScaleY = 1;
-//			_localSkewX = 0;
-//			_localSkewY = 0;
-//			worldSkewX = 0;
-//			worldSkewY = 0;
 			_alpha = 1;
 			worldAlpha = 1;
 			_red = 1;
@@ -740,10 +733,6 @@ package bb.core
 			component._localScaleY = _localScaleY;
 			component.worldScaleX = worldScaleX;
 			component.worldScaleY = worldScaleY;
-//			component._localSkewX = _localSkewX;
-//			component._localSkewY = _localSkewY;
-//			component.worldSkewX = worldSkewX;
-//			component.worldSkewY = worldSkewY;
 			component._alpha = _alpha;
 			component.worldAlpha = worldAlpha;
 			component._red = _red;

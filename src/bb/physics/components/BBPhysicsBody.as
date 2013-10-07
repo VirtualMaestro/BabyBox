@@ -296,13 +296,16 @@ package bb.physics.components
 
 		/**
 		 */
-		public function addShape(p_shape:Shape, p_shapeName:String = "", p_angle:Number = 0, p_position:Vec2 = null, p_material:Material = null, p_filter:InteractionFilter = null):Shape
+		public function addShape(p_shape:Shape, p_shapeName:String = "", p_angle:Number = 0, p_position:Vec2 = null, p_material:Material = null,
+		                         p_filter:InteractionFilter = null):Shape
 		{
 			CONFIG::debug
 			{
 				var cutShapeName:String = StringUtil.trim(p_shapeName);
 				Assert.isTrue(cutShapeName == p_shapeName, "Incorrect shape name. It should be without any spaces characters", "BBPhysicsBody.addShape");
-				if (_shapeNames) Assert.isTrue(_shapeNames[p_shapeName] == null, "Shape with given name '" + p_shapeName + "' already exist. Can't exist shapes with the same names", "BBPhysicsBody.addShape");
+				if (_shapeNames) Assert.isTrue(_shapeNames[p_shapeName] == null,
+				                               "Shape with given name '" + p_shapeName + "' already exist. Can't exist shapes with the same names",
+				                               "BBPhysicsBody.addShape");
 			}
 
 			//
@@ -341,7 +344,8 @@ package bb.physics.components
 		/**
 		 * Adds circle shape to body.
 		 */
-		public function addCircle(p_radius:int, p_shapeName:String = "", p_position:Vec2 = null, p_material:Material = null, p_filter:InteractionFilter = null):Circle
+		public function addCircle(p_radius:int, p_shapeName:String = "", p_position:Vec2 = null, p_material:Material = null,
+		                          p_filter:InteractionFilter = null):Circle
 		{
 			var circle:Circle = new Circle(p_radius, p_position, p_material, p_filter);
 			addShape(circle, p_shapeName);
@@ -354,7 +358,8 @@ package bb.physics.components
 		 * NOTICE: It is just simulation of ellipse due to phys engine doesn't support ellipses.
 		 * In fact it is Polygon, so it could hit by performance.
 		 */
-		public function addEllipse(p_radiusX:Number, p_radiusY:Number, p_shapeName:String = "", p_angle:Number = 0, p_position:Vec2 = null, p_material:Material = null, p_filter:InteractionFilter = null):Polygon
+		public function addEllipse(p_radiusX:Number, p_radiusY:Number, p_shapeName:String = "", p_angle:Number = 0, p_position:Vec2 = null,
+		                           p_material:Material = null, p_filter:InteractionFilter = null):Polygon
 		{
 			// calc num vertices
 			var numVertices:int = TrigUtil.PI2 / Math.acos(1 - 0.6 / (Math.sqrt(p_radiusX * p_radiusX + p_radiusY * p_radiusY)));
@@ -377,7 +382,8 @@ package bb.physics.components
 		/**
 		 * Adds box shape to body.
 		 */
-		public function addBox(p_width:int, p_height:int, p_shapeName:String = "", p_angle:Number = 0, p_position:Vec2 = null, p_material:Material = null, p_filter:InteractionFilter = null):Polygon
+		public function addBox(p_width:int, p_height:int, p_shapeName:String = "", p_angle:Number = 0, p_position:Vec2 = null, p_material:Material = null,
+		                       p_filter:InteractionFilter = null):Polygon
 		{
 			var box:Polygon = new Polygon(Polygon.box(p_width, p_height, true), p_material, p_filter);
 			addShape(box, p_shapeName, p_angle, p_position);
@@ -529,8 +535,9 @@ package bb.physics.components
 					{
 						CONFIG::debug
 						{
-							Assert.isTrue(child.getComponent(BBPhysicsBody) != null, "can't create joint due to actor with name '" + p_actorName + "' hasn't BBPhysicsBody component",
-									"BBPhysicsBody.findInChildren");
+							Assert.isTrue(child.getComponent(BBPhysicsBody) != null,
+							              "can't create joint due to actor with name '" + p_actorName + "' hasn't BBPhysicsBody component",
+							              "BBPhysicsBody.findInChildren");
 						}
 
 						body = (child.getComponent(BBPhysicsBody) as BBPhysicsBody).body;
@@ -910,30 +917,9 @@ package bb.physics.components
 				_transform.worldY = _bodyPosition.y;
 				_transform.worldRotation = _body.rotation;
 
-//				_transform.markChildrenForInvalidation();
+				_transform.markChildrenForInvalidation();
 			}
 		}
-
-//		/**
-//		 */
-//		[Inline]
-//		final private function invalidateChildren():void
-//		{
-//			if (_transform.node.numChildren > 0)
-//			{
-//				var child:BBNode = _transform.node.childrenHead;
-//				var currentChild:BBNode;
-//
-//				while (child)
-//				{
-//					currentChild = child;
-//					child = child.next;
-//
-//					currentChild.transform.isTransformChanged = true;
-//					currentChild.
-//				}
-//			}
-//		}
 
 		/**
 		 */
