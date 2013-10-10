@@ -73,11 +73,6 @@ package bb.physics.components
 		//
 		bb_private var handJoint:PivotJoint = null;
 
-		/**
-		 * Lock physic body. If 'true' mean node's transform does update physic body, in other case vise versa.
-		 */
-		private var _lock:Boolean = true;
-
 		// Assoc. table with names of shapes
 		private var _shapeNames:Array;
 		private var _space:Space = null;
@@ -136,9 +131,6 @@ package bb.physics.components
 			node.onAdded.add(addedToStageHandler);
 			node.onRemoved.add(unlinkedFromStageHandler);
 			node.onActive.add(onNodeActiveHandler);
-
-			//
-			updateEnable = false;
 		}
 
 		/**
@@ -167,7 +159,7 @@ package bb.physics.components
 			{
 				p_signal.removeCurrentListener();
 
-				_transform.independentUpdateWorldParameters = true;
+				_transform.lockInvalidation = true;
 
 				updateEnable = _body.type != BodyType.STATIC;
 
@@ -175,7 +167,6 @@ package bb.physics.components
 				_body.position.setxy(_transform.worldX, _transform.worldY);
 				_body.rotation = _transform.worldRotation;
 				_body.space = _space;
-				_lock = false;
 
 				if (gravity) updateOwnGravity();
 
@@ -213,10 +204,9 @@ package bb.physics.components
 
 			///
 			activateJoints = false;
-			_transform.independentUpdateWorldParameters = false;
+			_transform.lockInvalidation = false;
 			_body.space = null;
 			_body.group = null;
-			_lock = true;
 		}
 
 		/**
@@ -822,13 +812,7 @@ package bb.physics.components
 			// mean we change type at runtime
 			if (node && node.isOnStage)
 			{
-				if (_body.type == BodyType.STATIC) updateEnable = false;
-				else if (_body.type == BodyType.KINEMATIC) _lock = true;
-				else
-				{
-					updateEnable = true;
-					_lock = false;
-				}
+				updateEnable = _body.type != BodyType.STATIC;
 			}
 		}
 
@@ -883,13 +867,12 @@ package bb.physics.components
 		 */
 		override public function update(p_deltaTime:int):void
 		{
-			if (_transform.isInvalidated || _lock)
+			// is transform manually updated
+			if (_transform.isPRSInvalidated)
 			{
 				if (_transform.isScaleInvalidated) setScale(_transform.worldScaleX, _transform.worldScaleY);
 				if (_transform.isPositionInvalidated) _bodyPosition.setxy(_transform.worldX, _transform.worldY);
 				if (_transform.isRotationInvalidated) _body.rotation = _transform.worldRotation;
-
-				_transform.markChildrenForInvalidation();
 			}
 			else
 			{
@@ -913,11 +896,8 @@ package bb.physics.components
 					_body.angularVel = angularVelocityInt / 1000.0;
 				}
 
-				_transform.worldX = _bodyPosition.x;
-				_transform.worldY = _bodyPosition.y;
-				_transform.worldRotation = _body.rotation;
-
-				_transform.markChildrenForInvalidation();
+				_transform.setWorldPositionAndRotation(_bodyPosition.x, _bodyPosition.y, _body.rotation);
+//				_transform.markChildrenForInvalidation();
 			}
 		}
 
@@ -943,7 +923,6 @@ package bb.physics.components
 			_transform = null;
 			_scaleX = 1.0;
 			_scaleY = 1.0;
-			_lock = true;
 			_isNeedInitJoints = false;
 
 			if (cacheable)
@@ -1117,7 +1096,7 @@ package bb.physics.components
 					super.toString() + "\n" +
 					"{Added to space: " + (_body.space != null) + "}\n" +
 					"{position: " + _bodyPosition.x + " / " + _bodyPosition.y + "}-{rotation: " + _body.rotation + "}-{scaleX/Y: " + _scaleX + "/" + _scaleY + "}\n" +
-					"{lock: " + _lock + "}-{allowHand: " + allowHand + "}-{isNeedInitJoints: " + _isNeedInitJoints + "}]\n" +
+					"{allowHand: " + allowHand + "}-{isNeedInitJoints: " + _isNeedInitJoints + "}]\n" +
 					"{Shapes num: " + numShapes + "}:\n" + shapeTrace + "\n" +
 					"{Joints num: " + numJoints + "}:\n" + jointsTrace + "\n" +
 					"------------------------------------------------------------------------------------------------------------------------";
