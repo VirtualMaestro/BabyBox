@@ -113,7 +113,9 @@ package bb.level
 					CONFIG::debug
 					{
 						++infiniteCounter;
-						Assert.isTrue(infiniteCounter < 1000, "Infinite loop during creating depending layers. Cause: seems like some layers to which dependent layers should be added doesn't exist", "BBLevelsModule.createLevelFromMC");
+						Assert.isTrue(infiniteCounter < 1000,
+						              "Infinite loop during creating depending layers. Cause: seems like some layers to which dependent layers should be added doesn't exist",
+						              "BBLevelsModule.createLevelFromMC");
 					}
 				}
 
@@ -178,7 +180,6 @@ package bb.level
 			for (i = 0; i < numActors; i++)
 			{
 				actorXML = addingToWorldEntities[i];
-				trace("actorXML.name(): " + actorXML.name());
 				if (actorXML.name() == "actor")
 				{
 					actor = createActorByXML(actorXML);
