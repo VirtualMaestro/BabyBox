@@ -8,7 +8,7 @@ package bb.physics
 	import bb.bb_spaces.bb_private;
 	import bb.config.BBConfig;
 	import bb.core.BabyBox;
-	import bb.modules.*;
+	import bb.modules.BBModule;
 	import bb.mouse.BBMouseModule;
 	import bb.mouse.events.BBMouseEvent;
 	import bb.physics.components.BBPhysicsBody;
