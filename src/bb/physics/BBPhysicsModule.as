@@ -16,6 +16,8 @@ package bb.physics
 	import bb.physics.joints.BBJointFactory;
 	import bb.signals.BBSignal;
 
+	import nape.callbacks.BodyCallback;
+	import nape.callbacks.BodyListener;
 	import nape.callbacks.CbEvent;
 	import nape.callbacks.CbType;
 	import nape.callbacks.ConstraintCallback;
@@ -53,6 +55,10 @@ package bb.physics
 		private var _mouseX:Number = 0;
 		private var _mouseY:Number = 0;
 
+		private var _constraintListener:ConstraintListener;
+		private var _sleepListener:BodyListener;
+		private var _wakeListener:BodyListener;
+
 		/**
 		 */
 		public function BBPhysicsModule()
@@ -76,19 +82,71 @@ package bb.physics
 			BBJointFactory.space = _space;
 
 			// any constraints which break should go through this handler
-			var constraintListener:ConstraintListener = new ConstraintListener(CbEvent.BREAK, CbType.ANY_CONSTRAINT, function (cb:ConstraintCallback):void
-			{
-				var data:Object = cb.constraint.userData;
-				if (data && data["bb_joint"]) (data["bb_joint"] as BBJoint).dispose();
-			});
+			_space.listeners.add(getConstraintListener());
 
-			_space.listeners.add(constraintListener);
+			// add event for sleep and wake up
+			if (_config.canSleep)
+			{
+				_space.listeners.add(getSleepListener());
+				_space.listeners.add(getWakeListener());
+			}
 
 			//
 			handEnable = _config.handEnable;
 
 			//
 			updateEnable = true;
+		}
+
+		/**
+		 */
+		private function getConstraintListener():ConstraintListener
+		{
+			if (_constraintListener == null) _constraintListener = new ConstraintListener(CbEvent.BREAK, CbType.ANY_CONSTRAINT, constraintHandler);
+			return _constraintListener;
+		}
+
+		/**
+		 */
+		static private function constraintHandler(cb:ConstraintCallback):void
+		{
+			var data:Object = cb.constraint.userData;
+			if (data && data["bb_joint"])
+			{
+				(data["bb_joint"] as BBJoint).dispose();
+			}
+		}
+
+		/**
+		 */
+		private function getSleepListener():BodyListener
+		{
+			if (_sleepListener == null) _sleepListener = new BodyListener(CbEvent.SLEEP, CbType.ANY_BODY, sleepHandler);
+			return _sleepListener;
+		}
+
+		/**
+		 */
+		static private function sleepHandler(cb:BodyCallback):void
+		{
+			var physComponent:BBPhysicsBody = cb.body.userData.bb_component;
+			if (physComponent) physComponent.sleep = true;
+		}
+
+		/**
+		 */
+		private function getWakeListener():BodyListener
+		{
+			if (_wakeListener == null) _wakeListener = new BodyListener(CbEvent.WAKE, CbType.ANY_BODY, wakeHandler);
+			return _wakeListener;
+		}
+
+		/**
+		 */
+		static private function wakeHandler(cb:BodyCallback):void
+		{
+			var physComponent:BBPhysicsBody = cb.body.userData.bb_component;
+			if (physComponent) physComponent.sleep = false;
 		}
 
 		/**

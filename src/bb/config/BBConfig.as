@@ -116,6 +116,11 @@ package bb.config
 		public var isCulling:Boolean = false;
 
 		/**
+		 * Determines whether can objects go to sleep.
+		 */
+		public var canSleep:Boolean = true;
+
+		/**
 		 * Determines what type of game is creating.
 		 * By default value is -1, what mean no predefine game type.
 		 * Possible constants store in BBGameType class.

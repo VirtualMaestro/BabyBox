@@ -70,6 +70,12 @@ package bb.physics.components
 		 */
 		public var airFriction:Number = 0;
 
+		/**
+		 * If true physics is not updates position when simulate,
+		 * but if position is changed manually it is updates physic body.
+		 */
+		public var sleep:Boolean = false;
+
 		//
 		bb_private var handJoint:PivotJoint = null;
 
@@ -874,7 +880,7 @@ package bb.physics.components
 				if (_transform.isPositionInvalidated) _bodyPosition.setxy(_transform.worldX, _transform.worldY);
 				if (_transform.isRotationInvalidated) _body.rotation = _transform.worldRotation;
 			}
-			else
+			else if (!sleep)
 			{
 				if (gravity) updateOwnGravity();
 				if (airFriction > 0)
@@ -923,6 +929,7 @@ package bb.physics.components
 			_scaleX = 1.0;
 			_scaleY = 1.0;
 			_isNeedInitJoints = false;
+			sleep = false;
 
 			if (cacheable)
 			{
