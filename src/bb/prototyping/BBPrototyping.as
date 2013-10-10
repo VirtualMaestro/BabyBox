@@ -28,7 +28,8 @@ package bb.prototyping
 		/**
 		 * Creates and returns box with physical and graphical components.
 		 */
-		static public function getBox(p_width:Number = 100, p_height:Number = 100, p_name:String = "", p_color:uint = BBColor.SKY, p_type:BodyType = null, p_material:Material = null, p_filter:InteractionFilter = null):BBNode
+		static public function getBox(p_width:Number = 100, p_height:Number = 100, p_name:String = "", p_color:uint = BBColor.SKY, p_type:BodyType = null,
+		                              p_material:Material = null, p_filter:InteractionFilter = null):BBNode
 		{
 			var box:BBNode = BBNode.get(p_name);
 			var physics:BBPhysicsBody = BBPhysicsBody.get((p_type == null ? BodyType.DYNAMIC : p_type));
@@ -44,8 +45,10 @@ package bb.prototyping
 
 		/**
 		 * Creates and returns circle with physical and graphical components.
+		 * If bodyType is null mean DYNAMIC.
 		 */
-		static public function getCircle(p_radius:Number = 50, p_name:String = "", p_color:uint = BBColor.GRASS, p_type:BodyType = null, p_material:Material = null, p_filter:InteractionFilter = null):BBNode
+		static public function getCircle(p_radius:Number = 50, p_name:String = "", p_color:uint = BBColor.GRASS, p_type:BodyType = null,
+		                                 p_material:Material = null, p_filter:InteractionFilter = null):BBNode
 		{
 			var circle:BBNode = BBNode.get(p_name);
 			var physics:BBPhysicsBody = BBPhysicsBody.get((p_type == null ? BodyType.DYNAMIC : p_type));
@@ -62,7 +65,8 @@ package bb.prototyping
 		/**
 		 * Creates and returns circle with physical and graphical components.
 		 */
-		static public function getEllipse(p_radiusX:Number = 100, p_radiusY:Number = 50, p_name:String = "", p_color:uint = BBColor.GRASS, p_type:BodyType = null, p_material:Material = null, p_filter:InteractionFilter = null):BBNode
+		static public function getEllipse(p_radiusX:Number = 100, p_radiusY:Number = 50, p_name:String = "", p_color:uint = BBColor.GRASS,
+		                                  p_type:BodyType = null, p_material:Material = null, p_filter:InteractionFilter = null):BBNode
 		{
 			var ellipse:BBNode = BBNode.get(p_name);
 			var physics:BBPhysicsBody = BBPhysicsBody.get((p_type == null ? BodyType.DYNAMIC : p_type));
