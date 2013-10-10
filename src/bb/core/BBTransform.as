@@ -249,8 +249,6 @@ package bb.core
 			isTransformChanged = true;
 			isPositionChanged = true;
 			invalidateOnce = true;
-
-//			if (lockInvalidation) markChildrenForInvalidation(true);
 		}
 
 		/**
@@ -318,9 +316,6 @@ package bb.core
 			isPositionChanged = true;
 			isRotationChanged = true;
 			invalidateOnce = true;
-
-//			if (lockInvalidation) markChildrenForInvalidation(true);
-
 		}
 
 		/**
@@ -334,8 +329,6 @@ package bb.core
 			isTransformChanged = true;
 			isRotationChanged = true;
 			invalidateOnce = true;
-
-//			if (lockInvalidation) markChildrenForInvalidation(true);
 		}
 
 		/**
@@ -404,8 +397,6 @@ package bb.core
 			isTransformChanged = true;
 			isScaleChanged = true;
 			invalidateOnce = true;
-
-//			keepSamePositionWhenScaled();
 		}
 
 		/**
@@ -419,7 +410,6 @@ package bb.core
 		 */
 		public function get scaleX():Number
 		{
-			calcLocalScaleWhenIndependentUpdate();
 			return _localScaleX;
 		}
 
@@ -434,7 +424,6 @@ package bb.core
 		 */
 		public function get scaleY():Number
 		{
-			calcLocalScaleWhenIndependentUpdate();
 			return _localScaleY;
 		}
 
@@ -445,40 +434,6 @@ package bb.core
 		public function getScaleWorld():Vec2
 		{
 			return Vec2.get(worldScaleX, worldScaleY);
-		}
-
-		/**
-		 * if 'independentUpdateWorldParameters' is true (mostly it is related to physics component) and doing scaling, need to keep position at the same place.
-		 */
-//		[Inline]
-		private function keepSamePositionWhenScaled():void
-		{
-			if (lockInvalidation)
-			{
-				var parentNode:BBNode = node.parent;
-				if (parentNode)
-				{
-					_localX = worldX - parentNode.transform.worldX;
-					_localY = worldY - parentNode.transform.worldY;
-				}
-			}
-		}
-
-		/**
-		 * if 'independentUpdateWorldParameters' is true (mostly it is related to physics component) and trying to get scaleX or scaleY.
-		 */
-		[Inline]
-		private function calcLocalScaleWhenIndependentUpdate():void
-		{
-			if (lockInvalidation)
-			{
-				var parentNode:BBNode = node.parent;
-				if (parentNode)
-				{
-					_localScaleX = worldScaleX / parentNode.transform.worldScaleX;
-					_localScaleY = worldScaleY / parentNode.transform.worldScaleY;
-				}
-			}
 		}
 
 		/**
@@ -647,39 +602,6 @@ package bb.core
 			isScaleChanged = false;
 			isColorChanged = false;
 		}
-
-		/**
-		 */
-//		public function markChildrenForInvalidation(p_force:Boolean = false):void
-//		{
-//			if (node.numChildren > 0)
-//			{
-//				COS = Math.cos(worldRotation);
-//				SIN = Math.sin(worldRotation);
-//
-//				var child:BBNode = node.childrenHead;
-//				var currentChild:BBNode;
-//				var trans:BBTransform;
-//
-//				while (child)
-//				{
-//					currentChild = child;
-//					child = child.next;
-//
-//					trans = currentChild.transform;
-//
-//					if (p_force)
-//					{
-//						trans.isTransformChanged = true;
-//						trans.markChildrenForInvalidation(p_force);
-//					}
-//					else if (!trans.lockInvalidation)
-//					{
-//						trans.isTransformChanged = true;
-//					}
-//				}
-//			}
-//		}
 
 		/**
 		 */

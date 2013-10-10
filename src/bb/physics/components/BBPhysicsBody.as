@@ -897,7 +897,6 @@ package bb.physics.components
 				}
 
 				_transform.setWorldPositionAndRotation(_bodyPosition.x, _bodyPosition.y, _body.rotation);
-//				_transform.markChildrenForInvalidation();
 			}
 		}
 
