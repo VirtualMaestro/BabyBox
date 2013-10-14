@@ -1275,6 +1275,7 @@ package bb.tools
 		// ***********************
 
 		/**
+		 * Check whether intersects given shape (Circle or Polygon) with line.
 		 */
 		static public function isIntersectShapeToLine(p_shape:Shape, p_startLine:Vec2, p_endLine:Vec2):Boolean
 		{
@@ -1283,6 +1284,7 @@ package bb.tools
 		}
 
 		/**
+		 * Checks whether shape (Circle or Polygon) and triangle are intersected.
 		 */
 		static public function isIntersectShapeToTriangle(p_shape:Shape, p_triangle:Vector.<Vec2>):Boolean
 		{
