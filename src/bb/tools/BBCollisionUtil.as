@@ -653,6 +653,16 @@ package bb.tools
 		}
 
 		/**
+		 * Check whether circle and polygon are intersected.
+		 *
+		 * TODO: Need to implement
+		 */
+		static public function isIntersectCircleToPolygon(p_circlePos:Vec2, p_circleRadius:Number, p_polygon:Vector.<Vec2>):Boolean
+		{
+			return true;
+		}
+
+		/**
 		 * Determines of intersection of two rays.
 		 */
 		static public function isIntersectRayToRay(p_ray1Start:Vec2, p_ray1End:Vec2, p_ray2Start:Vec2, p_ray2End:Vec2):Boolean
