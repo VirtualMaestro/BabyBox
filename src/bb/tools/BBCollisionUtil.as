@@ -21,17 +21,18 @@ package bb.tools
 
 		/**
 		 * Returns point of the intersection of two lines.
+		 * If returned null mean lines overlap or parallel.
 		 */
-		static public function getIntersectionLineToLine(startLine1:Vec2, endLine1:Vec2, startLine2:Vec2, endLine2:Vec2):Vec2
+		static public function getIntersectionLineToLine(p_startLine1:Vec2, p_endLine1:Vec2, p_startLine2:Vec2, p_endLine2:Vec2):Vec2
 		{
-			var p1x:Number = startLine1.x;
-			var p1y:Number = startLine1.y;
-			var p2x:Number = endLine1.x;
-			var p2y:Number = endLine1.y;
-			var p3x:Number = startLine2.x;
-			var p3y:Number = startLine2.y;
-			var p4x:Number = endLine2.x;
-			var p4y:Number = endLine2.y;
+			var p1x:Number = p_startLine1.x;
+			var p1y:Number = p_startLine1.y;
+			var p2x:Number = p_endLine1.x;
+			var p2y:Number = p_endLine1.y;
+			var p3x:Number = p_startLine2.x;
+			var p3y:Number = p_startLine2.y;
+			var p4x:Number = p_endLine2.x;
+			var p4y:Number = p_endLine2.y;
 
 			var p1xSp2x:Number = p1x - p2x;
 			var p1ySp2y:Number = p1y - p2y;
@@ -78,21 +79,24 @@ package bb.tools
 		 * If 'isRay' is true, then line means ray. This is mean if line isn't reach the circle it is prolonged like a ray.
 		 * If ray is touched the circle, result returns like two identical points.
 		 * When 'isRay' false, method works faster.
+		 *
+		 * @return Vector.<Vec2>
 		 */
-		static public function getIntersectionLineToCircle(startLine:Vec2, endLine:Vec2, circlePosition:Vec2, radius:Number, isRay:Boolean = false):Array
+		static public function getIntersectionLineToCircle(p_startLine:Vec2, p_endLine:Vec2, p_circlePosition:Vec2, p_radius:Number,
+		                                                   p_isRay:Boolean = false):Vector.<Vec2>
 		{
-			var slX:Number = startLine.x;
-			var slY:Number = startLine.y;
-			var elX:Number = endLine.x;
-			var elY:Number = endLine.y;
-			var cX:Number = circlePosition.x;
-			var cY:Number = circlePosition.y;
+			var slX:Number = p_startLine.x;
+			var slY:Number = p_startLine.y;
+			var elX:Number = p_endLine.x;
+			var elY:Number = p_endLine.y;
+			var cX:Number = p_circlePosition.x;
+			var cY:Number = p_circlePosition.y;
 			var x1:Number = slX - cX;
 			var y1:Number = slY - cY;
 			var x2:Number = elX - cX;
 			var y2:Number = elY - cY;
 
-			var result:Array = null;
+			var result:Vector.<Vec2> = null;
 
 			var dx:Number = x2 - x1;
 			var dy:Number = y2 - y1;
@@ -101,12 +105,12 @@ package bb.tools
 			var a:Number = dx * dx + dy * dy;
 			var a2:Number = a * 2;
 			var b:Number = (x1 * dx + y1 * dy) * 2;
-			var c:Number = x1 * x1 + y1 * y1 - radius * radius;
+			var c:Number = x1 * x1 + y1 * y1 - p_radius * p_radius;
 			var discriminant:Number = b * b - 2 * a2 * c;
 
 			if (discriminant >= 0)
 			{
-				if ((dx + dy) == 0) return [Vec2.get(cX, cY)];
+				if ((dx + dy) == 0) return new <Vec2>[Vec2.get(cX, cY)];
 
 				var firstPoint:Vec2;
 				var secondPoint:Vec2;
@@ -119,7 +123,7 @@ package bb.tools
 				var t2:Number = (-b - discriminant) / a2;
 
 				//
-				if (isRay)
+				if (p_isRay)
 				{
 					if (t1 < t2)
 					{
@@ -134,7 +138,7 @@ package bb.tools
 
 					firstPoint = Vec2.get(((elX - slX) * min + slX), ((elY - slY) * min + slY));
 					secondPoint = Vec2.get(((elX - slX) * max + slX), ((elY - slY) * max + slY));
-					result = [firstPoint, secondPoint];
+					result = new <Vec2>[firstPoint, secondPoint];
 				}
 				else
 				{
@@ -154,8 +158,6 @@ package bb.tools
 					//
 					if (isSolutionT1 || isSolutionT2)
 					{
-						result = [];
-
 						if (isSolutionT1 && isSolutionT2)
 						{
 							if (t1 < t2)
@@ -171,14 +173,13 @@ package bb.tools
 
 							firstPoint = Vec2.get(((elX - slX) * min + slX), ((elY - slY) * min + slY));
 							secondPoint = Vec2.get(((elX - slX) * max + slX), ((elY - slY) * max + slY));
-							result[0] = firstPoint;
-							result[1] = secondPoint;
+							result = new <Vec2>[firstPoint, secondPoint];
 						}
 						else
 						{
 							min = isSolutionT1 ? t1 : t2;
 							firstPoint = Vec2.get(((elX - slX) * min + slX), ((elY - slY) * min + slY));
-							result[0] = firstPoint;
+							result = new <Vec2>[firstPoint];
 						}
 					}
 				}
@@ -193,14 +194,14 @@ package bb.tools
 		 * Difference in that method determines and returns just first point of intersection,
 		 * thanks to this method works in 2.5 times faster then 'getIntersectionLineToCircle'.
 		 */
-		static public function getIntersectionRayToCircle(startLine:Vec2, endLine:Vec2, circlePosition:Vec2, radius:Number):Vec2
+		static public function getIntersectionRayToCircle(p_startLine:Vec2, p_endLine:Vec2, p_circlePosition:Vec2, p_radius:Number):Vec2
 		{
-			var slX:Number = startLine.x;
-			var slY:Number = startLine.y;
-			var elX:Number = endLine.x;
-			var elY:Number = endLine.y;
-			var cX:Number = circlePosition.x;
-			var cY:Number = circlePosition.y;
+			var slX:Number = p_startLine.x;
+			var slY:Number = p_startLine.y;
+			var elX:Number = p_endLine.x;
+			var elY:Number = p_endLine.y;
+			var cX:Number = p_circlePosition.x;
+			var cY:Number = p_circlePosition.y;
 			var x1:Number = slX - cX;
 			var y1:Number = slY - cY;
 			var x2:Number = elX - cX;
@@ -215,7 +216,7 @@ package bb.tools
 			var a:Number = dx * dx + dy * dy;
 			var a2:Number = a * 2;
 			var b:Number = (x1 * dx + y1 * dy) * 2;
-			var c:Number = x1 * x1 + y1 * y1 - radius * radius;
+			var c:Number = x1 * x1 + y1 * y1 - p_radius * p_radius;
 			var discriminant:Number = b * b - 2 * a2 * c;
 
 			if (discriminant >= 0)
@@ -238,17 +239,17 @@ package bb.tools
 		 * Returns point of intersection of two rays.
 		 * If 'isBothWay' is true, mean that intersection searching not only in the way of ray but also in the opposite direction.
 		 */
-		static public function getIntersectionRayToRay(ray1Start:Vec2, ray1End:Vec2, ray2Start:Vec2, ray2End:Vec2, isBothWay:Boolean = false):Vec2
+		static public function getIntersectionRayToRay(p_ray1Start:Vec2, p_ray1End:Vec2, p_ray2Start:Vec2, p_ray2End:Vec2, p_isBothWay:Boolean = false):Vec2
 		{
 			var r:Number, s:Number, d:Number;
-			var x1:Number = ray1Start.x;
-			var y1:Number = ray1Start.y;
-			var x2:Number = ray1End.x;
-			var y2:Number = ray1End.y;
-			var x3:Number = ray2Start.x;
-			var y3:Number = ray2Start.y;
-			var x4:Number = ray2End.x;
-			var y4:Number = ray2End.y;
+			var x1:Number = p_ray1Start.x;
+			var y1:Number = p_ray1Start.y;
+			var x2:Number = p_ray1End.x;
+			var y2:Number = p_ray1End.y;
+			var x3:Number = p_ray2Start.x;
+			var y3:Number = p_ray2Start.y;
+			var x4:Number = p_ray2End.x;
+			var y4:Number = p_ray2End.y;
 
 			var y2Sy1:Number = y2 - y1;
 			var x2Sx1:Number = x2 - x1;
@@ -268,7 +269,7 @@ package bb.tools
 					r = (y1Sy3 * x4Sx3 - x1Sx3 * y4Sy3) / d;
 					s = (y1Sy3 * x2Sx1 - x1Sx3 * y2Sy1) / d;
 
-					if (isBothWay) return Vec2.get(x1 + r * x2Sx1, y1 + r * y2Sy1);
+					if (p_isBothWay) return Vec2.get(x1 + r * x2Sx1, y1 + r * y2Sy1);
 					else
 					{
 						if (r >= 0 && s >= 0) return Vec2.get(x1 + r * x2Sx1, y1 + r * y2Sy1);
@@ -282,19 +283,19 @@ package bb.tools
 		/**
 		 * Returns point of intersection ray with line.
 		 */
-		static public function getIntersectionRayToLine(ray1Start:Vec2, ray1End:Vec2, lineStart:Vec2, lineEnd:Vec2):Vec2
+		static public function getIntersectionRayToLine(p_ray1Start:Vec2, p_ray1End:Vec2, p_lineStart:Vec2, p_lineEnd:Vec2):Vec2
 		{
 			var r:Number, s:Number, d:Number;
 
-			var x1:Number = ray1Start.x;
-			var y1:Number = ray1Start.y;
-			var x2:Number = ray1End.x;
-			var y2:Number = ray1End.y;
+			var x1:Number = p_ray1Start.x;
+			var y1:Number = p_ray1Start.y;
+			var x2:Number = p_ray1End.x;
+			var y2:Number = p_ray1End.y;
 
-			var x3:Number = lineStart.x;
-			var y3:Number = lineStart.y;
-			var x4:Number = lineEnd.x;
-			var y4:Number = lineEnd.y;
+			var x3:Number = p_lineStart.x;
+			var y3:Number = p_lineStart.y;
+			var x4:Number = p_lineEnd.x;
+			var y4:Number = p_lineEnd.y;
 
 			var y2Sy1:Number = y2 - y1;
 			var x2Sx1:Number = x2 - x1;
@@ -328,13 +329,15 @@ package bb.tools
 		 * - null - mean circles are not intersected.
 		 * - array with one element (Vec2) - mean circles are touched.
 		 * - array with two elements - circles are intersected and returns two points of intersection.
+		 *
+		 * @return Vector.<Vec2>
 		 */
-		static public function getIntersectionCircleToCircle(circlePos1:Vec2, radius1:Number, circlePos2:Vec2, radius2:Number):Array
+		static public function getIntersectionCircleToCircle(p_circlePos1:Vec2, p_radius1:Number, p_circlePos2:Vec2, p_radius2:Number):Vector.<Vec2>
 		{
-			var cx1:Number = circlePos1.x;
-			var cy1:Number = circlePos1.y;
-			var cx2:Number = circlePos2.x;
-			var cy2:Number = circlePos2.y;
+			var cx1:Number = p_circlePos1.x;
+			var cy1:Number = p_circlePos1.y;
+			var cx2:Number = p_circlePos2.x;
+			var cy2:Number = p_circlePos2.y;
 
 			//dx/dy is the vertical and horizontal distances between the circle centers
 			var dx:Number = cx2 - cx1;
@@ -344,21 +347,21 @@ package bb.tools
 			var dist:Number = Math.sqrt(dx * dx + dy * dy);
 
 			//Check for equality and infinite intersections exist
-			if (dist == 0 && (radius1 == radius2)) return [];
+			if (dist == 0 && (p_radius1 == p_radius2)) return new <Vec2>[];
 
-			var r1Ar2:Number = radius1 + radius2;
+			var r1Ar2:Number = p_radius1 + p_radius2;
 
 			//Check for solvability
 			if (dist > r1Ar2) return null;  //no solution. circles do not intersect
 
 			// one circle is contained in the other
-			if (dist < Math.abs(radius1 - radius2)) return []; //no solution.
+			if (dist < Math.abs(p_radius1 - p_radius2)) return new <Vec2>[]; //no solution.
 
 			// if true one solution
 			if (dist == r1Ar2)
 			{
-				var r1Ar2Mr1:Number = r1Ar2 * radius1;
-				return [Vec2.get((cx1 - cx2) / r1Ar2Mr1 + cx2, (cy1 - cy2) / r1Ar2Mr1 + cy2)];
+				var r1Ar2Mr1:Number = r1Ar2 * p_radius1;
+				return new <Vec2>[Vec2.get((cx1 - cx2) / r1Ar2Mr1 + cx2, (cy1 - cy2) / r1Ar2Mr1 + cy2)];
 			}
 
 			/* 'point 2' is the point where the line through the circle
@@ -367,7 +370,7 @@ package bb.tools
 			 */
 
 			// Determine the distance from point 0 to point 2
-			var a:Number = ((radius1 * radius1) - (radius2 * radius2) + (dist * dist)) / (2.0 * dist);
+			var a:Number = ((p_radius1 * p_radius1) - (p_radius2 * p_radius2) + (dist * dist)) / (2.0 * dist);
 			var aDdist:Number = a / dist;
 
 			// Determine the coordinates of point 2
@@ -375,7 +378,7 @@ package bb.tools
 			var v2y:Number = cy1 + dy * aDdist;
 
 			// Determine the distance from point 2 to either of the intersection points
-			var h:Number = Math.sqrt((radius1 * radius1) - (a * a));
+			var h:Number = Math.sqrt((p_radius1 * p_radius1) - (a * a));
 			var hDdist:Number = h / dist;
 
 			// Now determine the offsets of the intersection points from point 2
@@ -386,7 +389,7 @@ package bb.tools
 			var point1:Vec2 = Vec2.get(v2x + rx, v2y + ry);
 			var point2:Vec2 = Vec2.get(v2x - rx, v2y - ry);
 
-			return [point1, point2];
+			return new <Vec2>[point1, point2];
 		}
 
 		// ********************************** //
@@ -396,16 +399,16 @@ package bb.tools
 		/**
 		 * Checks whether lines are intersected
 		 */
-		static public function isIntersectLineToLine(startLine1:Vec2, endLine1:Vec2, startLine2:Vec2, endLine2:Vec2):Boolean
+		static public function isIntersectLineToLine(p_startLine1:Vec2, p_endLine1:Vec2, p_startLine2:Vec2, p_endLine2:Vec2):Boolean
 		{
-			var p1x:Number = startLine1.x;
-			var p1y:Number = startLine1.y;
-			var p2x:Number = endLine1.x;
-			var p2y:Number = endLine1.y;
-			var p3x:Number = startLine2.x;
-			var p3y:Number = startLine2.y;
-			var p4x:Number = endLine2.x;
-			var p4y:Number = endLine2.y;
+			var p1x:Number = p_startLine1.x;
+			var p1y:Number = p_startLine1.y;
+			var p2x:Number = p_endLine1.x;
+			var p2y:Number = p_endLine1.y;
+			var p3x:Number = p_startLine2.x;
+			var p3y:Number = p_startLine2.y;
+			var p4x:Number = p_endLine2.x;
+			var p4y:Number = p_endLine2.y;
 
 			var p1xSp2x:Number = p1x - p2x;
 			var p1ySp2y:Number = p1y - p2y;
@@ -445,17 +448,17 @@ package bb.tools
 		/**
 		 * Checks whether rectangles are intersected.
 		 */
-		static public function isIntersectRectangleToRectangle(topLeft1:Vec2, bottomRight1:Vec2, topLeft2:Vec2, bottomRight2:Vec2):Boolean
+		static public function isIntersectRectangleToRectangle(p_topLeft1:Vec2, p_bottomRight1:Vec2, p_topLeft2:Vec2, p_bottomRight2:Vec2):Boolean
 		{
-			var ltx1:Number = topLeft1.x;
-			var lty1:Number = topLeft1.y;
-			var rbx1:Number = bottomRight1.x;
-			var rby1:Number = bottomRight1.y;
+			var ltx1:Number = p_topLeft1.x;
+			var lty1:Number = p_topLeft1.y;
+			var rbx1:Number = p_bottomRight1.x;
+			var rby1:Number = p_bottomRight1.y;
 
-			var ltx2:Number = topLeft2.x;
-			var lty2:Number = topLeft2.y;
-			var rbx2:Number = bottomRight2.x;
-			var rby2:Number = bottomRight2.y;
+			var ltx2:Number = p_topLeft2.x;
+			var lty2:Number = p_topLeft2.y;
+			var rbx2:Number = p_bottomRight2.x;
+			var rby2:Number = p_bottomRight2.y;
 
 			var exp:Boolean = false;
 
@@ -489,19 +492,21 @@ package bb.tools
 		/**
 		 * Checks whether line and circle are intersected.
 		 */
-		static public function isIntersectLineToCircle(startLine:Vec2, endLine:Vec2, circlePosition:Vec2, radius:Number):Boolean
+		static public function isIntersectLineToCircle(p_startLine:Vec2, p_endLine:Vec2, p_circlePosition:Vec2, p_radius:Number):Boolean
 		{
-			var x1:Number = startLine.x - circlePosition.x;
-			var y1:Number = startLine.y - circlePosition.y;
-			var x2:Number = endLine.x - circlePosition.x;
-			var y2:Number = endLine.y - circlePosition.y;
+			var cpX:Number = p_circlePosition.x;
+			var cpY:Number = p_circlePosition.y;
+			var x1:Number = p_startLine.x - cpX;
+			var y1:Number = p_startLine.y - cpY;
+			var x2:Number = p_endLine.x - cpX;
+			var y2:Number = p_endLine.y - cpY;
 
 			var dx:Number = x2 - x1;
 			var dy:Number = y2 - y1;
 
 			var a:Number = dx * dx + dy * dy;
 			var b:Number = 2.0 * (x1 * dx + y1 * dy);
-			var c:Number = x1 * x1 + y1 * y1 - radius * radius;
+			var c:Number = x1 * x1 + y1 * y1 - p_radius * p_radius;
 
 			if (-b < 0) return (c < 0);
 			if (-b < (2.0 * a)) return (((4.0 * a * c) - b * b) < 0);
@@ -512,15 +517,15 @@ package bb.tools
 		/**
 		 * Checks whether ray and circle are intersected.
 		 */
-		static public function isIntersectRayToCircle(startLine:Vec2, endLine:Vec2, circlePosition:Vec2, radius:Number):Boolean
+		static public function isIntersectRayToCircle(p_startLine:Vec2, p_endLine:Vec2, p_circlePosition:Vec2, p_radius:Number):Boolean
 		{
-			var cX:Number = circlePosition.x;
-			var cY:Number = circlePosition.y;
+			var cX:Number = p_circlePosition.x;
+			var cY:Number = p_circlePosition.y;
 
-			var x1:Number = startLine.x - cX;
-			var y1:Number = startLine.y - cY;
-			var x2:Number = endLine.x - cX;
-			var y2:Number = endLine.y - cY;
+			var x1:Number = p_startLine.x - cX;
+			var y1:Number = p_startLine.y - cY;
+			var x2:Number = p_endLine.x - cX;
+			var y2:Number = p_endLine.y - cY;
 
 			var dx:Number = x2 - x1;
 			var dy:Number = y2 - y1;
@@ -528,7 +533,7 @@ package bb.tools
 			var a:Number = dx * dx + dy * dy;
 			var a2:Number = a * 2;
 			var b:Number = (x1 * dx + y1 * dy) * 2;
-			var c:Number = x1 * x1 + y1 * y1 - radius * radius;
+			var c:Number = x1 * x1 + y1 * y1 - p_radius * p_radius;
 
 			return (b * b - 2 * a2 * c) >= 0;
 		}
@@ -537,10 +542,10 @@ package bb.tools
 		 * Checks whether polygons are intersected.
 		 * (vertices of polygons should be sorted by clockwise)
 		 */
-		static public function isIntersectPolygonToPolygon(polygon1:Vec2List, polygon2:Vec2List):Boolean
+		static public function isIntersectPolygonToPolygon(p_polygon1:Vec2List, p_polygon2:Vec2List):Boolean
 		{
-			var iterator1:Vec2Iterator = polygon1.iterator();
-			var iterator2:Vec2Iterator = polygon2.iterator();
+			var iterator1:Vec2Iterator = p_polygon1.iterator();
+			var iterator2:Vec2Iterator = p_polygon2.iterator();
 
 			var startPoint1:Vec2 = iterator1.next();
 			var firstPoint1:Vec2 = startPoint1;
@@ -566,7 +571,7 @@ package bb.tools
 
 				if (isIntersectLineToLine(startPoint1, endPoint1, startPoint2, firstPoint2)) return true;
 
-				iterator2 = polygon2.iterator();
+				iterator2 = p_polygon2.iterator();
 
 				startPoint1 = endPoint1;
 			}
@@ -588,24 +593,24 @@ package bb.tools
 		 * Check whether point belongs to triangle.
 		 * triangle - array with Vec2 instances - vertices of triangle.
 		 */
-		static public function isIntersectPointToTriangle(point:Vec2, triangle:Array):Boolean
+		static public function isIntersectPointToTriangle(p_point:Vec2, p_triangle:Vector.<Vec2>):Boolean
 		{
 			var pl1:Number, pl2:Number, pl3:Number;
 
-			var vert0:Vec2 = triangle[0];
+			var vert0:Vec2 = p_triangle[0];
 			var vert0X:Number = vert0.x;
 			var vert0Y:Number = vert0.y;
 
-			var vert1:Vec2 = triangle[1];
+			var vert1:Vec2 = p_triangle[1];
 			var vert1X:Number = vert1.x;
 			var vert1Y:Number = vert1.y;
 
-			var vert2:Vec2 = triangle[2];
+			var vert2:Vec2 = p_triangle[2];
 			var vert2X:Number = vert2.x;
 			var vert2Y:Number = vert2.y;
 
-			var pointX:Number = point.x;
-			var pointY:Number = point.y;
+			var pointX:Number = p_point.x;
+			var pointY:Number = p_point.y;
 
 			pl1 = (vert0X - pointX) * (vert1Y - vert0Y) - (vert1X - vert0X) * (vert0Y - pointY);
 			pl2 = (vert1X - pointX) * (vert2Y - vert1Y) - (vert2X - vert1X) * (vert1Y - pointY);
@@ -617,49 +622,50 @@ package bb.tools
 		/**
 		 * Check whether point belongs to circle.
 		 */
-		static public function isIntersectPointToCircle(point:Vec2, circlePos:Vec2, circleRadius:Number):Boolean
+		[Inline]
+		static public function isIntersectPointToCircle(p_point:Vec2, p_circlePos:Vec2, p_circleRadius:Number):Boolean
 		{
-			var x:Number = point.x - circlePos.x;
-			var y:Number = point.y - circlePos.y;
+			var x:Number = p_point.x - p_circlePos.x;
+			var y:Number = p_point.y - p_circlePos.y;
 
-			return (x * x + y * y) <= (circleRadius * circleRadius);
+			return (x * x + y * y) <= (p_circleRadius * p_circleRadius);
 		}
 
 		/**
 		 * Check whether circle and triangle are intersected.
 		 * triangle - array with Vec2 instances - vertices of triangle.
 		 */
-		static public function isIntersectCircleToTriangle(circlePos:Vec2, circleRadius:Number, triangle:Array):Boolean
+		static public function isIntersectCircleToTriangle(p_circlePos:Vec2, p_circleRadius:Number, p_triangle:Vector.<Vec2>):Boolean
 		{
-			var triangle_0:Vec2 = triangle[0];
-			var triangle_1:Vec2 = triangle[1];
-			var triangle_2:Vec2 = triangle[2];
+			var triangle_0:Vec2 = p_triangle[0];
+			var triangle_1:Vec2 = p_triangle[1];
+			var triangle_2:Vec2 = p_triangle[2];
 
 			return (
-					isIntersectPointToCircle(triangle_0, circlePos, circleRadius) ||
-							isIntersectPointToCircle(triangle_1, circlePos, circleRadius) ||
-							isIntersectPointToCircle(triangle_2, circlePos, circleRadius) ||
-							isIntersectPointToTriangle(circlePos, triangle) ||
-							isIntersectLineToCircle(triangle_0, triangle_1, circlePos, circleRadius) ||
-							isIntersectLineToCircle(triangle_1, triangle_2, circlePos, circleRadius) ||
-							isIntersectLineToCircle(triangle_2, triangle_0, circlePos, circleRadius)
+					isIntersectPointToCircle(triangle_0, p_circlePos, p_circleRadius) ||
+							isIntersectPointToCircle(triangle_1, p_circlePos, p_circleRadius) ||
+							isIntersectPointToCircle(triangle_2, p_circlePos, p_circleRadius) ||
+							isIntersectPointToTriangle(p_circlePos, p_triangle) ||
+							isIntersectLineToCircle(triangle_0, triangle_1, p_circlePos, p_circleRadius) ||
+							isIntersectLineToCircle(triangle_1, triangle_2, p_circlePos, p_circleRadius) ||
+							isIntersectLineToCircle(triangle_2, triangle_0, p_circlePos, p_circleRadius)
 					);
 		}
 
 		/**
 		 * Determines of intersection of two rays.
 		 */
-		static public function isIntersectRayToRay(ray1Start:Vec2, ray1End:Vec2, ray2Start:Vec2, ray2End:Vec2):Boolean
+		static public function isIntersectRayToRay(p_ray1Start:Vec2, p_ray1End:Vec2, p_ray2Start:Vec2, p_ray2End:Vec2):Boolean
 		{
 			var r:Number, s:Number, d:Number;
-			var x1:Number = ray1Start.x;
-			var y1:Number = ray1Start.y;
-			var x2:Number = ray1End.x;
-			var y2:Number = ray1End.y;
-			var x3:Number = ray2Start.x;
-			var y3:Number = ray2Start.y;
-			var x4:Number = ray2End.x;
-			var y4:Number = ray2End.y;
+			var x1:Number = p_ray1Start.x;
+			var y1:Number = p_ray1Start.y;
+			var x2:Number = p_ray1End.x;
+			var y2:Number = p_ray1End.y;
+			var x3:Number = p_ray2Start.x;
+			var y3:Number = p_ray2Start.y;
+			var x4:Number = p_ray2End.x;
+			var y4:Number = p_ray2End.y;
 
 			var y2Sy1:Number = y2 - y1;
 			var x2Sx1:Number = x2 - x1;
@@ -690,27 +696,28 @@ package bb.tools
 		 * Determines if rays are parallel.
 		 * (Possible use this for lines too)
 		 */
-		static public function isRaysParallel(ray1Start:Vec2, ray1End:Vec2, ray2Start:Vec2, ray2End:Vec2):Boolean
+		[Inline]
+		static public function isRaysParallel(p_ray1Start:Vec2, p_ray1End:Vec2, p_ray2Start:Vec2, p_ray2End:Vec2):Boolean
 		{
-			return (ray1End.y - ray1Start.y) / (ray1End.x - ray1Start.x) == (ray2End.y - ray2Start.y) / (ray2End.x - ray2Start.x);
+			return (p_ray1End.y - p_ray1Start.y) / (p_ray1End.x - p_ray1Start.x) == (p_ray2End.y - p_ray2Start.y) / (p_ray2End.x - p_ray2Start.x);
 		}
 
 		/**
 		 * Determines intersection ray with line.
 		 */
-		static public function isIntersectRayToLine(ray1Start:Vec2, ray1End:Vec2, lineStart:Vec2, lineEnd:Vec2):Boolean
+		static public function isIntersectRayToLine(p_ray1Start:Vec2, p_ray1End:Vec2, p_lineStart:Vec2, p_lineEnd:Vec2):Boolean
 		{
 			var r:Number, s:Number, d:Number;
 
-			var x1:Number = ray1Start.x;
-			var y1:Number = ray1Start.y;
-			var x2:Number = ray1End.x;
-			var y2:Number = ray1End.y;
+			var x1:Number = p_ray1Start.x;
+			var y1:Number = p_ray1Start.y;
+			var x2:Number = p_ray1End.x;
+			var y2:Number = p_ray1End.y;
 
-			var x3:Number = lineStart.x;
-			var y3:Number = lineStart.y;
-			var x4:Number = lineEnd.x;
-			var y4:Number = lineEnd.y;
+			var x3:Number = p_lineStart.x;
+			var y3:Number = p_lineStart.y;
+			var x4:Number = p_lineEnd.x;
+			var y4:Number = p_lineEnd.y;
 
 			var y2Sy1:Number = y2 - y1;
 			var x2Sx1:Number = x2 - x1;
@@ -740,12 +747,13 @@ package bb.tools
 		/**
 		 * Determines whether circles are intersected.
 		 */
-		static public function isIntersectCircleToCircle(circlePos1:Vec2, circleRadius1:Number, circlePos2:Vec2, circleRadius2:Number):Boolean
+		[Inline]
+		static public function isIntersectCircleToCircle(p_circlePos1:Vec2, p_circleRadius1:Number, p_circlePos2:Vec2, p_circleRadius2:Number):Boolean
 		{
-			var x:Number = circlePos1.x - circlePos2.x;
-			var y:Number = circlePos1.y - circlePos2.y;
+			var x:Number = p_circlePos1.x - p_circlePos2.x;
+			var y:Number = p_circlePos1.y - p_circlePos2.y;
 			var sLen:Number = x * x + y * y;
-			var crs:Number = circleRadius1 + circleRadius2;
+			var crs:Number = p_circleRadius1 + p_circleRadius2;
 
 			return sLen <= crs * crs;
 		}
@@ -754,24 +762,19 @@ package bb.tools
 		 * Check whether point belongs to polygon.
 		 * polygon - vertices of polygon as Vec2 instances.
 		 */
-		static public function isIntersectPointToPolygon(point:Vec2, polygon:Array):Boolean
+		static public function isIntersectPointToPolygon(p_point:Vec2, p_polygon:Vector.<Vec2>):Boolean
 		{
 			var n1:Number, n2:Number, isIntersect:Boolean = false;
-			var len:int = polygon.length;
+			var len:int = p_polygon.length;
 			var limit:int = len - 1;
-			var sl:Vec2;
-			var el:Vec2;
-			var rayEnd:Vec2 = Vec2.get(point.x + 1, point.y + 1);
+			var rayEnd:Vec2 = Vec2.get(p_point.x + 1, p_point.y + 1);
 
 			for (n1 = 0, n2 = 1; n1 < limit; n1++, n2++)
 			{
-				sl = polygon[n1];
-				el = polygon[n2];
-
-				if (isIntersectRayToLine(point, rayEnd, sl, el)) isIntersect = !isIntersect;
+				if (isIntersectRayToLine(p_point, rayEnd, p_polygon[n1], p_polygon[n2])) isIntersect = !isIntersect;
 			}
 
-			if (isIntersectRayToLine(point, rayEnd, polygon[limit], polygon[0])) isIntersect = !isIntersect;
+			if (isIntersectRayToLine(p_point, rayEnd, p_polygon[limit], p_polygon[0])) isIntersect = !isIntersect;
 			rayEnd.dispose();
 
 			return isIntersect;
@@ -780,9 +783,9 @@ package bb.tools
 		/**
 		 * Check for intersection of line and polygon.
 		 */
-		static public function isIntersectLineToPolygon(startLine:Vec2, endLine:Vec2, polygon:Vec2List):Boolean
+		static public function isIntersectLineToPolygon(p_startLine:Vec2, p_endLine:Vec2, p_polygon:Vec2List):Boolean
 		{
-			var iterator:Vec2Iterator = polygon.iterator();
+			var iterator:Vec2Iterator = p_polygon.iterator();
 			var startVertex:Vec2 = iterator.next();
 			var firstVertex:Vec2 = startVertex;
 			var endVertex:Vec2;
@@ -790,19 +793,19 @@ package bb.tools
 			while (iterator.hasNext())
 			{
 				endVertex = iterator.next();
-				if (isIntersectLineToLine(startLine, endLine, startVertex, endVertex)) return true;
+				if (isIntersectLineToLine(p_startLine, p_endLine, startVertex, endVertex)) return true;
 				startVertex = endVertex;
 			}
 
-			return isIntersectLineToLine(startLine, endLine, startVertex, firstVertex);
+			return isIntersectLineToLine(p_startLine, p_endLine, startVertex, firstVertex);
 		}
 
 		/**
 		 * Checks for intersection of ray and polygon.
 		 */
-		static public function isIntersectRayToPolygon(startRay:Vec2, endRay:Vec2, polygon:Vec2List):Boolean
+		static public function isIntersectRayToPolygon(p_startRay:Vec2, p_endRay:Vec2, p_polygon:Vec2List):Boolean
 		{
-			var iterator:Vec2Iterator = polygon.iterator();
+			var iterator:Vec2Iterator = p_polygon.iterator();
 			var startVertex:Vec2 = iterator.next();
 			var firstVertex:Vec2 = startVertex;
 			var endVertex:Vec2;
@@ -810,11 +813,11 @@ package bb.tools
 			while (iterator.hasNext())
 			{
 				endVertex = iterator.next();
-				if (isIntersectRayToLine(startRay, endRay, startVertex, endVertex)) return true;
+				if (isIntersectRayToLine(p_startRay, p_endRay, startVertex, endVertex)) return true;
 				startVertex = endVertex;
 			}
 
-			return isIntersectRayToLine(startRay, endRay, startVertex, firstVertex);
+			return isIntersectRayToLine(p_startRay, p_endRay, startVertex, firstVertex);
 		}
 
 		// ******************************** //
@@ -824,7 +827,7 @@ package bb.tools
 		/**
 		 * Determines nearest point from given list to measuring given point.
 		 */
-		static public function getNearestPointToPoint(listPoints:Vec2List, measuringPoint:Vec2):Vec2
+		static public function getNearestPointToPoint(p_listPoints:Vec2List, p_measuringPoint:Vec2):Vec2
 		{
 			var nearestPoint:Vec2;
 			var point:Vec2;
@@ -832,13 +835,13 @@ package bb.tools
 			var lsq:Number;
 			var tx:Number;
 			var ty:Number;
-			var iterator:Vec2Iterator = listPoints.iterator();
+			var iterator:Vec2Iterator = p_listPoints.iterator();
 
 			while (iterator.hasNext())
 			{
 				point = iterator.next();
-				tx = point.x - measuringPoint.x;
-				ty = point.y - measuringPoint.y;
+				tx = point.x - p_measuringPoint.x;
+				ty = point.y - p_measuringPoint.y;
 				lsq = tx * tx + ty * ty;
 
 				if (minLen > lsq)
@@ -855,14 +858,14 @@ package bb.tools
 		 * Returns nearest point of the line to given measuring point.
 		 * limitLineSegment - if 'true' searching limited by line border, if 'false' searching goes out line (line looks like a ray).
 		 */
-		static public function getNearestPointOnLine(startLine:Vec2, endLine:Vec2, measuringPoint:Vec2, limitLineSegment:Boolean = true):Vec2
+		static public function getNearestPointOnLine(p_startLine:Vec2, p_endLine:Vec2, p_measuringPoint:Vec2, p_limitLineSegment:Boolean = true):Vec2
 		{
-			var x1:Number = startLine.x;
-			var y1:Number = startLine.y;
-			var x2:Number = endLine.x;
-			var y2:Number = endLine.y;
-			var x3:Number = measuringPoint.x;
-			var y3:Number = measuringPoint.y;
+			var x1:Number = p_startLine.x;
+			var y1:Number = p_startLine.y;
+			var x2:Number = p_endLine.x;
+			var y2:Number = p_endLine.y;
+			var x3:Number = p_measuringPoint.x;
+			var y3:Number = p_measuringPoint.y;
 
 			var dx:Number = x2 - x1;
 			var dy:Number = y2 - y1;
@@ -878,7 +881,7 @@ package bb.tools
 			else
 			{
 				var t:Number = ((x3 - x1) * dx + (y3 - y1) * dy) / (dx * dx + dy * dy);
-				if (limitLineSegment) t = Math.min(Math.max(0, t), 1);
+				if (p_limitLineSegment) t = min(max(0, t), 1);
 				x0 = x1 + t * dx;
 				y0 = y1 + t * dy;
 			}
@@ -891,7 +894,7 @@ package bb.tools
 		 * Method returns instance of Vec3 where 'x' and 'y' coordinates of found point,
 		 * 'z' - depends on 'p_distance', if it 'false' - 'z' contains square of distance between found and given point, if 'true' - contains distance.
 		 */
-		static public function getNearestPointOnPolygon(vertexList:Vec2List, measuringPoint:Vec2, p_distance:Boolean = false):Vec3
+		static public function getNearestPointOnPolygon(p_vertexList:Vec2List, p_measuringPoint:Vec2, p_distance:Boolean = false):Vec3
 		{
 			var nearestOnPolygon:Vec2;
 			var distanceToPolygon:Number = Number.POSITIVE_INFINITY;
@@ -902,19 +905,19 @@ package bb.tools
 			var prevPoint:Vec2;
 			var firstPoint:Vec2;
 
-			var mx:Number = measuringPoint.x;
-			var my:Number = measuringPoint.y;
+			var mx:Number = p_measuringPoint.x;
+			var my:Number = p_measuringPoint.y;
 			var tx:Number;
 			var ty:Number;
 
-			var iterator:Vec2Iterator = vertexList.iterator();
+			var iterator:Vec2Iterator = p_vertexList.iterator();
 			firstPoint = iterator.next();
 			prevPoint = firstPoint;
 
 			while (iterator.hasNext())
 			{
 				curPoint = iterator.next();
-				nearestOnLine = getNearestPointOnLine(prevPoint, curPoint, measuringPoint);
+				nearestOnLine = getNearestPointOnLine(prevPoint, curPoint, p_measuringPoint);
 				tx = nearestOnLine.x - mx;
 				ty = nearestOnLine.y - my;
 				distanceToLine = tx * tx + ty * ty;
@@ -928,7 +931,7 @@ package bb.tools
 				prevPoint = curPoint;
 			}
 
-			nearestOnLine = getNearestPointOnLine(curPoint, firstPoint, measuringPoint);
+			nearestOnLine = getNearestPointOnLine(curPoint, firstPoint, p_measuringPoint);
 			tx = nearestOnLine.x - mx;
 			ty = nearestOnLine.y - my;
 			distanceToLine = tx * tx + ty * ty;
@@ -948,21 +951,21 @@ package bb.tools
 		 * 'z' - depends on 'p_squareDistance' - if "false" 'z' contains distance, if "true" - contains square distance.
 		 * (distance calculate in any case, so set 'p_squareDistance' parameter to true doesn't make any optimization).
 		 */
-		static public function getNearestPointOnCircle(circlePosition:Vec2, radius:Number, measuringPoint:Vec2, p_squareDistance:Boolean = false):Vec3
+		static public function getNearestPointOnCircle(p_circlePosition:Vec2, p_radius:Number, p_measuringPoint:Vec2, p_squareDistance:Boolean = false):Vec3
 		{
-			var mx:Number = measuringPoint.x;
-			var my:Number = measuringPoint.y;
-			var dx:Number = circlePosition.x - mx;
-			var dy:Number = circlePosition.y - my;
+			var mx:Number = p_measuringPoint.x;
+			var my:Number = p_measuringPoint.y;
+			var dx:Number = p_circlePosition.x - mx;
+			var dy:Number = p_circlePosition.y - my;
 
-			if (dx == 0 || dy == 0) dx = dy = radius;
+			if (dx == 0 || dy == 0) dx = dy = p_radius;
 
 			var distanceToCircle:Number = Math.sqrt(dx * dx + dy * dy);
 
 			var dirX:Number = dx / distanceToCircle;
 			var dirY:Number = dy / distanceToCircle;
 
-			distanceToCircle -= radius;
+			distanceToCircle -= p_radius;
 
 			var npX:Number = mx + dirX * distanceToCircle;
 			var npY:Number = my + dirY * distanceToCircle;
@@ -978,7 +981,7 @@ package bb.tools
 		 * Returns distance between given point and polygon (nearest point on borders of polygon to given point).
 		 * isSquareLength - if 'true' method return square of distance (sqrt will not calculate).
 		 */
-		static public function getDistanceToPolygon(vertexList:Vec2List, measuringPoint:Vec2, isSquareLength:Boolean = false):Number
+		static public function getDistanceToPolygon(p_vertexList:Vec2List, p_measuringPoint:Vec2, p_isSquareLength:Boolean = false):Number
 		{
 			var distanceToPolygon:Number = Number.POSITIVE_INFINITY;
 			var distanceToLine:Number;
@@ -987,7 +990,7 @@ package bb.tools
 			var prevPoint:Vec2;
 			var firstPoint:Vec2;
 
-			var iterator:Vec2Iterator = vertexList.iterator();
+			var iterator:Vec2Iterator = p_vertexList.iterator();
 			firstPoint = iterator.next();
 			prevPoint = firstPoint;
 
@@ -995,32 +998,32 @@ package bb.tools
 			{
 				curPoint = iterator.next();
 
-				distanceToLine = getDistanceToLine(prevPoint, curPoint, measuringPoint, true, true);
+				distanceToLine = getDistanceToLine(prevPoint, curPoint, p_measuringPoint, true, true);
 
 				if (distanceToLine < distanceToPolygon) distanceToPolygon = distanceToLine;
 
 				prevPoint = curPoint;
 			}
 
-			distanceToLine = getDistanceToLine(curPoint, firstPoint, measuringPoint, true, true);
+			distanceToLine = getDistanceToLine(curPoint, firstPoint, p_measuringPoint, true, true);
 
 			if (distanceToLine < distanceToPolygon) distanceToPolygon = distanceToLine;
 
-			return isSquareLength ? distanceToPolygon : Math.sqrt(distanceToPolygon);
+			return p_isSquareLength ? distanceToPolygon : Math.sqrt(distanceToPolygon);
 		}
 
 		/**
 		 * Returns distance between given point and circle (nearest point on borders of circle to given point, not to center).
 		 * (if the point inside the circle method returns 0)
 		 */
-		static public function getDistanceToCircle(circlePosition:Vec2, radius:Number, measuringPoint:Vec2):Number
+		static public function getDistanceToCircle(p_circlePosition:Vec2, p_radius:Number, p_measuringPoint:Vec2):Number
 		{
-			var dx:Number = circlePosition.x - measuringPoint.x;
-			var dy:Number = circlePosition.y - measuringPoint.y;
+			var dx:Number = p_circlePosition.x - p_measuringPoint.x;
+			var dy:Number = p_circlePosition.y - p_measuringPoint.y;
 
-			if (dx < radius && dy < radius) return 0;
+			if (dx < p_radius && dy < p_radius) return 0;
 
-			return Math.sqrt(dx * dx + dy * dy) - radius;
+			return Math.sqrt(dx * dx + dy * dy) - p_radius;
 		}
 
 		/**
@@ -1028,15 +1031,15 @@ package bb.tools
 		 * limitLineSegment - if 'true' searching limited by line border, if 'false' searching goes out line (line looks like a ray).
 		 * isSquareLength - if 'true' method return square of distance (sqrt will not calculate).
 		 */
-		static public function getDistanceToLine(startLine:Vec2, endLine:Vec2, measuringPoint:Vec2, limitLineSegment:Boolean = true,
-		                                         squareLength:Boolean = false):Number
+		static public function getDistanceToLine(p_startLine:Vec2, p_endLine:Vec2, p_measuringPoint:Vec2, p_limitLineSegment:Boolean = true,
+		                                         p_squareLength:Boolean = false):Number
 		{
-			var x1:Number = startLine.x;
-			var y1:Number = startLine.y;
-			var x2:Number = endLine.x;
-			var y2:Number = endLine.y;
-			var x3:Number = measuringPoint.x;
-			var y3:Number = measuringPoint.y;
+			var x1:Number = p_startLine.x;
+			var y1:Number = p_startLine.y;
+			var x2:Number = p_endLine.x;
+			var y2:Number = p_endLine.y;
+			var x3:Number = p_measuringPoint.x;
+			var y3:Number = p_measuringPoint.y;
 
 			var dx:Number = x2 - x1;
 			var dy:Number = y2 - y1;
@@ -1052,7 +1055,7 @@ package bb.tools
 			else
 			{
 				var t:Number = ((x3 - x1) * dx + (y3 - y1) * dy) / (dx * dx + dy * dy);
-				if (limitLineSegment) t = Math.min(Math.max(0, t), 1);
+				if (p_limitLineSegment) t = min(max(0, t), 1);
 				x0 = x1 + t * dx;
 				y0 = y1 + t * dy;
 			}
@@ -1060,115 +1063,98 @@ package bb.tools
 			dx = x3 - x0;
 			dy = y3 - y0;
 
-			return squareLength ? (dx * dx + dy * dy) : Math.sqrt(dx * dx + dy * dy);
+			return p_squareLength ? (dx * dx + dy * dy) : Math.sqrt(dx * dx + dy * dy);
 		}
 
 		// ************************** //
 		// ******* OTHER ************ //
-		// ************************* //
+		// ************************** //
 
 		/**
 		 * Returns two vertices from given vertices, which are extreme vertices for given measuring point.
 		 * Return array with two objects of Vec2 type.
+		 *
+		 * @return Vector.<Vec2>
 		 */
-		static public function getExtremePointsOnPolygon_Array(verticies:Array, measuring:Vec2):Array
+		static public function getExtremePointsOnPolygon_Vector(p_vertices:Vector.<Vec2>, p_measuring:Vec2):Vector.<Vec2>
 		{
 			var biggestAngel:Number = Number.POSITIVE_INFINITY;
 			var tAngel:Number = 0;
 			var bigVertex1:Vec2;
 			var bigVertex2:Vec2;
+			var vertex_i:Vec2;
+			var vertex_j:Vec2;
 
-			var len:int = verticies.length;
+			var len:int = p_vertices.length;
 			for (var i:int = 0; i < len - 1; i++)
 			{
+				vertex_i = p_vertices[i];
 				for (var j:int = i + 1; j < len; j++)
 				{
-					tAngel = getCosALines(measuring, verticies[i], measuring, verticies[j]);
+					vertex_j = p_vertices[j];
+					tAngel = getCosALines(p_measuring, vertex_i, p_measuring, vertex_j);
 
 					if (tAngel < biggestAngel)
 					{
 						biggestAngel = tAngel;
-						bigVertex1 = verticies[i];
-						bigVertex2 = verticies[j];
+						bigVertex1 = vertex_i;
+						bigVertex2 = vertex_j;
 					}
 				}
 			}
 
-			return [bigVertex1.copy(), bigVertex2.copy()];
+			return new <Vec2>[bigVertex1.copy(), bigVertex2.copy()];
 		}
 
 		/**
 		 * Returns two vertices from given vertices, which are extreme vertices for given measuring point.
 		 * Return array with two objects of Vec2 type.
 		 *
-		 * TODO: Implements
+		 * @return Vector.<Vec2>
 		 */
-		static public function getExtremePointsOnPolygon_Vec2List(verticies:Vec2List, measuring:Vec2):Array
+		static public function getExtremePointsOnPolygon(p_vertices:Vec2List, p_measuring:Vec2):Vector.<Vec2>
 		{
-//			var vertexList:DLL = new DLL();
-//			var iterator:Vec2Iterator = verticies.iterator();
-//			while(iterator.hasNext()) vertexList.append(iterator.next());
-//
-//			var result:Array = getExtremePointsOnPolygon_DLL(vertexList, measuring);
-//			vertexList.free();
-//			vertexList = null;
-//
-			return [];
-		}
+			var biggestAngel:Number = Number.POSITIVE_INFINITY;
+			var tAngel:Number = 0;
+			var bigVertex1:Vec2;
+			var bigVertex2:Vec2;
+			var vertex_i:Vec2;
+			var vertex_j:Vec2;
+			var iterator:Vec2Iterator = p_vertices.iterator();
 
-//
-//		/**
-//		 * Returns two vertices from given vertices, which are extreme vertices for given measuring point.
-//		 * Return array with two objects of Vec2 type (returns points from given list, it doesn't create new Vec2).
-//		 */
-//		static public function getExtremePointsOnPolygon_DLL(vertices:DLL, measuring:Vec2):Array
-//		{
-//			var biggestAngel:Number = Number.POSITIVE_INFINITY;
-//			var tAngel:Number = 0;
-//			var bigVertex1:Vec2;
-//			var bigVertex2:Vec2;
-//			var vert1:Vec2;
-//			var vert2:Vec2;
-//
-//		    var prevNode:DLLNode = vertices.head;
-//			var currentNode:DLLNode;
-//
-//			while(prevNode)
-//			{
-//				currentNode = prevNode.next;
-//
-//				while(currentNode)
-//				{
-//					vert1 = prevNode.val as Vec2;
-//					vert2 = currentNode.val as Vec2;
-//					tAngel = getCosALines(measuring, vert1, measuring, vert2);
-//
-//					if (tAngel < biggestAngel)
-//					{
-//						biggestAngel = tAngel;
-//						bigVertex1 = vert1;
-//						bigVertex2 = vert2;
-//					}
-//
-//					currentNode = currentNode.next;
-//				}
-//
-//				prevNode = prevNode.next
-//			}
-//
-//			return [bigVertex1.copy(), bigVertex2.copy()];
-//		}
+			var len:int = p_vertices.length;
+			for (var i:int = 0; i < len - 1; i++)
+			{
+				vertex_i = iterator.next();
+
+				for (var j:int = i + 1; j < len; j++)
+				{
+					vertex_j = p_vertices.at(j);
+					tAngel = getCosALines(p_measuring, vertex_i, p_measuring, vertex_j);
+
+					if (tAngel < biggestAngel)
+					{
+						biggestAngel = tAngel;
+						bigVertex1 = vertex_i;
+						bigVertex2 = vertex_j;
+					}
+				}
+			}
+
+			return new <Vec2>[bigVertex1.copy(), bigVertex2.copy()];
+		}
 
 		/**
 		 * Return perpendicular vector to given.
 		 * If normalize = true, vector is normalized.
 		 */
-		static private function getPerpendicular(vecStart:Vec2, vecEnd:Vec2, normalize:Boolean = false):Vec2
+		[Inline]
+		static private function getPerpendicular(p_vecStart:Vec2, p_vecEnd:Vec2, p_isNormalize:Boolean = false):Vec2
 		{
-			var perpX:Number = -(vecEnd.y - vecStart.y);
-			var perpY:Number = vecEnd.x - vecStart.x;
+			var perpX:Number = -(p_vecEnd.y - p_vecStart.y);
+			var perpY:Number = p_vecEnd.x - p_vecStart.x;
 
-			if (normalize && (perpX + perpY) != 0)
+			if (p_isNormalize && (perpX + perpY) != 0)
 			{
 				var len:Number = Math.sqrt(perpX * perpX + perpY * perpY);
 				perpX /= len;
@@ -1181,21 +1167,23 @@ package bb.tools
 		/**
 		 * Returns projection of given point on the circle edges.
 		 * Returns array with two points - first the most left, second - right.
+		 *
+		 * @return Vector.<Vec2>
 		 */
-		static public function getExtremePointsOnCircle(circlePos:Vec2, circleRadius:Number, measuringPoint:Vec2):Array
+		static public function getExtremePointsOnCircle(p_circlePos:Vec2, p_circleRadius:Number, p_measuringPoint:Vec2):Vector.<Vec2>
 		{
-			var perpLine:Vec2 = getPerpendicular(measuringPoint, circlePos, true);
+			var perpLine:Vec2 = getPerpendicular(p_measuringPoint, p_circlePos, true);
 
-			var point1:Vec2 = perpLine.mul(-circleRadius).addeq(circlePos);
-			var point2:Vec2 = perpLine.mul(circleRadius).addeq(circlePos);
+			var point1:Vec2 = perpLine.mul(-p_circleRadius).addeq(p_circlePos);
+			var point2:Vec2 = perpLine.mul(p_circleRadius).addeq(p_circlePos);
 
-			var intersectPoint1:Vec2 = getIntersectionRayToCircle(measuringPoint, point1, circlePos, circleRadius);
-			var intersectPoint2:Vec2 = getIntersectionRayToCircle(measuringPoint, point2, circlePos, circleRadius);
+			var intersectPoint1:Vec2 = getIntersectionRayToCircle(p_measuringPoint, point1, p_circlePos, p_circleRadius);
+			var intersectPoint2:Vec2 = getIntersectionRayToCircle(p_measuringPoint, point2, p_circlePos, p_circleRadius);
 
 			point1.dispose();
 			point2.dispose();
 
-			return [intersectPoint1, intersectPoint2];
+			return new <Vec2>[intersectPoint1, intersectPoint2];
 		}
 
 		/**
@@ -1203,12 +1191,12 @@ package bb.tools
 		 * This method can be helpful when no need to know angles but need to know, e.g., is one angle greater/smaller then another.
 		 * Less value than angle greater.
 		 */
-		static private function getCosALines(startLine1:Vec2, endLine1:Vec2, startLine2:Vec2, endLine2:Vec2):Number
+		static private function getCosALines(p_startLine1:Vec2, p_endLine1:Vec2, p_startLine2:Vec2, p_endLine2:Vec2):Number
 		{
-			var x1:Number = endLine1.x - startLine1.x;
-			var y1:Number = endLine1.y - startLine1.y;
-			var x2:Number = endLine2.x - startLine2.x;
-			var y2:Number = endLine2.y - startLine2.y;
+			var x1:Number = p_endLine1.x - p_startLine1.x;
+			var y1:Number = p_endLine1.y - p_startLine1.y;
+			var x2:Number = p_endLine2.x - p_startLine2.x;
+			var y2:Number = p_endLine2.y - p_startLine2.y;
 
 			return (x1 * x2 + y1 * y2) / Math.sqrt((x1 * x1 + y1 * y1) * (x2 * x2 + y2 * y2));
 		}
@@ -1217,21 +1205,23 @@ package bb.tools
 		 * Calculate bounding box for given vertices.
 		 * Returns array with two vertices - instances of Vec2 - left top vertex and right bottom vertex.
 		 * (creates two new points)
+		 *
+		 * @return Vector.<Vec2>
 		 */
-		static public function getBoundingBox(vertices:Array):Array
+		static public function getBoundingBox_Vector(p_vertices:Vector.<Vec2>):Vector.<Vec2>
 		{
-			var vertex:Vec2 = vertices[0];
+			var vertex:Vec2 = p_vertices[0];
 			var tx:Number = vertex.x;
 			var ty:Number = vertex.y;
 			var top:Number = ty;
 			var left:Number = tx;
 			var right:Number = tx;
 			var bottom:Number = ty;
-			var len:int = vertices.length;
+			var len:int = p_vertices.length;
 
 			for (var i:int = 1; i < len; i++)
 			{
-				vertex = vertices[i];
+				vertex = p_vertices[i];
 				tx = vertex.x;
 				ty = vertex.y;
 
@@ -1242,7 +1232,42 @@ package bb.tools
 				else if (right < tx) right = tx;
 			}
 
-			return [Vec2.get(left, top), Vec2.get(right, bottom)];
+			return new <Vec2>[Vec2.get(left, top), Vec2.get(right, bottom)];
+		}
+
+		/**
+		 * Calculate bounding box for given vertices.
+		 * Returns array with two vertices - instances of Vec2 - left top vertex and right bottom vertex.
+		 * (creates two new points)
+		 *
+		 * @return Vector.<Vec2>
+		 */
+		static public function getBoundingBox(p_vertices:Vec2List):Vector.<Vec2>
+		{
+			var iterator:Vec2Iterator = p_vertices.iterator();
+			var vertex:Vec2 = iterator.next();
+			var tx:Number = vertex.x;
+			var ty:Number = vertex.y;
+			var top:Number = ty;
+			var left:Number = tx;
+			var right:Number = tx;
+			var bottom:Number = ty;
+			var len:int = p_vertices.length;
+
+			for (var i:int = 1; i < len; i++)
+			{
+				vertex = iterator.next();
+				tx = vertex.x;
+				ty = vertex.y;
+
+				if (top > ty) top = ty;
+				else if (bottom < ty) bottom = ty;
+
+				if (left > tx) left = tx;
+				else if (right < tx) right = tx;
+			}
+
+			return new <Vec2>[Vec2.get(left, top), Vec2.get(right, bottom)];
 		}
 
 		// ***********************
@@ -1251,47 +1276,63 @@ package bb.tools
 
 		/**
 		 */
-		static public function isIntersectShapeToLine(shape:Shape, startLine:Vec2, endLine:Vec2):Boolean
+		static public function isIntersectShapeToLine(p_shape:Shape, p_startLine:Vec2, p_endLine:Vec2):Boolean
 		{
-			return shape.isCircle() ? isIntersectLineToCircle(startLine, endLine, shape.castCircle.worldCOM, shape.castCircle.radius) :
-					isIntersectLineToPolygon(startLine, endLine, shape.castPolygon.worldVerts);
+			return p_shape.isCircle() ? isIntersectLineToCircle(p_startLine, p_endLine, p_shape.castCircle.worldCOM, p_shape.castCircle.radius) :
+					isIntersectLineToPolygon(p_startLine, p_endLine, p_shape.castPolygon.worldVerts);
 		}
 
 		/**
 		 */
-		static public function isIntersectShapeToTriangle(shape:Shape, triangle:Array):Boolean
+		static public function isIntersectShapeToTriangle(p_shape:Shape, p_triangle:Vector.<Vec2>):Boolean
 		{
-			return shape.isCircle() ? isIntersectCircleToTriangle(shape.castCircle.worldCOM, shape.castCircle.radius, triangle) :
-					isIntersectPolygonToPolygon(shape.castPolygon.worldVerts, Vec2List.fromArray(triangle));
+			return p_shape.isCircle() ? isIntersectCircleToTriangle(p_shape.castCircle.worldCOM, p_shape.castCircle.radius, p_triangle) :
+					isIntersectPolygonToPolygon(p_shape.castPolygon.worldVerts, Vec2List.fromVector(p_triangle));
 		}
 
 		/**
 		 * Returns extreme points on given shape relates on measuring point.
 		 * Returns array with two points - first the most left, second - right.
 		 */
-		static public function getExtremePointsOnShape(shape:Shape, measuringPoint:Vec2):Array
+		static public function getExtremePointsOnShape(p_shape:Shape, p_measuringPoint:Vec2):Vector.<Vec2>
 		{
-			return shape.isCircle() ? getExtremePointsOnCircle(shape.worldCOM, shape.castCircle.radius, measuringPoint) :
-					getExtremePointsOnPolygon_Vec2List(shape.castPolygon.worldVerts, measuringPoint);
+			return p_shape.isCircle() ? getExtremePointsOnCircle(p_shape.worldCOM, p_shape.castCircle.radius, p_measuringPoint) :
+					getExtremePointsOnPolygon(p_shape.castPolygon.worldVerts, p_measuringPoint);
 		}
 
 		/**
 		 * Returns nearest point on borders of the shape to given point (Circle or Polygon).
 		 * if 'p_distance' true - 'z' param contains distance between points, if 'false' 'z' contains square distance.
 		 */
-		static public function getNearestPointOnShape(shape:Shape, measuringPoint:Vec2, p_distance:Boolean = false):Vec3
+		static public function getNearestPointOnShape(p_shape:Shape, p_measuringPoint:Vec2, p_distance:Boolean = false):Vec3
 		{
-			return shape.isCircle() ? getNearestPointOnCircle(shape.worldCOM, shape.castCircle.radius, measuringPoint, !p_distance) :
-					getNearestPointOnPolygon(shape.castPolygon.worldVerts, measuringPoint, p_distance);
+			return p_shape.isCircle() ? getNearestPointOnCircle(p_shape.worldCOM, p_shape.castCircle.radius, p_measuringPoint, !p_distance) :
+					getNearestPointOnPolygon(p_shape.castPolygon.worldVerts, p_measuringPoint, p_distance);
 		}
 
 		/**
 		 * Returns distance from given measuringPoint to nearest point on the borders of the shape (Circle or Polygon).
 		 */
-		static public function getDistanceToShape(shape:Shape, measuringPoint:Vec2):Number
+		static public function getDistanceToShape(p_shape:Shape, p_measuringPoint:Vec2):Number
 		{
-			return shape.isCircle() ? getDistanceToCircle(shape.worldCOM, shape.castCircle.radius, measuringPoint) :
-					getDistanceToPolygon(shape.castPolygon.worldVerts, measuringPoint);
+			return p_shape.isCircle() ? getDistanceToCircle(p_shape.worldCOM, p_shape.castCircle.radius, p_measuringPoint) :
+					getDistanceToPolygon(p_shape.castPolygon.worldVerts, p_measuringPoint);
+		}
+
+		/////////////////////
+		/// INTERNAL ////////
+		/////////////////////
+
+		[Inline]
+		static public function min(p_val1:Number, p_val2:Number):Number
+		{
+			return p_val1 < p_val2 ? p_val1 : p_val2;
+		}
+
+		[Inline]
+		static public function max(p_val1:Number, p_val2:Number):Number
+		{
+			return (p_val1 > p_val2) ? p_val1 : p_val2;
 		}
 	}
 }
