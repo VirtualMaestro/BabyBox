@@ -113,20 +113,23 @@ package bb.world
 					var cameraFront:BBCamera = BBCamera.get(BBLayerNames.FRONTEND);
 					var cameraMenu:BBCamera = BBCamera.get(BBLayerNames.MENU);
 
+					var cameraCenterX:Number = _config.appWidth / 2;
+					var cameraCenterY:Number = _config.appHeight / 2;
+
 					cameraMain.mouseEnable = true;
 					cameraMain.displayLayers = [BBLayerNames.MAIN];
-					cameraMain.node.transform.setPosition(_config.appWidth / 2, _config.appHeight / 2);
+					cameraMain.node.transform.setPosition(cameraCenterX, cameraCenterY);
 
 					cameraBack.displayLayers = [BBLayerNames.BACKEND];
 					cameraBack.dependOnCamera(cameraMain, 0.5, 0.5);
-					cameraBack.node.transform.setPosition(_config.appWidth / 2, _config.appHeight / 2);
+					cameraBack.node.transform.setPosition(cameraCenterX, cameraCenterY);
 
 					cameraFront.displayLayers = [BBLayerNames.FRONTEND];
 					cameraFront.dependOnCamera(cameraMain, 1.5, 1.5);
-					cameraFront.node.transform.setPosition(_config.appWidth / 2, _config.appHeight / 2);
+					cameraFront.node.transform.setPosition(cameraCenterX, cameraCenterY);
 
 					cameraMenu.displayLayers = [BBLayerNames.MENU];
-					cameraMenu.node.transform.setPosition(_config.appWidth / 2, _config.appHeight / 2);
+					cameraMenu.node.transform.setPosition(cameraCenterX, cameraCenterY);
 
 					// add cameras in correct order
 					var camerasModule:BBCamerasModule = getModule(BBCamerasModule) as BBCamerasModule;
