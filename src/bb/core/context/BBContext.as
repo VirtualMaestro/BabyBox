@@ -37,7 +37,7 @@ package bb.core.context
 		/**
 		 * Sends when context was initialized.
 		 */
-		public var onInitialized:BBSignal = null;
+		private var _onInitialized:BBSignal = null;
 
 		//
 		private var _stage:Stage = null;
@@ -75,7 +75,7 @@ package bb.core.context
 		private var _currentCameraViewportHeight_add_Y:Number;
 
 		//
-		private var _rect:Rectangle = null;
+		private var _rectTextureRender:Rectangle = null;
 		private var _point:Point = null;
 		private var _matrix:Matrix = null;
 		private var _colorTransform:ColorTransform = null;
@@ -84,8 +84,8 @@ package bb.core.context
 		 */
 		public function BBContext()
 		{
-			onInitialized = BBSignal.get(this, true);
-			_rect = new Rectangle();
+			_onInitialized = BBSignal.get(this, true);
+			_rectTextureRender = new Rectangle();
 			_point = new Point();
 			_matrix = new Matrix();
 			_colorTransform = new ColorTransform();
@@ -272,42 +272,86 @@ package bb.core.context
 			var texturePivotX:Number = p_texture.pivotX * totalScaleX;
 			var texturePivotY:Number = p_texture.pivotY * totalScaleY;
 
+			//
+			var xRectTextureRender:Number = 0;
+			var yRectTextureRender:Number = 0;
+			var widthRectTextureRender:Number = textureWidth;
+			var heightRectTextureRender:Number = textureHeight;
+
+			//
+			var totalRotABS:Number = Math.abs(totalRotation);
+			var isRotationNotChanged:Boolean = totalRotABS < BBConfig.ROTATION_PRECISE || (TrigUtil.PI2 - totalRotABS) < BBConfig.ROTATION_PRECISE;
+			var isScaleNotChanged:Boolean = Math.abs(1 - totalScaleX) < BBConfig.SCALE_PRECISE && Math.abs(1 - totalScaleY) < BBConfig.SCALE_PRECISE;
+			var isColorTransformNotChanged:Boolean = !((1.0 - (p_alphaMultiplier * p_redMultiplier * p_greenMultiplier * p_blueMultiplier)) > BBConfig.COLOR_PRECISE);
+			var isCopyPixelsDrawing:Boolean = isRotationNotChanged && isColorTransformNotChanged && isScaleNotChanged && (p_blendMode == null);
+
 			///  Test for getting into the viewport /////////////
 			if (p_isCulling)
 			{
-				var rightX:Number = texturePivotX + textureWidth * totalScaleX;
-				var bottomY:Number = texturePivotY + textureHeight * totalScaleY;
+				var boundingBoxTopLeftX:Number;
+				var boundingBoxTopLeftY:Number;
+				var boundingBoxBottomRightX:Number;
+				var boundingBoxBottomRightY:Number;
 
-				var totalRotCos:Number = Math.cos(totalRotation);
-				var totalRotSin:Number = Math.sin(totalRotation);
+				if (isRotationNotChanged)  // texture isn't rotated
+				{
+					boundingBoxTopLeftX = newTextureX + texturePivotX;
+					boundingBoxTopLeftY = newTextureY + texturePivotY;
+					boundingBoxBottomRightX = boundingBoxTopLeftX + textureWidth * totalScaleX;
+					boundingBoxBottomRightY = boundingBoxTopLeftY + textureHeight * totalScaleY;
 
-				var topLeftX:Number = (texturePivotX * totalRotCos - totalRotSin * texturePivotY) + newTextureX;
-				var topLeftY:Number = (texturePivotX * totalRotSin + totalRotCos * texturePivotY) + newTextureY;
+					// is texture and viewport intersected
+					if (!isIntersect(boundingBoxTopLeftX, boundingBoxTopLeftY, boundingBoxBottomRightX, boundingBoxBottomRightY,
+					                 _currentCameraViewportX, _currentCameraViewportY,
+					                 _currentCameraViewportWidth_add_X, _currentCameraViewportHeight_add_Y)) return;
 
-				var topRightX:Number = (rightX * totalRotCos - totalRotSin * texturePivotY) + newTextureX;
-				var topRightY:Number = (rightX * totalRotSin + totalRotCos * texturePivotY) + newTextureY;
+					// if texture can be draw by copyPixels method and bound is not fully in viewport's bound - try to find only part which in viewport.
+					if (isCopyPixelsDrawing && (boundingBoxTopLeftX < _currentCameraViewportX || boundingBoxTopLeftY < _currentCameraViewportY ||
+							boundingBoxBottomRightX > _currentCameraViewportWidth_add_X || boundingBoxBottomRightY > _currentCameraViewportHeight_add_Y))
+					{
+						xRectTextureRender = max(_currentCameraViewportX - boundingBoxTopLeftX, 0);
+						yRectTextureRender = max(_currentCameraViewportY - boundingBoxTopLeftY, 0);
+						widthRectTextureRender = textureWidth - xRectTextureRender + min(_currentCameraViewportWidth_add_X - boundingBoxBottomRightX, 0);
+						heightRectTextureRender = textureHeight - yRectTextureRender + min(_currentCameraViewportHeight_add_Y - boundingBoxBottomRightY, 0);
+					}
+				}
+				else  // find bounding box for rotated texture
+				{
+					var rightX:Number = texturePivotX + textureWidth * totalScaleX;
+					var bottomY:Number = texturePivotY + textureHeight * totalScaleY;
 
-				var bottomRightX:Number = (rightX * totalRotCos - totalRotSin * bottomY) + newTextureX;
-				var bottomRightY:Number = (rightX * totalRotSin + totalRotCos * bottomY) + newTextureY;
+					var totalRotCos:Number = Math.cos(totalRotation);
+					var totalRotSin:Number = Math.sin(totalRotation);
 
-				var bottomLeftX:Number = (texturePivotX * totalRotCos - totalRotSin * bottomY) + newTextureX;
-				var bottomLeftY:Number = (texturePivotX * totalRotSin + totalRotCos * bottomY) + newTextureY;
+					var topLeftX:Number = (texturePivotX * totalRotCos - totalRotSin * texturePivotY) + newTextureX;
+					var topLeftY:Number = (texturePivotX * totalRotSin + totalRotCos * texturePivotY) + newTextureY;
 
-				var boundingBoxTopLeftX:Number = min(min(topLeftX, topRightX), min(bottomRightX, bottomLeftX));
-				var boundingBoxTopLeftY:Number = min(min(topLeftY, topRightY), min(bottomRightY, bottomLeftY));
+					var topRightX:Number = (rightX * totalRotCos - totalRotSin * texturePivotY) + newTextureX;
+					var topRightY:Number = (rightX * totalRotSin + totalRotCos * texturePivotY) + newTextureY;
 
-				var boundingBoxBottomRightX:Number = max(max(topLeftX, topRightX), max(bottomRightX, bottomLeftX));
-				var boundingBoxBottomRightY:Number = max(max(topLeftY, topRightY), max(bottomRightY, bottomLeftY));
+					var bottomRightX:Number = (rightX * totalRotCos - totalRotSin * bottomY) + newTextureX;
+					var bottomRightY:Number = (rightX * totalRotSin + totalRotCos * bottomY) + newTextureY;
 
-				if (!isIntersect(boundingBoxTopLeftX, boundingBoxTopLeftY, boundingBoxBottomRightX, boundingBoxBottomRightY,
-				                 _currentCameraViewportX, _currentCameraViewportY,
-				                 _currentCameraViewportWidth_add_X, _currentCameraViewportHeight_add_Y)) return;
+					var bottomLeftX:Number = (texturePivotX * totalRotCos - totalRotSin * bottomY) + newTextureX;
+					var bottomLeftY:Number = (texturePivotX * totalRotSin + totalRotCos * bottomY) + newTextureY;
+
+					boundingBoxTopLeftX = min(min(topLeftX, topRightX), min(bottomRightX, bottomLeftX));
+					boundingBoxTopLeftY = min(min(topLeftY, topRightY), min(bottomRightY, bottomLeftY));
+
+					boundingBoxBottomRightX = max(max(topLeftX, topRightX), max(bottomRightX, bottomLeftX));
+					boundingBoxBottomRightY = max(max(topLeftY, topRightY), max(bottomRightY, bottomLeftY));
+
+					//
+					if (!isIntersect(boundingBoxTopLeftX, boundingBoxTopLeftY, boundingBoxBottomRightX, boundingBoxBottomRightY,
+					                 _currentCameraViewportX, _currentCameraViewportY,
+					                 _currentCameraViewportWidth_add_X, _currentCameraViewportHeight_add_Y)) return;
+				}
 			}
 			////////////////////////////////
 
 			// if need apply color transformation
 			var colorTransform:ColorTransform = null;
-			if ((1.0 - (p_alphaMultiplier * p_redMultiplier * p_greenMultiplier * p_blueMultiplier)) > BBConfig.COLOR_PRECISE)
+			if (!isColorTransformNotChanged)
 			{
 				colorTransform = _colorTransform;
 				colorTransform.alphaMultiplier = p_alphaMultiplier;
@@ -317,20 +361,15 @@ package bb.core.context
 			}
 
 			//
-			var totalRotABS:Number = Math.abs(totalRotation);
-			var isScaleNotChanged:Boolean = Math.abs(1 - totalScaleX) < BBConfig.SCALE_PRECISE && Math.abs(1 - totalScaleY) < BBConfig.SCALE_PRECISE;
-			var isRotationNotChanged:Boolean = totalRotABS < BBConfig.ROTATION_PRECISE || (TrigUtil.PI2 - totalRotABS) < BBConfig.ROTATION_PRECISE;
-
-			//
-			if (isRotationNotChanged && isScaleNotChanged && !colorTransform && !p_blendMode)
+			if (isCopyPixelsDrawing)
 			{
-				_rect.setTo(0, 0, textureWidth, textureHeight);
-				_point.setTo(newTextureX + texturePivotX, newTextureY + texturePivotY);
+				_rectTextureRender.setTo(xRectTextureRender, yRectTextureRender, widthRectTextureRender, heightRectTextureRender);
+				_point.setTo(newTextureX + texturePivotX + xRectTextureRender, newTextureY + texturePivotY + yRectTextureRender);
 
 				// TODO:
 //				var bitmapN:BitmapData = new BitmapData(textureWidth, textureHeight, bitmap.transparent);
 //				bitmapN.applyFilter(bitmap, _rect, new Point(0,0), new BlurFilter());
-				_canvas.copyPixels(bitmap, _rect, _point, null, null, bitmap.transparent);
+				_canvas.copyPixels(bitmap, _rectTextureRender, _point, null, null, bitmap.transparent);
 			}
 			else
 			{
@@ -367,6 +406,8 @@ package bb.core.context
 		final private function isIntersect(p_leftTopX:Number, p_leftTopY:Number, p_rightBottomX:Number, p_rightBottomY:Number, p_leftTopX_1:Number,
 		                                   p_leftTopY_1:Number, p_rightBottomX_1:Number, p_rightBottomY_1:Number):Boolean
 		{
+			if (p_leftTopX > p_rightBottomX_1 || p_rightBottomX < p_leftTopX_1 || p_rightBottomY < p_leftTopY_1 || p_leftTopY > p_rightBottomY_1)  return false;
+
 			var exp:Boolean = false;
 
 			if (p_leftTopX >= p_leftTopX_1)
@@ -402,8 +443,8 @@ package bb.core.context
 		[Inline]
 		final public function fillRect(p_x:Number, p_y:Number, p_width:int, p_height:int, p_color:uint):void
 		{
-			_rect.setTo(p_x, p_y, p_width, p_height);
-			_canvas.fillRect(_rect, p_color);
+			_rectTextureRender.setTo(p_x, p_y, p_width, p_height);
+			_canvas.fillRect(_rectTextureRender, p_color);
 		}
 
 		/**
@@ -412,6 +453,14 @@ package bb.core.context
 		public function get isStage3d():Boolean
 		{
 			return _isStage3d;
+		}
+
+		/**
+		 * Sends when context was initialized.
+		 */
+		public function get onInitialized():BBSignal
+		{
+			return _onInitialized;
 		}
 	}
 }
