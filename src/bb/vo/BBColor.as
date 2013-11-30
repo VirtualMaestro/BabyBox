@@ -177,10 +177,35 @@ package bb.vo
 		/// CONSTANTS OF COLORS ///
 		///////////////////////////
 
+		/** Constant of color */
 		static public const SKY:uint = 0xff73bdd5;
+
+		/** Constant of color */
+		static public const BLUE:uint = 0xff0000ff;
+
+		/** Constant of color */
 		static public const GRASS:uint = 0xff9abe5e;
-		static public const BLOOD:uint = 0xffe7402d;
+
+		/** Constant of color */
 		static public const POISON:uint = 0xff85D118;
+
+		/** Constant of color */
+		static public const GREEN:uint = 0xff00ff00;
+
+		/** Constant of color */
+		static public const BLOOD:uint = 0xffe7402d;
+
+		/** Constant of color */
+		static public const RED:uint = 0xffff0000;
+
+		/** Constant of color */
+		static public const BLACK:uint = 0xff000000;
+
+		/** Constant of color */
+		static public const WHITE:uint = 0xffffffff;
+
+		/** Constant of color */
+		static public const YELLOW:uint = 0xffffff00;
 
 		/**
 		 * Extract alpha channel.
@@ -238,7 +263,8 @@ package bb.vo
 		/**
 		 * Returns Vector.<uint> with color's values for gradient rectangle.
 		 */
-		static public function getGradient(x1:uint, y1:uint, color1:uint, x2:uint, y2:uint, color2:uint, width:uint, height:uint = 1, interpolation:uint = 2):Vector.<uint>
+		static public function getGradient(x1:uint, y1:uint, color1:uint, x2:uint, y2:uint, color2:uint, width:uint, height:uint = 1,
+		                                   interpolation:uint = 2):Vector.<uint>
 		{
 			var rgb:Vector.<uint> = new <uint>[];
 			var dx:Number = x1 - x2;
@@ -330,6 +356,30 @@ package bb.vo
 		static public function getGradientStrip(p_colorStart:uint, p_colorEnd:uint, p_length:int = 100, p_interpolation:uint = 0):Vector.<uint>
 		{
 			return getGradient(0, 0, p_colorStart, p_length, 0, p_colorEnd, p_length, 1, p_interpolation);
+		}
+
+		////
+
+		/**
+		 * Returns instance of BBColor from ARGB components.
+		 * All components have to be from 0.0 to 1.0;
+		 * @return BBColor
+		 */
+		static public function get(p_alpha:Number = 1.0, p_red:Number = 1.0, p_green:Number = 1.0, p_blue:Number = 1.0):BBColor
+		{
+			return new BBColor(p_alpha, p_red, p_green, p_blue);
+		}
+
+		/**
+		 * Returns instance of BBColor from HEX number which represent of color.
+		 * @return BBColor
+		 */
+		static public function getFromHex(p_color:uint):BBColor
+		{
+			var color:BBColor = new BBColor();
+			color.color = p_color;
+
+			return color;
 		}
 	}
 }
