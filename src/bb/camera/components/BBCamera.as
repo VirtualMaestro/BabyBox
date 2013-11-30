@@ -43,15 +43,11 @@ package bb.camera.components
 		private const MIN_ZOOM:Number = 0.05;
 
 		/**
-		 * Color of filling background.
+		 * Color of filling a camera's viewport.
+		 * By default color is absent.
+		 * This param has a sense if uses multi-cameras, in another case for background fill should to use BBConfig.canvasColor;
 		 */
-		public var backgroundColor:BBColor = null;
-
-		/**
-		 * Determines if need to flood fill viewport by given backgroundColor.
-		 * (in most cases if exist multi-cameras this property set to 'false')
-		 */
-		public var isFillViewport:Boolean = false;
+		public var viewportColor:BBColor = null;
 
 		/**
 		 * Mask number of camera. Determines if camera can render current node (node has a group).
@@ -222,7 +218,6 @@ package bb.camera.components
 		{
 			_config = BabyBox.get().config;
 			_viewPort = BBNativePool.getRect();
-			backgroundColor = new BBColor();
 			cacheable = false;
 
 			_transform = node.transform;
@@ -410,7 +405,7 @@ package bb.camera.components
 			p_context.setCamera(this);
 
 			// fill the background
-			if (isFillViewport && backgroundColor.z_alpha > 0) p_context.fillRect(_viewPort.x, _viewPort.y, _viewPort.width, _viewPort.height, backgroundColor.color);
+			if (viewportColor) p_context.fillRect(_viewPort.x, _viewPort.y, _viewPort.width, _viewPort.height, viewportColor.color);
 
 			// start to rendering all nodes
 			_core.root.render(p_context);
@@ -729,7 +724,6 @@ package bb.camera.components
 				_displayLayers = null;
 				mask = -1;
 
-				isFillViewport = false;
 				mouseEnable = false;
 				smoothMove = false;
 				fadeMove = 0.0;
@@ -751,7 +745,7 @@ package bb.camera.components
 				_config = null;
 				_viewPort = null;
 				_transform = null;
-				backgroundColor = null;
+				viewportColor = null;
 
 				super.dispose();
 			}
