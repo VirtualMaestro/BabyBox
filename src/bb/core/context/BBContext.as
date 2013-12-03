@@ -35,6 +35,9 @@ package bb.core.context
 	 */
 	public class BBContext
 	{
+		static private const RAD_TO_DEG:Number = TrigUtil.RAD_TO_DEG;
+		static private const DEG_TO_RAD:Number = TrigUtil.DEG_TO_RAD;
+
 		/**
 		 * Sends when context was initialized.
 		 */
@@ -81,6 +84,9 @@ package bb.core.context
 		private var _matrix:Matrix = null;
 		private var _colorTransform:ColorTransform = null;
 
+		private var _sinTable:Vector.<Number>;
+		private var _cosTable:Vector.<Number>;
+
 		/**
 		 */
 		public function BBContext()
@@ -90,6 +96,18 @@ package bb.core.context
 			_point = new Point();
 			_matrix = new Matrix();
 			_colorTransform = new ColorTransform();
+
+			// prepare sin and cos tables
+			_sinTable = new <Number>[];
+			_cosTable = new <Number>[];
+			var angleRad:Number;
+
+			for (var i:int = 0; i < 360; i++)
+			{
+				angleRad = i * DEG_TO_RAD;
+				_sinTable[i] = Math.sin(angleRad);
+				_cosTable[i] = Math.cos(angleRad);
+			}
 		}
 
 		/**
@@ -252,13 +270,13 @@ package bb.core.context
 			var textureWidth:Number = bitmap.width;
 			var textureHeight:Number = bitmap.height;
 
-			var sin:Number = _currentCameraSIN;
-			var cos:Number = _currentCameraCOS;
+			var sinCam:Number = _currentCameraSIN;
+			var cosCam:Number = _currentCameraCOS;
 			var dx:Number = p_x - _currentCameraX;
 			var dy:Number = p_y - _currentCameraY;
 
-			var newTextureX:Number = (dx * cos - sin * dy) * _currentCameraTotalScaleX + _currentCameraViewportCenterX + p_offsetX;
-			var newTextureY:Number = (dx * sin + cos * dy) * _currentCameraTotalScaleY + _currentCameraViewportCenterY + p_offsetY;
+			var newTextureX:Number = (dx * cosCam - sinCam * dy) * _currentCameraTotalScaleX + _currentCameraViewportCenterX + p_offsetX;
+			var newTextureY:Number = (dx * sinCam + cosCam * dy) * _currentCameraTotalScaleY + _currentCameraViewportCenterY + p_offsetY;
 
 			var totalRotation:Number = p_allowRotation ? (p_rotation - _currentCameraRotation + p_offsetRotation) % TrigUtil.PI2 : 0;
 			var totalScaleX:Number = 1.0;
@@ -285,6 +303,9 @@ package bb.core.context
 			var isScaleNotChanged:Boolean = Math.abs(1 - totalScaleX) < BBConfig.SCALE_PRECISE && Math.abs(1 - totalScaleY) < BBConfig.SCALE_PRECISE;
 			var isColorTransformNotChanged:Boolean = !((1.0 - (p_alphaMultiplier * p_redMultiplier * p_greenMultiplier * p_blueMultiplier)) > BBConfig.COLOR_PRECISE);
 			var isCopyPixelsDrawing:Boolean = isRotationNotChanged && isColorTransformNotChanged && isScaleNotChanged && (p_blendMode == null);
+
+			var totalRotCos:Number = 1.0;
+			var totalRotSin:Number = 0.0;
 
 			///  Test for getting into the viewport /////////////
 			if (p_isCulling)
@@ -320,8 +341,8 @@ package bb.core.context
 					var rightX:Number = texturePivotX + textureWidth * totalScaleX;
 					var bottomY:Number = texturePivotY + textureHeight * totalScaleY;
 
-					var totalRotCos:Number = Math.cos(totalRotation);
-					var totalRotSin:Number = Math.sin(totalRotation);
+					totalRotCos = cos(totalRotation);
+					totalRotSin = sin(totalRotation);
 
 					var topLeftX:Number = (texturePivotX * totalRotCos - totalRotSin * texturePivotY) + newTextureX;
 					var topLeftY:Number = (texturePivotX * totalRotSin + totalRotCos * texturePivotY) + newTextureY;
@@ -374,13 +395,25 @@ package bb.core.context
 			else
 			{
 				// tuning of matrix
-				_matrix.identity();
-				_matrix.scale(totalScaleX, totalScaleY);
-				_matrix.translate(texturePivotX, texturePivotY);
-				_matrix.rotate(totalRotation);
-				_matrix.translate(newTextureX, newTextureY);
+//				_matrix.identity();
+//				_matrix.scale(totalScaleX, totalScaleY);
+//				_matrix.translate(texturePivotX, texturePivotY);
+//				_matrix.rotate(totalRotation);
+//				_matrix.translate(newTextureX, newTextureY);
 
-				_canvas.drawWithQuality(bitmap, _matrix, colorTransform, p_blendMode, _currentCameraViewport, p_smoothing, StageQuality.HIGH);
+				var a:Number = totalScaleX;
+				var b:Number = 0;
+				var c:Number = 0;
+				var d:Number = totalScaleY;
+
+				_matrix.a = a * totalRotCos - b * totalRotSin;
+				_matrix.b = a * totalRotSin + b * totalRotCos;
+				_matrix.c = c * totalRotCos - d * totalRotSin;
+				_matrix.d = c * totalRotSin + d * totalRotCos;
+				_matrix.tx = (totalRotCos * texturePivotX - totalRotSin * texturePivotY) + newTextureX;
+				_matrix.ty = (totalRotSin * texturePivotX + totalRotCos * texturePivotY) + newTextureY;
+
+				_canvas.drawWithQuality(bitmap, _matrix, colorTransform, p_blendMode, _currentCameraViewport, p_smoothing, StageQuality.MEDIUM);
 //				_canvas.draw(bitmap, _matrix, colorTransform, p_blendMode, _currentCameraViewport, p_smoothing);
 			}
 		}
@@ -436,6 +469,26 @@ package bb.core.context
 			}
 
 			return false;
+		}
+
+		/**
+		 */
+		[Inline]
+		final private function cos(p_angleRad:Number):Number
+		{
+			var angle:int = p_angleRad * RAD_TO_DEG;
+			angle += angle < 0 ? 360 : 0;
+			return _cosTable[angle];
+		}
+
+		/**
+		 */
+		[Inline]
+		final private function sin(p_angleRad:Number):Number
+		{
+			var angle:int = p_angleRad * RAD_TO_DEG;
+			angle += angle < 0 ? 360 : 0;
+			return _sinTable[angle];
 		}
 
 		/**
