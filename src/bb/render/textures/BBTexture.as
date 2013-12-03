@@ -60,7 +60,8 @@ package bb.render.textures
 
 		/**
 		 */
-		public function BBTexture(p_bitmapData:BitmapData, p_textureId:String = "", p_alignByCenter:Boolean = true, p_region:Rectangle = null, p_gTexture:GTexture = null)
+		public function BBTexture(p_bitmapData:BitmapData, p_textureId:String = "", p_alignByCenter:Boolean = true, p_region:Rectangle = null,
+		                          p_gTexture:GTexture = null)
 		{
 			super(p_textureId);
 
@@ -331,7 +332,8 @@ package bb.render.textures
 		/**
 		 * Creates texture rect with given color.
 		 */
-		static public function createFromColorRect(p_width:int, p_height:int, p_textureId:String = "", p_color:uint = 0xff73bdd5, p_alignByCenter:Boolean = true):BBTexture
+		static public function createFromColorRect(p_width:int, p_height:int, p_textureId:String = "", p_color:uint = 0xff73bdd5,
+		                                           p_alignByCenter:Boolean = true):BBTexture
 		{
 			var texture:BBTexture = getTextureById(p_textureId);
 			if (texture) return texture;
@@ -347,7 +349,8 @@ package bb.render.textures
 		 * p_colors - array with colors for gradient. If set one color it uses for solid fill.
 		 * If p_colors null or empty it is use default color.
 		 */
-		static public function createFromColorCircle(p_radius:int, p_textureId:String = "", p_colors:Array = null, p_outlineColor:uint = 0x00000000, p_thicknessOutline:uint = 0, p_alignByCenter:Boolean = true):BBTexture
+		static public function createFromColorCircle(p_radius:int, p_textureId:String = "", p_colors:Array = null, p_outlineColor:uint = 0x00000000,
+		                                             p_thicknessOutline:uint = 0, p_alignByCenter:Boolean = true):BBTexture
 		{
 			var texture:BBTexture = getTextureById(p_textureId);
 			if (texture) return texture;
@@ -415,7 +418,8 @@ package bb.render.textures
 		/**
 		 * Creates texture circle with given color.
 		 */
-		static public function createFromColorEllipse(p_radiusX:int, p_radiusY:int, p_textureId:String = "", p_color:uint = 0xff9abe5e, p_alignByCenter:Boolean = true):BBTexture
+		static public function createFromColorEllipse(p_radiusX:int, p_radiusY:int, p_textureId:String = "", p_color:uint = 0xff9abe5e,
+		                                              p_alignByCenter:Boolean = true):BBTexture
 		{
 			var texture:BBTexture = getTextureById(p_textureId);
 			if (texture) return texture;
@@ -438,7 +442,7 @@ package bb.render.textures
 		}
 
 		/**
-		 * Returns unique texture id.
+		 * Returns generated unique texture id.
 		 */
 		static public function getTextureId():String
 		{
