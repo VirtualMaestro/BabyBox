@@ -20,6 +20,7 @@ package bb.core.context
 	import flash.display.Bitmap;
 	import flash.display.BitmapData;
 	import flash.display.Stage;
+	import flash.display.StageQuality;
 	import flash.geom.ColorTransform;
 	import flash.geom.Matrix;
 	import flash.geom.Point;
@@ -305,9 +306,8 @@ package bb.core.context
 					                 _currentCameraViewportX, _currentCameraViewportY,
 					                 _currentCameraViewportWidth_add_X, _currentCameraViewportHeight_add_Y)) return;
 
-					// if texture can be draw by copyPixels method and bound is not fully in viewport's bound - try to find only part which in viewport.
-					if (isCopyPixelsDrawing && (boundingBoxTopLeftX < _currentCameraViewportX || boundingBoxTopLeftY < _currentCameraViewportY ||
-							boundingBoxBottomRightX > _currentCameraViewportWidth_add_X || boundingBoxBottomRightY > _currentCameraViewportHeight_add_Y))
+					// if texture can be draw by copyPixels method - try to find only part which in viewport.
+					if (isCopyPixelsDrawing)
 					{
 						xRectTextureRender = max(_currentCameraViewportX - boundingBoxTopLeftX, 0);
 						yRectTextureRender = max(_currentCameraViewportY - boundingBoxTopLeftY, 0);
@@ -380,7 +380,8 @@ package bb.core.context
 				_matrix.rotate(totalRotation);
 				_matrix.translate(newTextureX, newTextureY);
 
-				_canvas.draw(bitmap, _matrix, colorTransform, p_blendMode, _currentCameraViewport, p_smoothing);
+				_canvas.drawWithQuality(bitmap, _matrix, colorTransform, p_blendMode, _currentCameraViewport, p_smoothing, StageQuality.HIGH);
+//				_canvas.draw(bitmap, _matrix, colorTransform, p_blendMode, _currentCameraViewport, p_smoothing);
 			}
 		}
 
