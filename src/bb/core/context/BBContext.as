@@ -100,13 +100,14 @@ package bb.core.context
 			// prepare sin and cos tables
 			_sinTable = new <Number>[];
 			_cosTable = new <Number>[];
-			var angleRad:Number;
+			var angleRad:Number = -2 * Math.PI;
+			var stepAngle:Number = Math.PI / 180.0;
 
-			for (var i:int = 0; i < 360; i++)
+			for (var i:int = 0; i < 720; i++)
 			{
-				angleRad = i * DEG_TO_RAD;
 				_sinTable[i] = Math.sin(angleRad);
 				_cosTable[i] = Math.cos(angleRad);
+				angleRad += stepAngle;
 			}
 		}
 
@@ -476,9 +477,7 @@ package bb.core.context
 		[Inline]
 		final private function cos(p_angleRad:Number):Number
 		{
-			var angle:int = p_angleRad * RAD_TO_DEG;
-			angle += angle < 0 ? 360 : 0;
-			return _cosTable[angle];
+			return _cosTable[int(p_angleRad * RAD_TO_DEG + 360)];
 		}
 
 		/**
@@ -486,9 +485,7 @@ package bb.core.context
 		[Inline]
 		final private function sin(p_angleRad:Number):Number
 		{
-			var angle:int = p_angleRad * RAD_TO_DEG;
-			angle += angle < 0 ? 360 : 0;
-			return _sinTable[angle];
+			return _sinTable[int(p_angleRad * RAD_TO_DEG + 360)];
 		}
 
 		/**
