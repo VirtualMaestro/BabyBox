@@ -479,7 +479,8 @@ package bb.core
 			if (node)
 			{
 				var matrix:Matrix = worldTransformMatrix;
-				resultPoint.setTo(p_x * matrix.a + p_y * matrix.c + matrix.tx, p_x * matrix.b + p_y * matrix.d + matrix.ty);
+				resultPoint.x = p_x * matrix.a + p_y * matrix.c + matrix.tx;
+				resultPoint.y = p_x * matrix.b + p_y * matrix.d + matrix.ty;
 			}
 
 			return resultPoint;
@@ -506,7 +507,8 @@ package bb.core
 				matrix.ty = worldMatrix.ty;
 				matrix.invert();
 
-				resultPoint.setTo(p_x * matrix.a + p_y * matrix.c + matrix.tx, p_x * matrix.b + p_y * matrix.d + matrix.ty);
+				resultPoint.x = p_x * matrix.a + p_y * matrix.c + matrix.tx;
+				resultPoint.y = p_x * matrix.b + p_y * matrix.d + matrix.ty;
 
 				BBNativePool.putMatrix(matrix);
 			}

@@ -187,7 +187,10 @@ package bb.render.components
 					else if (bottomY < nY) bottomY = nY;
 				}
 
-				_worldBounds.setTo(leftX, topY, rightX - leftX, bottomY - topY);
+				_worldBounds.x = leftX;
+				_worldBounds.y = topY;
+				_worldBounds.width = rightX - leftX;
+				_worldBounds.height = bottomY - topY;
 			}
 
 			return _worldBounds;

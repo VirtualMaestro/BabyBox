@@ -31,7 +31,10 @@ package bb.pools
 			if (_rectSize > 0)
 			{
 				rect = _rectPool[--_rectSize];
-				rect.setTo(p_x, p_y, p_width, p_height);
+				rect.x = p_x;
+				rect.y = p_y;
+				rect.width = p_width;
+				rect.height = p_height;
 			}
 			else rect = new Rectangle(p_x, p_y, p_width, p_height);
 
@@ -91,7 +94,8 @@ package bb.pools
 			if (_pointSize > 0)
 			{
 				point = _pointPool[--_pointSize];
-				point.setTo(p_x, p_y);
+				point.x = p_x;
+				point.y = p_y;
 			}
 			else point = new Point(p_x, p_y);
 
@@ -152,6 +156,12 @@ package bb.pools
 			{
 				matrix = _matrixPool[--_matrixSize];
 				matrix.identity();
+				matrix.a = 1;
+				matrix.b = 0;
+				matrix.c = 0;
+				matrix.d = 1;
+				matrix.tx = 0;
+				matrix.ty = 0;
 			}
 			else matrix = new Matrix();
 

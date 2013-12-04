@@ -343,7 +343,7 @@ package bb.camera.components
 			var transform:BBTransform = _transform;
 
 			// if rotation changed
-			if (transform.worldRotation != rotation)
+			if (Math.abs(transform.worldRotation - rotation) > 0.01)
 			{
 				rotation = transform.worldRotation;
 				SIN = Math.sin(-rotation);

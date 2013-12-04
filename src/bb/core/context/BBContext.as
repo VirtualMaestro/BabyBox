@@ -36,7 +36,6 @@ package bb.core.context
 	public class BBContext
 	{
 		static private const RAD_TO_DEG:Number = TrigUtil.RAD_TO_DEG;
-		static private const DEG_TO_RAD:Number = TrigUtil.DEG_TO_RAD;
 
 		/**
 		 * Sends when context was initialized.
@@ -385,8 +384,13 @@ package bb.core.context
 			//
 			if (isCopyPixelsDrawing)
 			{
-				_rectTextureRender.setTo(xRectTextureRender, yRectTextureRender, widthRectTextureRender, heightRectTextureRender);
-				_point.setTo(newTextureX + texturePivotX + xRectTextureRender, newTextureY + texturePivotY + yRectTextureRender);
+				_rectTextureRender.x = xRectTextureRender;
+				_rectTextureRender.y = yRectTextureRender;
+				_rectTextureRender.width = widthRectTextureRender;
+				_rectTextureRender.height = heightRectTextureRender;
+
+				_point.x = newTextureX + texturePivotX + xRectTextureRender;
+				_point.y = newTextureY + texturePivotY + yRectTextureRender;
 
 				// TODO:
 //				var bitmapN:BitmapData = new BitmapData(textureWidth, textureHeight, bitmap.transparent);
@@ -494,7 +498,11 @@ package bb.core.context
 		[Inline]
 		final public function fillRect(p_x:Number, p_y:Number, p_width:int, p_height:int, p_color:uint):void
 		{
-			_rectTextureRender.setTo(p_x, p_y, p_width, p_height);
+			_rectTextureRender.x = p_x;
+			_rectTextureRender.y = p_y;
+			_rectTextureRender.width = p_width;
+			_rectTextureRender.height = p_height;
+
 			_canvas.fillRect(_rectTextureRender, p_color);
 		}
 
