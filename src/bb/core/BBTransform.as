@@ -236,6 +236,12 @@ package bb.core
 
 				if (_worldTransformMatrix == null) _worldTransformMatrix = BBNativePool.getMatrix();
 
+				if (lockInvalidation && node.numChildren == 0)
+				{
+					COS = Math.cos(worldRotation);
+					SIN = Math.sin(worldRotation);
+				}
+
 				var cos:Number = COS;
 				var sin:Number = SIN;
 
@@ -403,6 +409,7 @@ package bb.core
 			isTransformChanged = true;
 			isPositionChanged = true;
 			isRotationChanged = true;
+			_isWorldTransformMatrixChanged = true;
 
 			if (node.numChildren > 0)
 			{

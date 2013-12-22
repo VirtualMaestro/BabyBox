@@ -60,6 +60,8 @@ package bb.render.components
 		public var offsetY:Number = 0.0;
 		public var offsetRotation:Number = 0.0;
 
+		private var _offsetsChecksum:Number = 0;
+
 		/**
 		 * Blend mode for renderable component.
 		 * Need to use constants from BlendMode class.
@@ -139,6 +141,14 @@ package bb.render.components
 			}
 		}
 
+		//
+		private var _a:Number = 0;
+		private var _b:Number = 0;
+		private var _c:Number = 0;
+		private var _d:Number = 0;
+		private var _tx:Number = 0;
+		private var _ty:Number = 0;
+
 		/**
 		 * Returns bounds of renderable component in world coordinates.
 		 * It is not creates new instance, so if need own instance need to make 'clone' - rectangle.clone();
@@ -147,51 +157,98 @@ package bb.render.components
 		{
 			if (!_worldBounds) _worldBounds = BBNativePool.getRect();
 
-			if (!node || !z_texture) _worldBounds.setEmpty();
-			else
+			if (node || z_texture)
 			{
-				var halfWidth:Number = z_texture.width * 0.5;
-				var halfHeight:Number = z_texture.height * 0.5;
 				var transform:BBTransform = node.transform;
-				var transMatrix:Matrix = transform.getTransformedWorldMatrix(offsetScaleX, offsetScaleY, offsetRotation, offsetX, offsetY);
+				var transMatrix:Matrix;
+				var newOffsetsChecksum:Number = offsetScaleX + offsetScaleY + offsetRotation + offsetX + offsetY;
+
+				if (_offsetsChecksum == newOffsetsChecksum) transMatrix = transform.worldTransformMatrix;
+				else
+				{
+					transMatrix = transform.getTransformedWorldMatrix(offsetScaleX, offsetScaleY, offsetRotation, offsetX, offsetY);
+					_offsetsChecksum = newOffsetsChecksum;
+				}
+
 				var a:Number = transMatrix.a;
 				var b:Number = transMatrix.b;
 				var c:Number = transMatrix.c;
 				var d:Number = transMatrix.d;
 				var tx:Number = transMatrix.tx;
 				var ty:Number = transMatrix.ty;
-				BBNativePool.putMatrix(transMatrix);
 
-				var leftX:Number = -halfWidth * a + -halfHeight * c + tx;
-				var topY:Number = -halfWidth * b + -halfHeight * d + ty;
-				var rightX:Number = leftX;
-				var bottomY:Number = topY;
-				var nX:Number;
-				var nY:Number;
-
-				var vertices:Vector.<Number> = new <Number>[
-					-halfWidth * a + halfHeight * c + tx, -halfWidth * b + halfHeight * d + ty,
-					halfWidth * a + halfHeight * c + tx, halfWidth * b + halfHeight * d + ty,
-					halfWidth * a + -halfHeight * c + tx, halfWidth * b + -halfHeight * d + ty
-				];
-
-				for (var i:int = 0; i < 6; i += 2)
+				if (!(a == _a && b == _b && c == _c && d == _d && tx == _tx && ty == _ty))
 				{
-					nX = vertices[i];
-					nY = vertices[i + 1];
+					_a = a;
+					_b = b;
+					_c = c;
+					_d = d;
+					_tx = tx;
+					_ty = ty;
 
-					if (leftX > nX) leftX = nX;
-					else if (rightX < nX) rightX = nX;
+					var halfWidth:Number = z_texture.width * 0.5;
+					var halfHeight:Number = z_texture.height * 0.5;
+					var left:Number;
+					var top:Number;
+					var right:Number;
+					var bottom:Number;
+					var nX:Number;
+					var nY:Number;
+					var vx:Number;
+					var vy:Number;
 
-					if (topY > nY) topY = nY;
-					else if (bottomY < nY) bottomY = nY;
+					// left top
+					vx = -halfWidth;
+					vy = -halfHeight;
+					nX = vx * a + vy * b + tx;
+					nY = vx * c + vy * d + ty;
+					left = right = nX;
+					top = bottom = nY;
+
+					// right top
+					vx = halfWidth;
+					vy = -halfHeight;
+					nX = vx * a + vy * b + tx;
+					nY = vx * c + vy * d + ty;
+
+					if (nX < left) left = nX;
+					else if (nX > right) right = nX;
+
+					if (nY < top) top = nY;
+					else if (nY > bottom) bottom = nY;
+
+					// right bottom
+					vx = halfWidth;
+					vy = halfHeight;
+					nX = vx * a + vy * b + tx;
+					nY = vx * c + vy * d + ty;
+
+					if (nX < left) left = nX;
+					else if (nX > right) right = nX;
+
+					if (nY < top) top = nY;
+					else if (nY > bottom) bottom = nY;
+
+					// left bottom
+					vx = -halfWidth;
+					vy = halfHeight;
+					nX = vx * a + vy * b + tx;
+					nY = vx * c + vy * d + ty;
+
+					if (nX < left) left = nX;
+					else if (nX > right) right = nX;
+
+					if (nY < top) top = nY;
+					else if (nY > bottom) bottom = nY;
+
+					//
+					_worldBounds.x = left;
+					_worldBounds.y = top;
+					_worldBounds.width = right - left;
+					_worldBounds.height = bottom - top;
 				}
-
-				_worldBounds.x = leftX;
-				_worldBounds.y = topY;
-				_worldBounds.width = rightX - leftX;
-				_worldBounds.height = bottomY - topY;
 			}
+			else _worldBounds.setEmpty();
 
 			return _worldBounds;
 		}
