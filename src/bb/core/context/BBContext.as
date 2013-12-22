@@ -400,12 +400,6 @@ package bb.core.context
 			else
 			{
 				// tuning of matrix
-//				_matrix.identity();
-//				_matrix.scale(totalScaleX, totalScaleY);
-//				_matrix.translate(texturePivotX, texturePivotY);
-//				_matrix.rotate(totalRotation);
-//				_matrix.translate(newTextureX, newTextureY);
-
 				var a:Number = totalScaleX;
 				var b:Number = 0;
 				var c:Number = 0;
