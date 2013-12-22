@@ -185,23 +185,38 @@ package bb.core
 		public function getTransformedWorldMatrix(p_scaleX:Number = 1.0, p_scaleY:Number = 1.0, p_rotation:Number = 0.0, p_x:Number = 0, p_y:Number = 0,
 		                                          p_invert:Boolean = false):Matrix
 		{
-			var matrix:Matrix = BBNativePool.getMatrix();
 			var worldMatrix:Matrix = worldTransformMatrix;
-			matrix.a = worldMatrix.a;
-			matrix.b = worldMatrix.b;
-			matrix.c = worldMatrix.c;
-			matrix.d = worldMatrix.d;
-			matrix.tx = worldMatrix.tx;
-			matrix.ty = worldMatrix.ty;
+			var a:Number = worldMatrix.a;
+			var b:Number = worldMatrix.b;
+			var c:Number = worldMatrix.c;
+			var d:Number = worldMatrix.d;
+			var tx:Number = worldMatrix.tx + p_x;
+			var ty:Number = worldMatrix.ty + p_y;
 
-			var tx:Number = matrix.tx + p_x;
-			var ty:Number = matrix.ty + p_y;
+			if (p_scaleX != 1 && p_scaleY != 1)
+			{
+				a *= p_scaleX;
+				b *= p_scaleY;
+				c *= p_scaleX;
+				d *= p_scaleY;
+			}
 
-			if (p_scaleX != 1 && p_scaleY != 1) matrix.scale(p_scaleX, p_scaleY);
-			if (p_rotation != 0) matrix.rotate(p_rotation);
+			if (p_rotation != 0)
+			{
+				var cos:Number = Math.cos(p_rotation);
+				var sin:Number = Math.sin(p_rotation);
+				var aa:Number = cos * a - b * sin;
+				var bb:Number = sin * a + b * cos;
+				var cc:Number = cos * c - d * sin;
+				var dd:Number = sin * c + d * cos;
 
-			matrix.tx = tx;
-			matrix.ty = ty;
+				a = aa;
+				b = bb;
+				c = cc;
+				d = dd;
+			}
+
+			var matrix:Matrix = BBNativePool.getMatrix(a, b, c, d, tx, ty);
 
 			if (p_invert) matrix.invert();
 
@@ -211,7 +226,7 @@ package bb.core
 		/**
 		 * Returns world transform matrix.
 		 */
-		public function get worldTransformMatrix():Matrix
+		final public function get worldTransformMatrix():Matrix
 		{
 			if (isTransformChanged) invalidate(true, false);
 			if (_isWorldTransformMatrixChanged)
