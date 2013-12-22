@@ -147,6 +147,7 @@ package bb.pools
 
 		/**
 		 * Returns instance of Matrix class.
+		 * Returned matrix identity already.
 		 */
 		static public function getMatrix():Matrix
 		{
@@ -155,7 +156,6 @@ package bb.pools
 			if (_matrixSize > 0)
 			{
 				matrix = _matrixPool[--_matrixSize];
-				matrix.identity();
 				matrix.a = 1;
 				matrix.b = 0;
 				matrix.c = 0;

@@ -182,8 +182,8 @@ package bb.core
 		 * If after using instance is not need anymore there is possible to take back it to pool - BBNativePool.putMatrix(matrix);
 		 * NOTICE: scale and rotation won't change the translation of matrix (tx/ty).
 		 */
-		public function transformWorldMatrix(p_scaleX:Number = 1.0, p_scaleY:Number = 1.0, p_rotation:Number = 0.0, p_x:Number = 0, p_y:Number = 0,
-		                                     p_invert:Boolean = false):Matrix
+		public function getTransformedWorldMatrix(p_scaleX:Number = 1.0, p_scaleY:Number = 1.0, p_rotation:Number = 0.0, p_x:Number = 0, p_y:Number = 0,
+		                                          p_invert:Boolean = false):Matrix
 		{
 			var matrix:Matrix = BBNativePool.getMatrix();
 			var worldMatrix:Matrix = worldTransformMatrix;
@@ -220,7 +220,17 @@ package bb.core
 				var sY:Number = (worldScaleY == 0) ? 0.000001 : worldScaleY;
 
 				if (_worldTransformMatrix == null) _worldTransformMatrix = BBNativePool.getMatrix();
-				_worldTransformMatrix.createBox(sX, sY, worldRotation, worldX, worldY);
+
+				var cos:Number = COS;
+				var sin:Number = SIN;
+
+				_worldTransformMatrix.a = cos * sX;
+				_worldTransformMatrix.b = sin * sY;
+				_worldTransformMatrix.c = -sin * sX;
+				_worldTransformMatrix.d = cos * sY;
+				_worldTransformMatrix.tx = worldX;
+				_worldTransformMatrix.ty = worldY;
+
 				_isWorldTransformMatrixChanged = false;
 			}
 

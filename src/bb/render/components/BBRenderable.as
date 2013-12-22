@@ -153,7 +153,7 @@ package bb.render.components
 				var halfWidth:Number = z_texture.width * 0.5;
 				var halfHeight:Number = z_texture.height * 0.5;
 				var transform:BBTransform = node.transform;
-				var transMatrix:Matrix = transform.transformWorldMatrix(offsetScaleX, offsetScaleY, offsetRotation, offsetX, offsetY);
+				var transMatrix:Matrix = transform.getTransformedWorldMatrix(offsetScaleX, offsetScaleY, offsetRotation, offsetX, offsetY);
 				var a:Number = transMatrix.a;
 				var b:Number = transMatrix.b;
 				var c:Number = transMatrix.c;
@@ -217,7 +217,7 @@ package bb.render.components
 			}
 			else
 			{
-				var matrix:Matrix = currentNode.transform.transformWorldMatrix(offsetScaleX, offsetScaleY, offsetRotation, offsetX, offsetY, true);
+				var matrix:Matrix = currentNode.transform.getTransformedWorldMatrix(offsetScaleX, offsetScaleY, offsetRotation, offsetX, offsetY, true);
 				var camX:Number = p_event.cameraX;
 				var camY:Number = p_event.cameraY;
 				var localMouseX:Number = camX * matrix.a + camY * matrix.c + matrix.tx;
