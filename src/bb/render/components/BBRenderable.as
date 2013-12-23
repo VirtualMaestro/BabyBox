@@ -73,7 +73,7 @@ package bb.render.components
 		 * If apply frustum culling test.
 		 * Mean before render object will be tested on getting on screen.
 		 */
-		public var isCulling:Boolean = false;
+		public var isCulling:Boolean = true;
 
 		/**
 		 * Set smoothing for current renderable component (by default 'true'. Also depend on settings of BBConfig).
