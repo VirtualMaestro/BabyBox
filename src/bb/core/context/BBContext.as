@@ -20,7 +20,6 @@ package bb.core.context
 	import flash.display.Bitmap;
 	import flash.display.BitmapData;
 	import flash.display.Stage;
-	import flash.display.StageQuality;
 	import flash.geom.ColorTransform;
 	import flash.geom.Matrix;
 	import flash.geom.Point;
@@ -263,7 +262,7 @@ package bb.core.context
 		public function draw(p_texture:BBTexture, p_x:Number, p_y:Number, p_rotation:Number = 0, p_scaleX:Number = 1.0, p_scaleY:Number = 1.0,
 		                     p_offsetX:Number = 0, p_offsetY:Number = 0, p_offsetRotation:Number = 0, p_offsetScaleX:Number = 1.0, p_offsetScaleY:Number = 1.0,
 		                     p_alphaMultiplier:Number = 1.0, p_redMultiplier:Number = 1.0, p_greenMultiplier:Number = 1.0, p_blueMultiplier:Number = 1.0,
-		                     p_isCulling:Boolean = false, p_smoothing:Boolean = true, p_allowRotation:Boolean = true, p_allowScale:Boolean = true,
+		                     p_isCulling:Boolean = true, p_smoothing:Boolean = true, p_allowRotation:Boolean = true, p_allowScale:Boolean = true,
 		                     p_blendMode:String = null):void
 		{
 			var bitmap:BitmapData = p_texture.bitmapData;
@@ -412,8 +411,7 @@ package bb.core.context
 				_matrix.tx = (totalRotCos * texturePivotX - totalRotSin * texturePivotY) + newTextureX;
 				_matrix.ty = (totalRotSin * texturePivotX + totalRotCos * texturePivotY) + newTextureY;
 
-				_canvas.drawWithQuality(bitmap, _matrix, colorTransform, p_blendMode, _currentCameraViewport, p_smoothing, StageQuality.MEDIUM);
-//				_canvas.draw(bitmap, _matrix, colorTransform, p_blendMode, _currentCameraViewport, p_smoothing);
+				_canvas.draw(bitmap, _matrix, colorTransform, p_blendMode, _currentCameraViewport, p_smoothing);
 			}
 		}
 
