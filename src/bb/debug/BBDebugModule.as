@@ -18,8 +18,6 @@ package bb.debug
 	import nape.util.BitmapDebug;
 	import nape.util.Debug;
 
-	import vm.stat.Stats;
-
 	/**
 	 * Response for debug drawing and tools.
 	 */
@@ -27,7 +25,6 @@ package bb.debug
 	{
 		private var _showGrid:Boolean = false;
 		private var _physicDraw:Boolean = false;
-		private var _showFPS:Boolean = false;
 
 		private var _grid:BBGridDebug;
 		private var _physicsDebugDefault:Debug;
@@ -35,7 +32,6 @@ package bb.debug
 
 		private var _config:BBConfig;
 		private var _space:Space;
-		private var _stats:Stats;
 
 		/**
 		 */
@@ -182,22 +178,14 @@ package bb.debug
 		 */
 		public function set showFPS(p_val:Boolean):void
 		{
-			if (_showFPS == p_val) return;
-			_showFPS = p_val;
-
-			if (_showFPS)
-			{
-				if (!_stats) _stats = new Stats();
-				stage.addChild(_stats);
-			}
-			else stage.removeChild(_stats);
+			(engine as BabyBox).stats = p_val;
 		}
 
 		/**
 		 */
 		public function get showFPS():Boolean
 		{
-			return _showFPS;
+			return (engine as BabyBox).stats;
 		}
 	}
 }
