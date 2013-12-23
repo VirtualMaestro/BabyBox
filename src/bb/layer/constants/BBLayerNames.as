@@ -17,5 +17,9 @@ package bb.layer.constants
 		static public const FOREGROUND:String = "foreground";
 		static public const FRONTEND:String = "frontend";
 		static public const MENU:String = "menu";
+		static public const PANEL:String = "panel";
+		static public const MESSAGE:String = "message";
+		static public const PARTICLE:String = "particle";
+		static public const POPUP:String = "popup";
 	}
 }

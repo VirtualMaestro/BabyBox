@@ -6,6 +6,7 @@
 package bb.world
 {
 	import bb.bb_spaces.bb_private;
+	import bb.camera.BBCamerasModule;
 	import bb.camera.components.BBCamera;
 	import bb.config.BBConfig;
 	import bb.core.BBNode;
@@ -15,6 +16,8 @@ package bb.world
 	import bb.modules.*;
 	import bb.signals.BBSignal;
 	import bb.world.profiles.BBGameType;
+
+	import vm.debug.Assert;
 
 	use namespace bb_private;
 
@@ -56,11 +59,12 @@ package bb.world
 		 * p_layerName - name of layer that actor should be added to it.
 		 * Returns added actor.
 		 */
-		public function add(p_actor:BBNode, p_layerName:String = BBLayerNames.MIDDLEGROUND):BBNode
+		public function add(p_actor:BBNode, p_layerName:String):BBNode
 		{
 			CONFIG::debug
 			{
-				if (p_actor.isDisposed) return p_actor;
+				Assert.isTrue(!p_actor.isDisposed, "Try to add to world disposed actor", "BBWorldModule.add");
+				Assert.isTrue(_layerManager.isExist(p_layerName), "Layer with such name '" + p_layerName + "' doesn't exist", "BBWorldModule.add");
 			}
 
 			_layerManager.get(p_layerName).add(p_actor);
@@ -93,29 +97,43 @@ package bb.world
 			{
 				case BBGameType.PLATFORMER:
 				{
-					var cameraMain:BBCamera = BBCamera.get(BBLayerNames.MAIN);
-					var cameraBack:BBCamera = BBCamera.get(BBLayerNames.BACKEND);
-					var cameraFront:BBCamera = BBCamera.get(BBLayerNames.FRONTEND);
-					var cameraMenu:BBCamera = BBCamera.get(BBLayerNames.MENU);
-
-					cameraMain.mouseEnable = true;
-					cameraMain.node.transform.setPosition(_config.appWidth / 2, _config.appHeight / 2);
-					cameraBack.node.transform.setPosition(_config.appWidth / 2, _config.appHeight / 2);
-					cameraFront.node.transform.setPosition(_config.appWidth / 2, _config.appHeight / 2);
-					cameraMenu.node.transform.setPosition(_config.appWidth / 2, _config.appHeight / 2);
-
-					cameraBack.dependOnCamera(cameraMain, 0.5, 0.5);
-					cameraFront.dependOnCamera(cameraMain, 1.5, 1.5);
-
-					_layerManager.add(BBLayerNames.BACKEND, true).attachCamera(cameraBack);
-					_layerManager.add(BBLayerNames.MAIN, true).attachCamera(cameraMain);
-					_layerManager.add(BBLayerNames.FRONTEND, true).attachCamera(cameraFront);
-					_layerManager.add(BBLayerNames.MENU, true).attachCamera(cameraMenu);
+					_layerManager.add(BBLayerNames.BACKEND);
+					_layerManager.add(BBLayerNames.MAIN);
+					_layerManager.add(BBLayerNames.FRONTEND);
+					_layerManager.add(BBLayerNames.MENU);
 
 					// setup additional layers for main layer
 					_layerManager.addTo(BBLayerNames.BACKGROUND, BBLayerNames.MAIN);
 					_layerManager.addTo(BBLayerNames.MIDDLEGROUND, BBLayerNames.MAIN);
 					_layerManager.addTo(BBLayerNames.FOREGROUND, BBLayerNames.MAIN);
+
+					// cameras setup
+					var cameraBack:BBCamera = BBCamera.get(BBLayerNames.BACKEND);
+					var cameraMain:BBCamera = BBCamera.get(BBLayerNames.MAIN);
+					var cameraFront:BBCamera = BBCamera.get(BBLayerNames.FRONTEND);
+					var cameraMenu:BBCamera = BBCamera.get(BBLayerNames.MENU);
+
+					cameraMain.mouseEnable = true;
+					cameraMain.displayLayers = [BBLayerNames.MAIN];
+					cameraMain.node.transform.setPosition(_config.appWidth / 2, _config.appHeight / 2);
+
+					cameraBack.displayLayers = [BBLayerNames.BACKEND];
+					cameraBack.dependOnCamera(cameraMain, 0.5, 0.5);
+					cameraBack.node.transform.setPosition(_config.appWidth / 2, _config.appHeight / 2);
+
+					cameraFront.displayLayers = [BBLayerNames.FRONTEND];
+					cameraFront.dependOnCamera(cameraMain, 1.5, 1.5);
+					cameraFront.node.transform.setPosition(_config.appWidth / 2, _config.appHeight / 2);
+
+					cameraMenu.displayLayers = [BBLayerNames.MENU];
+					cameraMenu.node.transform.setPosition(_config.appWidth / 2, _config.appHeight / 2);
+
+					// add cameras in correct order
+					var camerasModule:BBCamerasModule = getModule(BBCamerasModule) as BBCamerasModule;
+					camerasModule.addCamera(cameraBack);
+					camerasModule.addCamera(cameraMain);
+					camerasModule.addCamera(cameraFront);
+					camerasModule.addCamera(cameraMenu);
 
 					break;
 				}

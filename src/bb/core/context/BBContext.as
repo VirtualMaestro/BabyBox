@@ -25,6 +25,8 @@ package bb.core.context
 	import flash.geom.Point;
 	import flash.geom.Rectangle;
 
+	import vm.math.trigonometry.TrigUtil;
+
 	use namespace bb_private;
 
 	/**
@@ -36,20 +38,6 @@ package bb.core.context
 		 * Sends when context was initialized.
 		 */
 		public var onInitialized:BBSignal = null;
-
-		/**
-		 */
-		public var PRECISE_ROTATION:Number = 1.1 * Math.PI / 180.0;
-
-		/**
-		 */
-		public var PRECISE_SCALE:Number = 0.01;
-
-		/**
-		 */
-		public var PRECISE_COLOR:Number = 0.001;
-
-		private var PI2:Number = Math.PI * 2;
 
 		//
 		private var _stage:Stage = null;
@@ -85,7 +73,6 @@ package bb.core.context
 		private var _currentCameraViewportY:Number;
 		private var _currentCameraViewportWidth_add_X:Number;
 		private var _currentCameraViewportHeight_add_Y:Number;
-		private var _smoothingDraw:Boolean = true;
 
 		//
 		private var _rect:Rectangle = null;
@@ -112,7 +99,6 @@ package bb.core.context
 			_stage = p_stage;
 			_config = BabyBox.get().config;
 			_canvasViewRect = _config.getViewRect();
-			isCulling = _config.isCulling;
 
 			if (_config.renderMode == BBRenderMode.BLITTING) initBlitting();
 			else initGenome();
@@ -123,7 +109,7 @@ package bb.core.context
 		 */
 		private function initBlitting():void
 		{
-			_canvasHolder = new Bitmap(new BitmapData(_canvasViewRect.width, _canvasViewRect.height, true, 0xFFf0f3c7), "auto", true);
+			_canvasHolder = new Bitmap(new BitmapData(_canvasViewRect.width, _canvasViewRect.height, true), "auto", true);
 			_canvasHolder.x = _canvasViewRect.x;
 			_canvasHolder.y = _canvasViewRect.y;
 			_stage.addChild(_canvasHolder);
@@ -143,7 +129,8 @@ package bb.core.context
 			_genome.onInitialized.add(genomeInitHandler);
 			_genome.onFailed.add(genomeFailedHandler);
 
-			var genomeConfig:GConfig = new GConfig(new Rectangle(_canvasViewRect.x, _canvasViewRect.y, _canvasViewRect.width, _canvasViewRect.height), _config.renderMode);
+			var genomeConfig:GConfig = new GConfig(new Rectangle(_canvasViewRect.x, _canvasViewRect.y, _canvasViewRect.width, _canvasViewRect.height),
+			                                       _config.renderMode);
 			// TODO: Add extra parameters to genome's config
 			_genome.init(_stage, genomeConfig);
 		}
@@ -226,8 +213,6 @@ package bb.core.context
 			}
 			else
 			{
-				_smoothingDraw = _config.smoothingDraw;
-				isCulling = _config.isCulling;
 				_canvas.lock();
 
 				// fill whole canvas with given color
@@ -251,18 +236,16 @@ package bb.core.context
 		}
 
 		/**
-		 * If apply frustum culling test.
-		 * Mean before render object will be tested on getting on screen.
-		 */
-		public var isCulling:Boolean = false;
-
-		/**
 		 * Method draw texture with given parameters.
 		 * It takes into account camera parameters, so it is impossible to use it if camera isn't set.
 		 *
 		 * All color multipliers must be in range [0, 1].
 		 */
-		public function draw(p_texture:BBTexture, p_x:Number, p_y:Number, p_rotation:Number = 0, p_scaleX:Number = 1.0, p_scaleY:Number = 1.0, p_offsetX:Number = 0, p_offsetY:Number = 0, p_offsetRotation:Number = 0, p_offsetScaleX:Number = 1.0, p_offsetScaleY:Number = 1.0, p_alphaMultiplier:Number = 1.0, p_redMultiplier:Number = 1.0, p_greenMultiplier:Number = 1.0, p_blueMultiplier:Number = 1.0, p_blendMode:String = null):void
+		public function draw(p_texture:BBTexture, p_x:Number, p_y:Number, p_rotation:Number = 0, p_scaleX:Number = 1.0, p_scaleY:Number = 1.0,
+		                     p_offsetX:Number = 0, p_offsetY:Number = 0, p_offsetRotation:Number = 0, p_offsetScaleX:Number = 1.0, p_offsetScaleY:Number = 1.0,
+		                     p_alphaMultiplier:Number = 1.0, p_redMultiplier:Number = 1.0, p_greenMultiplier:Number = 1.0, p_blueMultiplier:Number = 1.0,
+		                     p_isCulling:Boolean = false, p_smoothing:Boolean = true, p_allowRotation:Boolean = true, p_allowScale:Boolean = true,
+		                     p_blendMode:String = null):void
 		{
 			var bitmap:BitmapData = p_texture.bitmapData;
 			var textureWidth:Number = bitmap.width;
@@ -276,15 +259,21 @@ package bb.core.context
 			var newTextureX:Number = (dx * cos - sin * dy) * _currentCameraTotalScaleX + _currentCameraViewportCenterX + p_offsetX;
 			var newTextureY:Number = (dx * sin + cos * dy) * _currentCameraTotalScaleY + _currentCameraViewportCenterY + p_offsetY;
 
-			var totalRotation:Number = (p_rotation - _currentCameraRotation + p_offsetRotation) % PI2;
-			var totalScaleX:Number = p_scaleX * _currentCameraTotalScaleX * p_offsetScaleX;
-			var totalScaleY:Number = p_scaleY * _currentCameraTotalScaleY * p_offsetScaleY;
+			var totalRotation:Number = p_allowRotation ? (p_rotation - _currentCameraRotation + p_offsetRotation) % TrigUtil.PI2 : 0;
+			var totalScaleX:Number = 1.0;
+			var totalScaleY:Number = 1.0;
+
+			if (p_allowScale)
+			{
+				totalScaleX = p_scaleX * _currentCameraTotalScaleX * p_offsetScaleX;
+				totalScaleY = p_scaleY * _currentCameraTotalScaleY * p_offsetScaleY;
+			}
 
 			var texturePivotX:Number = p_texture.pivotX * totalScaleX;
 			var texturePivotY:Number = p_texture.pivotY * totalScaleY;
 
 			///  Test for getting into the viewport /////////////
-			if (isCulling)
+			if (p_isCulling)
 			{
 				var rightX:Number = texturePivotX + textureWidth * totalScaleX;
 				var bottomY:Number = texturePivotY + textureHeight * totalScaleY;
@@ -311,14 +300,14 @@ package bb.core.context
 				var boundingBoxBottomRightY:Number = max(max(topLeftY, topRightY), max(bottomRightY, bottomLeftY));
 
 				if (!isIntersect(boundingBoxTopLeftX, boundingBoxTopLeftY, boundingBoxBottomRightX, boundingBoxBottomRightY,
-						_currentCameraViewportX, _currentCameraViewportY,
-						_currentCameraViewportWidth_add_X, _currentCameraViewportHeight_add_Y)) return;
+				                 _currentCameraViewportX, _currentCameraViewportY,
+				                 _currentCameraViewportWidth_add_X, _currentCameraViewportHeight_add_Y)) return;
 			}
 			////////////////////////////////
 
 			// if need apply color transformation
 			var colorTransform:ColorTransform = null;
-			if ((1.0 - (p_alphaMultiplier * p_redMultiplier * p_greenMultiplier * p_blueMultiplier)) > PRECISE_COLOR)
+			if ((1.0 - (p_alphaMultiplier * p_redMultiplier * p_greenMultiplier * p_blueMultiplier)) > BBConfig.COLOR_PRECISE)
 			{
 				colorTransform = _colorTransform;
 				colorTransform.alphaMultiplier = p_alphaMultiplier;
@@ -329,8 +318,8 @@ package bb.core.context
 
 			//
 			var totalRotABS:Number = Math.abs(totalRotation);
-			var isScaleNotChanged:Boolean = Math.abs(1 - totalScaleX) < PRECISE_SCALE && Math.abs(1 - totalScaleY) < PRECISE_SCALE;
-			var isRotationNotChanged:Boolean = totalRotABS < PRECISE_ROTATION || (PI2 - totalRotABS) < PRECISE_ROTATION;
+			var isScaleNotChanged:Boolean = Math.abs(1 - totalScaleX) < BBConfig.SCALE_PRECISE && Math.abs(1 - totalScaleY) < BBConfig.SCALE_PRECISE;
+			var isRotationNotChanged:Boolean = totalRotABS < BBConfig.ROTATION_PRECISE || (TrigUtil.PI2 - totalRotABS) < BBConfig.ROTATION_PRECISE;
 
 			//
 			if (isRotationNotChanged && isScaleNotChanged && !colorTransform && !p_blendMode)
@@ -338,6 +327,9 @@ package bb.core.context
 				_rect.setTo(0, 0, textureWidth, textureHeight);
 				_point.setTo(newTextureX + texturePivotX, newTextureY + texturePivotY);
 
+				// TODO:
+//				var bitmapN:BitmapData = new BitmapData(textureWidth, textureHeight, bitmap.transparent);
+//				bitmapN.applyFilter(bitmap, _rect, new Point(0,0), new BlurFilter());
 				_canvas.copyPixels(bitmap, _rect, _point, null, null, bitmap.transparent);
 			}
 			else
@@ -349,7 +341,7 @@ package bb.core.context
 				_matrix.rotate(totalRotation);
 				_matrix.translate(newTextureX, newTextureY);
 
-				_canvas.draw(bitmap, _matrix, colorTransform, p_blendMode, _currentCameraViewport, _smoothingDraw);
+				_canvas.draw(bitmap, _matrix, colorTransform, p_blendMode, _currentCameraViewport, p_smoothing);
 			}
 		}
 
@@ -372,7 +364,8 @@ package bb.core.context
 		/**
 		 */
 		[Inline]
-		final private function isIntersect(p_leftTopX:Number, p_leftTopY:Number, p_rightBottomX:Number, p_rightBottomY:Number, p_leftTopX_1:Number, p_leftTopY_1:Number, p_rightBottomX_1:Number, p_rightBottomY_1:Number):Boolean
+		final private function isIntersect(p_leftTopX:Number, p_leftTopY:Number, p_rightBottomX:Number, p_rightBottomY:Number, p_leftTopX_1:Number,
+		                                   p_leftTopY_1:Number, p_rightBottomX_1:Number, p_rightBottomY_1:Number):Boolean
 		{
 			var exp:Boolean = false;
 

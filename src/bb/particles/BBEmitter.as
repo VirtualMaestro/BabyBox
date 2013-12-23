@@ -47,6 +47,8 @@ package bb.particles
 
 		private var _gravityX:Number = 0;
 		private var _gravityY:Number = 0;
+		private var _gravityRatioFrom:Number = 1.0;
+		private var _gravityRatioTo:Number = 1.0;
 
 		private var _angleFrom:Number = 0;
 		private var _angleTo:Number = 0;
@@ -92,13 +94,17 @@ package bb.particles
 		{
 			super();
 
-			onAdded.add(addedToNode);
+			onAdded.add(addedToNodeHandler);
 		}
 
 		/**
 		 */
-		private function addedToNode(p_signal:BBSignal):void
+		private function addedToNodeHandler(p_signal:BBSignal):void
 		{
+			isCulling = true;
+			smoothing = false;
+			allowRotation = false;
+
 			node.onAdded.add(addedToStage);
 		}
 
@@ -157,8 +163,9 @@ package bb.particles
 			var particle:BBParticle = _head;
 			while (particle)
 			{
-				p_context.draw(z_texture, particle.posX, particle.posY, 0, particle.scale * scaleX, particle.scale * scaleY,
-						0, 0, 0, 1.0, 1.0, particle.alpha * alpha, particle.red * red, particle.green * green, particle.blue * blue, blendMode);
+				p_context.draw(z_texture, particle.posX, particle.posY, 0, particle.scale * scaleX, particle.scale * scaleY, 0, 0, 0, 1.0, 1.0,
+				               particle.alpha * alpha, particle.red * red, particle.green * green, particle.blue * blue,
+				               isCulling, smoothing, allowRotation, allowScale, blendMode);
 
 				particle = particle.next;
 			}
@@ -177,6 +184,10 @@ package bb.particles
 
 			var rPosX:Number;
 			var rPosY:Number;
+			var rX:Number;
+			var rY:Number;
+			var cos:Number = _transform.COS;
+			var sin:Number = _transform.SIN;
 			var rDirX:Number;
 			var rDirY:Number;
 			var rSpeed:Number;
@@ -189,8 +200,11 @@ package bb.particles
 			{
 				particle = BBParticle.get(this);
 
-				rPosX = RandUtil.getIntRange(-randX, randX);
-				rPosY = RandUtil.getIntRange(-randY, randY);
+				rX = RandUtil.getIntRange(-randX, randX);
+				rY = RandUtil.getIntRange(-randY, randY);
+
+				rPosX = rX * cos - sin * rY;
+				rPosY = rX * sin + cos * rY;
 
 				rDirX = Math.cos(rot + RandUtil.getFloatRange(_angleFrom, _angleTo));
 				rDirY = Math.sin(rot + RandUtil.getFloatRange(_angleFrom, _angleTo));
@@ -200,7 +214,6 @@ package bb.particles
 
 				if (fastMoving)
 				{
-
 					var t:Number = i / Number(p_numParticles);
 					var elapsedTime:Number = (1.0 - t) * p_deltaTime;
 
@@ -224,8 +237,8 @@ package bb.particles
 				particle.speed = rSpeed;
 				particle.lifeTime(rLifeTime, startLife);
 
-				particle.gravityX = _gravityX;
-				particle.gravityY = _gravityY;
+				particle.gravityX = _gravityX * RandUtil.getFloatRange(_gravityRatioFrom, _gravityRatioTo);
+				particle.gravityY = _gravityY * RandUtil.getFloatRange(_gravityRatioFrom, _gravityRatioTo);
 
 				particle.dampening = dampening;
 
@@ -274,10 +287,12 @@ package bb.particles
 
 		/**
 		 */
-		public function gravity(p_gravityX:Number, p_gravityY:Number):void
+		public function gravity(p_gravityX:Number, p_gravityY:Number, p_ratioFrom:Number = 1.0, p_ratioTo:Number = 1.0):void
 		{
 			_gravityX = p_gravityX;
 			_gravityY = p_gravityY;
+			_gravityRatioFrom = p_ratioFrom;
+			_gravityRatioTo = p_ratioTo;
 		}
 
 		/**

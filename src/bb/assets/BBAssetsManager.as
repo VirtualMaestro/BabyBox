@@ -162,13 +162,15 @@ package bb.assets
 		{
 			var assetClass:Class = p_asset.assetClass;
 			var assetId:String = p_asset.assetId;
+
+			if (_assetIdList[assetClass] != null) return assetId;
+
 			var assetXML:XML = p_asset.assetXML;
 			var assetInstance:DisplayObject = p_asset.assetInstance ? p_asset.assetInstance : new assetClass();
 			p_asset.assetInstance = null;
 
 			CONFIG::debug
 			{
-				Assert.isTrue(_assetIdList[assetClass] == null, "Asset with such class '" + assetClass + "' already exist", "BBAssetManager.initAsset");
 				Assert.isTrue(!isAssetExist(assetId), "Asset with id '" + assetId + "' already exist. Choose another unique id", "BBAssetManager.initAsset");
 			}
 
@@ -178,7 +180,7 @@ package bb.assets
 				if (assetXML) textureBase = BBTextureAtlas.createFromBitmapDataAndXML((assetInstance as Bitmap).bitmapData, assetXML, assetId);
 				else textureBase = BBTexture.createFromBitmapData((assetInstance as Bitmap).bitmapData, assetId);
 			}
-			else if (assetInstance is MovieClip) textureBase = BBTextureAtlas.createFromMovieClip(assetInstance as MovieClip, assetId);
+			else if (assetInstance is MovieClip && (assetInstance as MovieClip).totalFrames > 1) textureBase = BBTextureAtlas.createFromMovieClip(assetInstance as MovieClip, assetId);
 			else textureBase = BBTexture.createFromVector(assetInstance as DisplayObject, assetId);
 
 			_assetIdList[assetClass] = textureBase.id;

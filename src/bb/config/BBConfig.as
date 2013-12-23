@@ -14,6 +14,10 @@ package bb.config
 	 */
 	public class BBConfig
 	{
+		static public var ROTATION_PRECISE:Number = Math.PI / 180.0;
+		static public var SCALE_PRECISE:Number = 0.01;
+		static public var COLOR_PRECISE:Number = 0.001;
+
 		/**
 		 * If property set in 'true' mean If stage3d is initialized in 'software' mode it turn to blitting mode instead.
 		 *
@@ -31,6 +35,7 @@ package bb.config
 
 		/**
 		 * Should renderer apply anti-aliasing or not. With anti-aliasing image more smooth but it is hit by performance.
+		 * It is global param for default behaviour of all renderable components. Each components could be set  manually.
 		 * [runtime]
 		 */
 		public var smoothingDraw:Boolean = true;
@@ -104,10 +109,16 @@ package bb.config
 		/**
 		 * Whether need to apply a culling test.
 		 * Mean before render object will be tested on getting on screen.
+		 * This param applies by default for all renderable components, but each component has 'isCulling' prop which could be changed manually.
 		 *
 		 * [runtime]
 		 */
 		public var isCulling:Boolean = false;
+
+		/**
+		 * Determines whether can objects go to sleep.
+		 */
+		public var canSleep:Boolean = true;
 
 		/**
 		 * Determines what type of game is creating.

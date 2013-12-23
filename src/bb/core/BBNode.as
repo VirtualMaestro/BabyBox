@@ -58,7 +58,7 @@ package bb.core
 		private var _id:int = 0;
 
 		/**
-		 * Group which is used to determine whether current node should be rendered with current camera or not.
+		 * Group which is used to determine whether current node should be rendered with current camera or not (camera has a mask).
 		 */
 		public var group:int = 1;
 
@@ -269,7 +269,9 @@ package bb.core
 
 			CONFIG::debug
 			{
-				Assert.isTrue((_lookupComponentTable[lookup] == null), "component with lookup class '" + getQualifiedClassName(lookup) + "' already exist in this node. Node can has only one component is assigned to specify lookup class", "BBNode.addComponent");
+				Assert.isTrue((_lookupComponentTable[lookup] == null),
+				              "component with lookup class '" + getQualifiedClassName(lookup) + "' already exist in this node. Node can has only one component is assigned to specify lookup class",
+				              "BBNode.addComponent");
 				Assert.isTrue(!component.isDisposed, "component is disposed. You can't use disposed node anymore", "BBNode.addComponent");
 			}
 
@@ -355,7 +357,8 @@ package bb.core
 		{
 			CONFIG::debug
 			{
-				Assert.isTrue((_lookupComponentTable[p_componentLookupClass] != null), "component with such class '" + getQualifiedClassName(p_componentLookupClass) + "' doesn't exist", "BBNode.getComponent");
+				Assert.isTrue((_lookupComponentTable[p_componentLookupClass] != null),
+				              "component with such class '" + getQualifiedClassName(p_componentLookupClass) + "' doesn't exist", "BBNode.getComponent");
 			}
 
 			return _lookupComponentTable[p_componentLookupClass];
@@ -377,7 +380,8 @@ package bb.core
 			var component:BBComponent = _lookupComponentTable[p_componentLookupClass];
 			CONFIG::debug
 			{
-				Assert.isTrue((component != null), "component with such lookup class '" + getQualifiedClassName(p_componentLookupClass) + "' doesn't exist", "BBNode.removeComponent")
+				Assert.isTrue((component != null), "component with such lookup class '" + getQualifiedClassName(p_componentLookupClass) + "' doesn't exist",
+				              "BBNode.removeComponent")
 			}
 
 			// If it is not render component
@@ -389,8 +393,8 @@ package bb.core
 			// remove it from lookup table
 			delete _lookupComponentTable[p_componentLookupClass];
 
-			// send signal to component that it was unlinked
-			component.onRemoved.dispatch();
+			// send signal to component when it was unlinked
+			if (component._onRemoved) component._onRemoved.dispatch();
 
 			//
 			component._node = null;
@@ -404,7 +408,11 @@ package bb.core
 		public function addChild(p_node:BBNode):void
 		{
 			// If node already attached to another node it is detached from previous node and attached to this
-			if (p_node.parent != null) p_node.parent.removeChild(p_node);
+			if (p_node.parent != null)
+			{
+				if (p_node.parent == this) return;
+				p_node.parent.removeChild(p_node);
+			}
 
 			// add to list
 			if (childrenTail)
@@ -702,11 +710,10 @@ package bb.core
 		{
 			if (!_active) return;
 
-			// Update transform if need
-			var updateTransform:Boolean = !transform.lockInvalidation && (p_parentTransformUpdate || transform.isTransformChanged);
+			var updateTransformation:Boolean = p_parentTransformUpdate || transform.isTransformChanged;
 			var updateColor:Boolean = p_parentColorUpdate || transform.isColorChanged;
 
-			if (updateTransform || updateColor) transform.invalidate(updateTransform, updateColor);
+			if (updateTransformation || updateColor) transform.invalidate(updateTransformation, updateColor);
 
 			// invokes update method of components (which were added to update list)
 			var component:BBComponent = z_upt_head;
@@ -731,7 +738,7 @@ package bb.core
 				childNode = childNode.next;
 				_nextChildNode = childNode;
 
-				currentNode.update(p_deltaTime, updateTransform, updateColor);
+				currentNode.update(p_deltaTime, p_parentTransformUpdate || transform.isTransformChanged, p_parentColorUpdate || transform.isColorChanged);
 
 				childNode = _nextChildNode;
 			}
@@ -739,7 +746,7 @@ package bb.core
 			// dispatch onUpdated signal, after node was completely updated
 			if (_onUpdated) _onUpdated.dispatch();
 
-			///
+			//
 			transform.resetInvalidationFlags();
 		}
 

@@ -6,7 +6,6 @@
 package bb.layer
 {
 	import bb.bb_spaces.bb_private;
-	import bb.camera.components.BBCamera;
 	import bb.core.BBNode;
 	import bb.tools.BBGroupMask;
 
@@ -23,13 +22,8 @@ package bb.layer
 	 */
 	public class BBLayer
 	{
-		public var keepGroup:Boolean = false;
-
-		//
 		private var _name:String;
 		private var _node:BBNode;
-		private var _camera:BBCamera;
-
 		private var _children:Vector.<BBLayer>;
 
 		bb_private var parent:BBLayer = null;
@@ -49,6 +43,7 @@ package bb.layer
 					Assert.isTrue(BBGroupMask.hasGroup(), "no free groups. You can reset groups and start from the beginning (all possible groups 32)", "Constructor BBLayer");
 				}
 
+				_node.keepGroup = true;
 				_node.group = BBGroupMask.getGroup();
 			}
 		}
@@ -91,62 +86,13 @@ package bb.layer
 		}
 
 		/**
-		 * Attach camera to layer in order to render objects which belongs to this layer.
-		 * p_displayGroups - array with groups which should be displayed by this camera.
-		 * If p_displayGroups is 'null' (by default) camera displays only one current layer group.
-		 * If need remove camera just set null.
-		 *
-		 * Method returns camera which was attached before new camera.
-		 * If wasn't camera before new attachment, method returns null.
-		 * If new camera is null (you want detach camera from current layer) method returns detached camera.
-		 */
-		public function attachCamera(p_camera:BBCamera, p_displayGroups:Array = null):BBCamera
-		{
-			var prevCamera:BBCamera = _camera;
-
-			if (_camera != p_camera)
-			{
-				if (_camera != null) _camera.mask = BBGroupMask.getMask([_camera.mask]);
-
-				if (p_camera != null)
-				{
-					if (!p_camera.node.parent) _node.addChild(p_camera.node);
-
-					if (p_displayGroups) p_camera.mask = BBGroupMask.getMask(p_displayGroups);
-					else p_camera.mask = BBGroupMask.getMask([group]);
-				}
-
-				_camera = p_camera;
-			}
-
-			return prevCamera;
-		}
-
-		/**
-		 * Returns attached camera (if some camera was attached at all).
-		 */
-		public function get camera():BBCamera
-		{
-			return _camera;
-		}
-
-		/**
-		 * Sets group for all nested objects.
+		 * Sets group for this layer and all nested objects.
 		 */
 		public function set group(p_group:int):void
 		{
 			if (_node.group == p_group) return;
 			_node.group = p_group;
 			_node.updateChildrenGroups();
-
-			if (_children)
-			{
-				var len:int = _children.length;
-				for (var i:int = 0; i < len; i++)
-				{
-					_children[i].group = p_group;
-				}
-			}
 		}
 
 		/**

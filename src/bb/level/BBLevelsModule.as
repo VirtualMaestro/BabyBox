@@ -5,16 +5,24 @@
  */
 package bb.level
 {
+	import bb.assets.BBAssetsManager;
+	import bb.camera.BBCamerasModule;
+	import bb.camera.components.BBCamera;
 	import bb.core.BBNode;
+	import bb.layer.BBLayerModule;
 	import bb.level.parsers.BBLevelParser;
 	import bb.modules.*;
 	import bb.physics.components.BBPhysicsBody;
 	import bb.physics.joints.BBJoint;
+	import bb.render.components.BBMovieClip;
+	import bb.render.components.BBRenderable;
 	import bb.signals.BBSignal;
 	import bb.world.BBWorldModule;
 
 	import flash.display.MovieClip;
 	import flash.utils.Dictionary;
+
+	import vm.debug.Assert;
 
 	/**
 	 * Manager of creating and destroying levels.
@@ -27,6 +35,8 @@ package bb.level
 		//
 		private var _levelsCache:Dictionary;
 		private var _world:BBWorldModule;
+		private var _layerModule:BBLayerModule;
+		private var _cameraModule:BBCamerasModule;
 
 		/**
 		 */
@@ -43,6 +53,8 @@ package bb.level
 		private function readyToUseHandler(p_signal:BBSignal):void
 		{
 			_world = getModule(BBWorldModule) as BBWorldModule;
+			_layerModule = getModule(BBLayerModule) as BBLayerModule;
+			_cameraModule = getModule(BBCamerasModule) as BBCamerasModule;
 		}
 
 		/**
@@ -58,50 +70,130 @@ package bb.level
 				_levelsCache[p_level] = level;
 			}
 
-			var actorsList:XMLList = level.actors.children();
-			var actorXML:XML;
-			var actor:BBNode;
-			var actorAlias:String;
-			var actorName:String;
-			var actorPosition:Array;
-			var actorRotation:Number;
-			var actorScale:Array;
-			var actorLayer:String;
-			var actorInternalCollision:Boolean;
-			var actorType:String;
-			var actorsWithNameTable:Array = [];
-			var numActors:int = actorsList.length();
-
-			for (var i:int = 0; i < numActors; i++)
+			// creates levels
+			if (level.hasOwnProperty("layers"))
 			{
-				actorXML = actorsList[i];
+				var layersXMLList:XMLList = level.layers.children();
+				var layerXML:XML;
+				var numLayers:int;
+				var camera:BBCamera;
 
-				actorAlias = actorXML.elements("alias");
-				actorName = actorXML.elements("name");
-				actorType = actorXML.elements("type");
-				actorPosition = String(actorXML.elements("position")).split(",");
-				actorRotation = actorXML.elements("rotation");
-				actorScale = String(actorXML.elements("scale")).split(",");
-				actorLayer = actorXML.elements("layer");
-				actorInternalCollision = actorXML.elements("internalCollision") == "true";
+				var layersIndependent:XMLList = layersXMLList.(addToLayer == "none");
+				var layersDependent:XMLList = layersXMLList.(addToLayer != "none");
+				var layersHasCamera:XMLList = layersIndependent.(attachCamera == "true");
 
-				actor = BBNode.getFromCache(actorAlias);
-				actor.name = actorName;
-				if (actorName != "") actorsWithNameTable[actorName] = actor;
-				actor.transform.setPositionAndRotation(actorPosition[0], actorPosition[1], actorRotation);
-				actor.transform.setScale(actorScale[0], actorScale[1]);
-
-				if (actor.isComponentExist(BBPhysicsBody))
+				// adds all independent layers
+				var layers:Vector.<XML> = getVectorXMLLayersSortedByDeepIndex(layersIndependent);
+				numLayers = layers.length;
+				for (var i:int = 0; i < numLayers; i++)
 				{
-					var physicsComponent:BBPhysicsBody = actor.getComponent(BBPhysicsBody) as BBPhysicsBody;
-					physicsComponent.type = BBLevelParser.bodyTypeTable[actorType];
-					physicsComponent.childrenCollision = actorInternalCollision;
+					layerXML = layers[i];
+					_layerModule.add(String(layerXML.elements("name")));
 				}
 
-				_world.add(actor, actorLayer);
+				// adds all dependent layers
+				layers = getVectorXMLLayersSortedByDeepIndex(layersDependent);
+				var addToLayerName:String;
+				var infiniteCounter:uint = 0;
+				i = 0;
+				while (layers.length > 0)
+				{
+					layerXML = layers[i];
+					addToLayerName = layerXML.elements("addToLayer");
+
+					if (_layerModule.isExist(addToLayerName))
+					{
+						_layerModule.addTo(layerXML.elements("name"), addToLayerName);
+						layers.splice(i, 1);
+						--i;
+					}
+
+					if (++i >= layers.length) i = 0;
+
+					CONFIG::debug
+					{
+						++infiniteCounter;
+						Assert.isTrue(infiniteCounter < 1000,
+						              "Infinite loop during creating depending layers. Cause: seems like some layers to which dependent layers should be added doesn't exist",
+						              "BBLevelsModule.createLevelFromMC");
+					}
+				}
+
+				// adds all cameras
+				layers = getVectorXMLLayersSortedByDeepIndex(layersHasCamera);
+				var dependOnCamera:BBCamera;
+				var position:Array;
+				var camX:Number;
+				var camY:Number;
+				var cameraName:String;
+				var dependentCamerasList:Vector.<XML> = new <XML>[];
+				numLayers = layers.length;
+
+				for (i = 0; i < numLayers; i++)
+				{
+					layerXML = layers[i];
+					cameraName = layerXML.elements("name");
+					position = String(layerXML.elements("cameraPosition")).split(",");
+					camX = parseFloat(position[0]);
+					camY = parseFloat(position[1]);
+					camera = BBCamera.get(cameraName);
+					camera.node.transform.setPosition(camX, camY);
+					camera.mouseEnable = layerXML.elements("cameraMouseEnable") == "true";
+					camera.displayLayers = [cameraName];
+					_cameraModule.addCamera(camera);
+
+					if (String(layerXML.elements("dependOnCamera")) != "none")  // dependent camera
+					{
+						dependentCamerasList.push(layerXML);
+					}
+				}
+
+				var dependOffset:Array;
+				numLayers = dependentCamerasList.length;
+
+				for (i = 0; i < numLayers; i++)
+				{
+					layerXML = dependentCamerasList[i];
+					dependentCamerasList[i] = null;
+
+					camera = _cameraModule.getCameraByName(layerXML.elements("name"));
+					dependOnCamera = _cameraModule.getCameraByName(layerXML.elements("dependOnCamera"));
+					dependOffset = String(layerXML.elements("dependOffset")).split(",");
+					camera.dependOnCamera(dependOnCamera, dependOffset[0], dependOffset[1], dependOffset[2]);
+				}
+
+				dependentCamerasList = null;
+				camera = null;
+				dependOnCamera = null;
 			}
 
-			//
+			// combine all entities which should be added to world into one vector
+			var addingToWorldEntities:Vector.<XML> = uniteXMLListsToVectorXML(level.actors.children(), level.externalGraphics.children());
+			addingToWorldEntities.sort(sortByDeepIndex); // sort them by deep index
+
+			// creates actors
+			var actorXML:XML;
+			var actor:BBNode;
+			var actorsWithNameTable:Array = [];
+			var numActors:int = addingToWorldEntities.length;
+
+			for (i = 0; i < numActors; i++)
+			{
+				actorXML = addingToWorldEntities[i];
+				if (actorXML.name() == "actor")
+				{
+					actor = createActorByXML(actorXML);
+					if (actor.name != "") actorsWithNameTable[actor.name] = actor;
+				}
+				else  // this is graphics
+				{
+					actor = createGraphicsByXML(actorXML);
+				}
+
+				_world.add(actor, actorXML.elements("layer"));
+			}
+
+			// creates external joints
 			var externalJointList:XMLList = level.externalJoints.children();
 			var externalJoint:XML;
 			var ownerActorName:String;
@@ -118,6 +210,120 @@ package bb.level
 
 			//
 			if (_onLevelComplete) _onLevelComplete.dispatch();
+		}
+
+		/**
+		 */
+		static private function createActorByXML(p_actorXML:XML):BBNode
+		{
+			var actor:BBNode = BBNode.getFromCache(p_actorXML.elements("alias"));
+			actor.name = p_actorXML.elements("name");
+
+			var actorPosition:Array = String(p_actorXML.elements("position")).split(",");
+			var actorScale:Array = String(p_actorXML.elements("scale")).split(",");
+
+			actor.transform.setPositionAndRotation(actorPosition[0], actorPosition[1], p_actorXML.elements("rotation"));
+			actor.transform.setScale(actorScale[0], actorScale[1]);
+
+			if (actor.isComponentExist(BBPhysicsBody))
+			{
+				var physicsComponent:BBPhysicsBody = actor.getComponent(BBPhysicsBody) as BBPhysicsBody;
+				physicsComponent.type = BBLevelParser.bodyTypeTable[p_actorXML.elements("type")];
+				physicsComponent.childrenCollision = p_actorXML.elements("internalCollision") == "true";
+			}
+
+			return actor;
+		}
+
+		/**
+		 */
+		static private function createGraphicsByXML(p_graphicsXML:XML):BBNode
+		{
+			var graphics:BBNode = BBNode.get(p_graphicsXML.elements("name"));
+			var renderable:BBRenderable = BBAssetsManager.getRenderableById(p_graphicsXML.elements("alias"));
+
+			if (renderable is BBMovieClip)
+			{
+				var movie:BBMovieClip = renderable as BBMovieClip;
+				movie.frameRate = parseInt(p_graphicsXML.elements("frameRate"));
+
+				var playFrom:int = parseInt(p_graphicsXML.elements("playFrom"));
+				if (playFrom > 0) movie.gotoAndPlay(playFrom);
+
+				movie.repeatable = p_graphicsXML.elements("repeatable") == "true";
+				movie.keepSequence = p_graphicsXML.elements("keepSequence") == "true";
+			}
+
+			graphics.addComponent(renderable);
+			var position:Array = String(p_graphicsXML.elements("position")).split(",");
+			graphics.transform.setPositionAndRotation(parseFloat(position[0]), parseFloat(position[1]), parseFloat(p_graphicsXML.elements("rotation")));
+
+			return graphics;
+		}
+
+		/**
+		 */
+		static private function uniteXMLListsToVectorXML(...xmlLists):Vector.<XML>
+		{
+			var vector:Vector.<XML> = new <XML>[];
+			var numLists:int = xmlLists.length;
+			var numNodes:int;
+			var list:XMLList;
+
+			for (var i:int = 0; i < numLists; i++)
+			{
+				list = xmlLists[i];
+				numNodes = list.length();
+
+				for (var j:int = 0; j < numNodes; j++)
+				{
+					vector.push(list[j]);
+				}
+			}
+
+			return vector;
+		}
+
+		/**
+		 */
+		static private function sortByDeepIndex(p_x:XML, p_y:XML):int
+		{
+			var deepX:int = parseInt(p_x.elements("deepIndex"));
+			var deepY:int = parseInt(p_y.elements("deepIndex"));
+
+			if (deepX < deepY) return -1;
+			else if (deepX == deepY) return 0;
+
+			return 1;
+		}
+
+		/**
+		 */
+		static private function getVectorXMLLayersSortedByDeepIndex(p_layers:XMLList, p_isNeedSort:Boolean = true):Vector.<XML>
+		{
+			var layers:Vector.<XML> = new <XML>[];
+			var numLayers:int = p_layers.length();
+			for (var i:int = 0; i < numLayers; i++)
+			{
+				layers[i] = p_layers[i];
+			}
+
+			if (p_isNeedSort) layers.sort(compare);
+
+			return layers;
+		}
+
+		/**
+		 */
+		static private function compare(p_x:XML, p_y:XML):int
+		{
+			var xIndex:int = parseInt(p_x.elements("layerIndex"));
+			var yIndex:int = parseInt(p_y.elements("layerIndex"));
+
+			if (xIndex < yIndex) return -1;
+			else if (xIndex == yIndex) return 0;
+
+			return 1;
 		}
 
 		/**

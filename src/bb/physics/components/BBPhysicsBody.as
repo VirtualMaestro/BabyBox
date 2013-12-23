@@ -6,6 +6,7 @@
 package bb.physics.components
 {
 	import bb.bb_spaces.bb_private;
+	import bb.config.BBConfig;
 	import bb.core.BBComponent;
 	import bb.core.BBNode;
 	import bb.core.BBTransform;
@@ -51,8 +52,6 @@ package bb.physics.components
 	 */
 	public class BBPhysicsBody extends BBComponent
 	{
-		static private const SCALE_PRECISE:Number = 0.01;
-
 		/**
 		 * Allow to use hand for this object.
 		 */
@@ -71,13 +70,14 @@ package bb.physics.components
 		 */
 		public var airFriction:Number = 0;
 
+		/**
+		 * If true physics is not updates position when simulate,
+		 * but if position is changed manually it is updates physic body.
+		 */
+		public var sleep:Boolean = false;
+
 		//
 		bb_private var handJoint:PivotJoint = null;
-
-		/**
-		 * Lock physic body. If 'true' mean node's transform does update physic body, in other case vise versa.
-		 */
-		private var _lock:Boolean = true;
 
 		// Assoc. table with names of shapes
 		private var _shapeNames:Array;
@@ -137,9 +137,6 @@ package bb.physics.components
 			node.onAdded.add(addedToStageHandler);
 			node.onRemoved.add(unlinkedFromStageHandler);
 			node.onActive.add(onNodeActiveHandler);
-
-			//
-			updateEnable = false;
 		}
 
 		/**
@@ -168,7 +165,7 @@ package bb.physics.components
 			{
 				p_signal.removeCurrentListener();
 
-				_transform.independentUpdateWorldParameters = true;
+				_transform.lockInvalidation = true;
 
 				updateEnable = _body.type != BodyType.STATIC;
 
@@ -176,7 +173,6 @@ package bb.physics.components
 				_body.position.setxy(_transform.worldX, _transform.worldY);
 				_body.rotation = _transform.worldRotation;
 				_body.space = _space;
-				_lock = false;
 
 				if (gravity) updateOwnGravity();
 
@@ -214,10 +210,9 @@ package bb.physics.components
 
 			///
 			activateJoints = false;
-			_transform.independentUpdateWorldParameters = false;
+			_transform.lockInvalidation = false;
 			_body.space = null;
 			_body.group = null;
-			_lock = true;
 		}
 
 		/**
@@ -297,13 +292,16 @@ package bb.physics.components
 
 		/**
 		 */
-		public function addShape(p_shape:Shape, p_shapeName:String = "", p_angle:Number = 0, p_position:Vec2 = null, p_material:Material = null, p_filter:InteractionFilter = null):Shape
+		public function addShape(p_shape:Shape, p_shapeName:String = "", p_angle:Number = 0, p_position:Vec2 = null, p_material:Material = null,
+		                         p_filter:InteractionFilter = null):Shape
 		{
 			CONFIG::debug
 			{
 				var cutShapeName:String = StringUtil.trim(p_shapeName);
 				Assert.isTrue(cutShapeName == p_shapeName, "Incorrect shape name. It should be without any spaces characters", "BBPhysicsBody.addShape");
-				if (_shapeNames) Assert.isTrue(_shapeNames[p_shapeName] == null, "Shape with given name '" + p_shapeName + "' already exist. Can't exist shapes with the same names", "BBPhysicsBody.addShape");
+				if (_shapeNames) Assert.isTrue(_shapeNames[p_shapeName] == null,
+				                               "Shape with given name '" + p_shapeName + "' already exist. Can't exist shapes with the same names",
+				                               "BBPhysicsBody.addShape");
 			}
 
 			//
@@ -318,7 +316,7 @@ package bb.physics.components
 			if (p_filter) p_shape.filter = p_filter;
 
 			// scale shape if need
-			if (Math.abs(_scaleX - 1.0) > SCALE_PRECISE || Math.abs(_scaleY - 1.0) > SCALE_PRECISE)
+			if (Math.abs(_scaleX - 1.0) > BBConfig.SCALE_PRECISE || Math.abs(_scaleY - 1.0) > BBConfig.SCALE_PRECISE)
 			{
 				scaleShape(p_shape, _scaleX, _scaleY);
 			}
@@ -342,7 +340,8 @@ package bb.physics.components
 		/**
 		 * Adds circle shape to body.
 		 */
-		public function addCircle(p_radius:int, p_shapeName:String = "", p_position:Vec2 = null, p_material:Material = null, p_filter:InteractionFilter = null):Circle
+		public function addCircle(p_radius:int, p_shapeName:String = "", p_position:Vec2 = null, p_material:Material = null,
+		                          p_filter:InteractionFilter = null):Circle
 		{
 			var circle:Circle = new Circle(p_radius, p_position, p_material, p_filter);
 			addShape(circle, p_shapeName);
@@ -355,7 +354,8 @@ package bb.physics.components
 		 * NOTICE: It is just simulation of ellipse due to phys engine doesn't support ellipses.
 		 * In fact it is Polygon, so it could hit by performance.
 		 */
-		public function addEllipse(p_radiusX:Number, p_radiusY:Number, p_shapeName:String = "", p_angle:Number = 0, p_position:Vec2 = null, p_material:Material = null, p_filter:InteractionFilter = null):Polygon
+		public function addEllipse(p_radiusX:Number, p_radiusY:Number, p_shapeName:String = "", p_angle:Number = 0, p_position:Vec2 = null,
+		                           p_material:Material = null, p_filter:InteractionFilter = null):Polygon
 		{
 			// calc num vertices
 			var numVertices:int = TrigUtil.PI2 / Math.acos(1 - 0.6 / (Math.sqrt(p_radiusX * p_radiusX + p_radiusY * p_radiusY)));
@@ -378,7 +378,8 @@ package bb.physics.components
 		/**
 		 * Adds box shape to body.
 		 */
-		public function addBox(p_width:int, p_height:int, p_shapeName:String = "", p_angle:Number = 0, p_position:Vec2 = null, p_material:Material = null, p_filter:InteractionFilter = null):Polygon
+		public function addBox(p_width:int, p_height:int, p_shapeName:String = "", p_angle:Number = 0, p_position:Vec2 = null, p_material:Material = null,
+		                       p_filter:InteractionFilter = null):Polygon
 		{
 			var box:Polygon = new Polygon(Polygon.box(p_width, p_height, true), p_material, p_filter);
 			addShape(box, p_shapeName, p_angle, p_position);
@@ -416,7 +417,7 @@ package bb.physics.components
 				// creates new joints if need
 				if (_initJointList)
 				{
-					var isNeedToScale:Boolean = Math.abs(1 - _scaleX) > SCALE_PRECISE || Math.abs(1 - _scaleY) > SCALE_PRECISE;
+					var isNeedToScale:Boolean = Math.abs(1 - _scaleX) > BBConfig.SCALE_PRECISE || Math.abs(1 - _scaleY) > BBConfig.SCALE_PRECISE;
 					var currentNodeName:String = node.name;
 					var jointsNum:int = _initJointList.length;
 					var joint:BBJoint;
@@ -530,8 +531,9 @@ package bb.physics.components
 					{
 						CONFIG::debug
 						{
-							Assert.isTrue(child.getComponent(BBPhysicsBody) != null, "can't create joint due to actor with name '" + p_actorName + "' hasn't BBPhysicsBody component",
-									"BBPhysicsBody.findInChildren");
+							Assert.isTrue(child.getComponent(BBPhysicsBody) != null,
+							              "can't create joint due to actor with name '" + p_actorName + "' hasn't BBPhysicsBody component",
+							              "BBPhysicsBody.findInChildren");
 						}
 
 						body = (child.getComponent(BBPhysicsBody) as BBPhysicsBody).body;
@@ -745,7 +747,7 @@ package bb.physics.components
 			p_scaleX = Math.abs(p_scaleX);
 			p_scaleY = Math.abs(p_scaleY);
 
-			if (Math.abs(p_scaleX - _scaleX) >= SCALE_PRECISE || Math.abs(p_scaleY - _scaleY) >= SCALE_PRECISE)
+			if (Math.abs(p_scaleX - _scaleX) >= BBConfig.SCALE_PRECISE || Math.abs(p_scaleY - _scaleY) >= BBConfig.SCALE_PRECISE)
 			{
 				var nScaleX:Number = NumberUtil.round(1.0 / _scaleX) * p_scaleX;
 				var nScaleY:Number = NumberUtil.round(1.0 / _scaleY) * p_scaleY;
@@ -816,13 +818,7 @@ package bb.physics.components
 			// mean we change type at runtime
 			if (node && node.isOnStage)
 			{
-				if (_body.type == BodyType.STATIC) updateEnable = false;
-				else if (_body.type == BodyType.KINEMATIC) _lock = true;
-				else
-				{
-					updateEnable = true;
-					_lock = false;
-				}
+				updateEnable = _body.type != BodyType.STATIC;
 			}
 		}
 
@@ -877,15 +873,14 @@ package bb.physics.components
 		 */
 		override public function update(p_deltaTime:int):void
 		{
-			if (_transform.isInvalidated || _lock)
+			// is transform manually updated
+			if (_transform.isPRSInvalidated)
 			{
 				if (_transform.isScaleInvalidated) setScale(_transform.worldScaleX, _transform.worldScaleY);
 				if (_transform.isPositionInvalidated) _bodyPosition.setxy(_transform.worldX, _transform.worldY);
 				if (_transform.isRotationInvalidated) _body.rotation = _transform.worldRotation;
-
-				invalidateChildren();
 			}
-			else
+			else if (!sleep)
 			{
 				if (gravity) updateOwnGravity();
 				if (airFriction > 0)
@@ -907,29 +902,7 @@ package bb.physics.components
 					_body.angularVel = angularVelocityInt / 1000.0;
 				}
 
-				_transform.worldX = _bodyPosition.x;
-				_transform.worldY = _bodyPosition.y;
-				_transform.worldRotation = _body.rotation;
-			}
-		}
-
-		/**
-		 */
-		[Inline]
-		final private function invalidateChildren():void
-		{
-			if (_transform.node.numChildren > 0)
-			{
-				var child:BBNode = _transform.node.childrenHead;
-				var currentChild:BBNode;
-
-				while (child)
-				{
-					currentChild = child;
-					child = child.next;
-
-					currentChild.transform.isTransformChanged = true;
-				}
+				_transform.setWorldPositionAndRotation(_bodyPosition.x, _bodyPosition.y, _body.rotation);
 			}
 		}
 
@@ -955,8 +928,8 @@ package bb.physics.components
 			_transform = null;
 			_scaleX = 1.0;
 			_scaleY = 1.0;
-			_lock = true;
 			_isNeedInitJoints = false;
+			sleep = false;
 
 			if (cacheable)
 			{
@@ -1129,7 +1102,7 @@ package bb.physics.components
 					super.toString() + "\n" +
 					"{Added to space: " + (_body.space != null) + "}\n" +
 					"{position: " + _bodyPosition.x + " / " + _bodyPosition.y + "}-{rotation: " + _body.rotation + "}-{scaleX/Y: " + _scaleX + "/" + _scaleY + "}\n" +
-					"{lock: " + _lock + "}-{allowHand: " + allowHand + "}-{isNeedInitJoints: " + _isNeedInitJoints + "}]\n" +
+					"{allowHand: " + allowHand + "}-{isNeedInitJoints: " + _isNeedInitJoints + "}]\n" +
 					"{Shapes num: " + numShapes + "}:\n" + shapeTrace + "\n" +
 					"{Joints num: " + numJoints + "}:\n" + jointsTrace + "\n" +
 					"------------------------------------------------------------------------------------------------------------------------";

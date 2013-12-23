@@ -14,6 +14,7 @@ package bb.render.components
 	import bb.mouse.events.BBMouseEvent;
 	import bb.pools.BBNativePool;
 	import bb.render.textures.BBTexture;
+	import bb.signals.BBSignal;
 
 	import flash.geom.Matrix;
 	import flash.geom.Rectangle;
@@ -32,10 +33,25 @@ package bb.render.components
 		public var mousePixelEnabled:Boolean = false;
 
 		/**
-		 * Disallow rotating of renderable components. Could be useful with physical component.
+		 * Allow/Disallow rotating of renderable components. Could be useful with physical component.
 		 * If 'false' ignores any self rotation.
 		 */
+		public var allowSelfRotation:Boolean = true;
+
+		/**
+		 * 'allowSelfRotation' param allow/disallow self rotation, but in the same time if camera rotating, also rotating and component.
+		 * This is could help with conjunction of physics component - physics body can rotates, but graphics isn't.
+		 *
+		 * 'allowRotation' allow/disallow rotation at all. Even if camera starts rotate component moves but not rotates.
+		 * It is could help when need to render component which could be rendered with the same result without rotation - e.g. particles.
+		 * It could save performance.
+		 */
 		public var allowRotation:Boolean = true;
+
+		/**
+		 * Allow/disallow graphic scale (doesn't matter self-scale or camera's scale)
+		 */
+		public var allowScale:Boolean = true;
 
 		public var offsetScaleX:Number = 1.0;
 		public var offsetScaleY:Number = 1.0;
@@ -47,9 +63,21 @@ package bb.render.components
 		/**
 		 * Blend mode for renderable component.
 		 * Need to use constants from BlendMode class.
-		 * By default no blend.
+		 * By default null (no blend).
 		 */
 		public var blendMode:String = null;
+
+		/**
+		 * If apply frustum culling test.
+		 * Mean before render object will be tested on getting on screen.
+		 */
+		public var isCulling:Boolean = false;
+
+		/**
+		 * Set smoothing for current renderable component (by default 'true'. Also depend on settings of BBConfig).
+		 * If smoothing 'false', rendering is faster but quality could suffer.
+		 */
+		public var smoothing:Boolean = true;
 
 		//
 		private var _worldBounds:Rectangle = null;
@@ -59,8 +87,16 @@ package bb.render.components
 		public function BBRenderable()
 		{
 			super();
+			onAdded.add(onAddedToNodeHandler);
+		}
 
+		/**
+		 */
+		public function onAddedToNodeHandler(p_signal:BBSignal):void
+		{
 			mousePixelEnabled = BabyBox.get().config.mousePixelEnable;
+			isCulling = BabyBox.get().config.isCulling;
+			smoothing = BabyBox.get().config.smoothingDraw;
 		}
 
 		/**
@@ -97,9 +133,9 @@ package bb.render.components
 			if (z_texture)
 			{
 				var transform:BBTransform = node.transform;
-				p_context.draw(z_texture, transform.worldX, transform.worldY, (allowRotation ? transform.worldRotation : 0), transform.worldScaleX, transform.worldScaleY,
-						offsetX, offsetY, offsetRotation, offsetScaleX, offsetScaleY,
-						transform.worldAlpha, transform.worldRed, transform.worldGreen, transform.worldBlue, blendMode);
+				p_context.draw(z_texture, transform.worldX, transform.worldY, (allowSelfRotation ? transform.worldRotation : 0), transform.worldScaleX,
+				               transform.worldScaleY, offsetX, offsetY, offsetRotation, offsetScaleX, offsetScaleY, transform.worldAlpha, transform.worldRed,
+				               transform.worldGreen, transform.worldBlue, isCulling, smoothing, allowRotation, allowScale, blendMode);
 			}
 		}
 
@@ -272,7 +308,11 @@ package bb.render.components
 				_worldBounds = null;
 			}
 
+			allowSelfRotation = true;
 			allowRotation = true;
+			blendMode = null;
+			mousePixelEnabled = false;
+			isCulling = false;
 			offsetScaleX = 1.0;
 			offsetScaleY = 1.0;
 			offsetX = 0.0;
@@ -287,7 +327,10 @@ package bb.render.components
 		override public function toString():String
 		{
 			var output:String = super.toString();
-			output += "{allowRotation: " + allowRotation + "}-{scaleX: " + offsetScaleX + "}-{scaleY: " + offsetScaleY + "}-{offsetX: " + offsetX + "}-{offsetY: " + offsetY + "}-{offsetRotation: " + offsetRotation + "}\n";
+			output += "{allowSelfRotation: " + allowSelfRotation + "}-{allowSelfRotation: " + allowSelfRotation + "}-{smoothing: " + smoothing + "}-" +
+					"{mousePixelEnabled: " + mousePixelEnabled + "}-{isCulling: " + isCulling + "}-{blendMode: " + blendMode + "}-" +
+					"{scaleX: " + offsetScaleX + "}-{scaleY: " + offsetScaleY + "}-" +
+					"{offsetX: " + offsetX + "}-{offsetY: " + offsetY + "}-{offsetRotation: " + offsetRotation + "}\n";
 
 			return output;
 		}
@@ -297,7 +340,11 @@ package bb.render.components
 		override public function copy():BBComponent
 		{
 			var renderable:BBRenderable = super.copy() as BBRenderable;
+			renderable.allowSelfRotation = allowSelfRotation;
 			renderable.allowRotation = allowRotation;
+			renderable.smoothing = smoothing;
+			renderable.blendMode = blendMode;
+			renderable.isCulling = isCulling;
 			renderable.offsetScaleX = offsetScaleX;
 			renderable.offsetScaleY = offsetScaleY;
 			renderable.offsetX = offsetX;

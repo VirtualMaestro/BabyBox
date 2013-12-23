@@ -15,8 +15,12 @@ package bb.camera.components
 	import bb.core.BBTransform;
 	import bb.core.BabyBox;
 	import bb.core.context.BBContext;
+	import bb.layer.BBLayer;
+	import bb.layer.BBLayerModule;
 	import bb.mouse.events.BBMouseEvent;
+	import bb.pools.BBNativePool;
 	import bb.signals.BBSignal;
+	import bb.tools.BBGroupMask;
 	import bb.tree.BBTreeModule;
 	import bb.vo.BBColor;
 
@@ -50,8 +54,8 @@ package bb.camera.components
 		public var isFillViewport:Boolean = false;
 
 		/**
-		 * Mask number of camera. Determines if camera can render current node (node also has a mask).
-		 * If camera.mask & node.mask != 0 - camera can render current node.
+		 * Mask number of camera. Determines if camera can render current node (node has a group).
+		 * If ((camera.mask & node.group) != 0) - camera can render current node.
 		 */
 		public var mask:int = -1;
 
@@ -158,16 +162,14 @@ package bb.camera.components
 		private var _previousParentCameraZ:Number = 0;
 		private var _previousParentCameraR:Number = 0;
 
+		//
+		private var _displayLayers:Array;
+
 		/**
 		 */
 		public function BBCamera()
 		{
 			super();
-
-			_config = BabyBox.get().config;
-			_viewPort = new Rectangle();
-			backgroundColor = new BBColor();
-			cacheable = false;
 
 			onAdded.add(cameraAddedToNode);
 		}
@@ -218,6 +220,11 @@ package bb.camera.components
 		 */
 		private function cameraAddedToNode(p_signal:BBSignal):void
 		{
+			_config = BabyBox.get().config;
+			_viewPort = BBNativePool.getRect();
+			backgroundColor = new BBColor();
+			cacheable = false;
+
 			_transform = node.transform;
 			_transform.setScale(_zoom, _zoom);
 			setViewport(0, 0, _config.getViewRect().width, _config.getViewRect().height);
@@ -245,6 +252,19 @@ package bb.camera.components
 		{
 			_core = node.z_core;
 			(_core.getModule(BBCamerasModule) as BBCamerasModule).addCamera(this);
+
+			if (_parentCamera)
+			{
+				_previousParentCameraX = _parentCameraTransform.x;
+				_previousParentCameraY = _parentCameraTransform.y;
+				_previousParentCameraZ = _parentCamera.zoom;
+			}
+
+			if (_displayLayers)
+			{
+				displayLayers = _displayLayers;
+				_displayLayers = null;
+			}
 		}
 
 		/**
@@ -419,9 +439,12 @@ package bb.camera.components
 			_offsetY = p_offsetY;
 			_offsetZoom = p_offsetZoom;
 
-			_previousParentCameraX = _parentCameraTransform.x;
-			_previousParentCameraY = _parentCameraTransform.y;
-			_previousParentCameraZ = _parentCamera.zoom;
+			if (node.isOnStage)
+			{
+				_previousParentCameraX = _parentCameraTransform.x;
+				_previousParentCameraY = _parentCameraTransform.y;
+				_previousParentCameraZ = _parentCamera.zoom;
+			}
 		}
 
 		/**
@@ -644,27 +667,94 @@ package bb.camera.components
 		}
 
 		/**
+		 * Determines which groups camera should to display.
+		 * E.g. displayGroups = [1,4,8,16];
+		 * If set null or empty array camera starts shows all layers (default value -1).
+		 */
+		public function set displayGroups(p_groups:Array):void
+		{
+			mask = (p_groups != null && p_groups.length > 0) ? BBGroupMask.getMask(p_groups) : -1;
+		}
+
+		/**
+		 * The same as displayGroups but more friendly.
+		 * Knowledge about groups encapsulated in layers.
+		 * Need to set array with names of layers.
+		 * If camera isn't on stage generates of mask does when camera added to stage.
+		 * When mask starts generated, all given layers in that time should be created and added to layer manager. In other case is thrown exception.
+		 * E.g. displayLayers = ["backend", "main", "foreground"];
+		 * If set null or empty array camera starts shows all layers (default value).
+		 */
+		public function set displayLayers(p_layers:Array):void
+		{
+			if (p_layers == null || p_layers.length < 1) mask = -1;
+			else
+			{
+				if (node.isOnStage)
+				{
+					var layerModule:BBLayerModule = _core.getModule(BBLayerModule) as BBLayerModule;
+					var groups:Array = [];
+					var layer:BBLayer;
+					for (var i:int = 0; i < p_layers.length; i++)
+					{
+						layer = layerModule.get(p_layers[i]);
+						groups.push(layer.group);
+					}
+
+					displayGroups = groups;
+				}
+				else _displayLayers = p_layers;
+			}
+		}
+
+		/**
 		 * Disposes camera. Remove from render graph and from system.
 		 */
 		override public function dispose():void
 		{
-			if (_core)
+			if (!isDisposed)
 			{
-				(_core.getModule(BBCamerasModule) as BBCamerasModule).removeCamera(this);
-				_core = null;
+				if (_core)
+				{
+					(_core.getModule(BBCamerasModule) as BBCamerasModule).removeCamera(this);
+					_core = null;
+				}
+
+				if (_onShakeComplete) _onShakeComplete.dispose();
+				_onShakeComplete = null;
+
+				_parentCamera = null;
+				_parentCameraTransform = null;
+
+				_displayLayers = null;
+				mask = -1;
+
+				isFillViewport = false;
+				mouseEnable = false;
+				smoothMove = false;
+				fadeMove = 0.0;
+				radiusCalm = 133;
+				border = null;
+
+				_fitContentToViewport = false;
+				_accumulateFadeMoveX = 0;
+				_accumulateFadeMoveY = 0;
+				_leader = null;
+				_zoom = 1.0;
+				_offsetX = 1.0;
+				_offsetY = 1.0;
+				_offsetZoom = 1.0;
+				_offsetRotation = 1.0;
+
+				BBNativePool.putRect(_viewPort);
+
+				_config = null;
+				_viewPort = null;
+				_transform = null;
+				backgroundColor = null;
+
+				super.dispose();
 			}
-
-			if (_onShakeComplete) _onShakeComplete.dispose();
-			_onShakeComplete = null;
-
-			_parentCamera = null;
-			_parentCameraTransform = null;
-			_config = null;
-			_viewPort = null;
-			_transform = null;
-			backgroundColor = null;
-
-			super.dispose();
 		}
 
 		// static pool methods

@@ -26,32 +26,24 @@ package bb.core
 		 * Signal dispatches when component adds or removes from update list of node.
 		 */
 		bb_private var onUpdate:BBSignal = null;
+		bb_private var _node:BBNode = null;
+
+		// Dispatches when component was unlinked from its node.
+		internal var _onRemoved:BBSignal = null;
 
 		/**
 		 * If this component should be cached.
 		 */
 		protected var cacheable:Boolean = true;
-
-		//
-		private var _id:int;
-		private var _lookupClass:Class = null;
-		private var _componentClass:Class = null;
+		protected var _active:Boolean = true;
 
 		// Dispatches when component was added to node.
 		private var _onAdded:BBSignal = null;
-
-		// Dispatches when component was unlinked from its node.
-		private var _onRemoved:BBSignal = null;
-
-		//
-		bb_private var _node:BBNode = null;
+		private var _id:int;
+		private var _lookupClass:Class = null;
+		private var _componentClass:Class = null;
 		private var _updateEnable:Boolean = false;
-
 		private var _userData:Object;
-
-		//
-		protected var _active:Boolean = true;
-
 		private var _isDisposed:Boolean = false;
 		private var _isRid:Boolean = false;
 
@@ -63,16 +55,14 @@ package bb.core
 			onUpdate = BBSignal.get(this);
 
 			_onAdded = BBSignal.get(this);
-			_onAdded.add(onComponentAddedHandler);
-
-			_onRemoved = BBSignal.get(this);
+			_onAdded.add(onAddedToNodeHandler);
 
 			_id = UniqueId.getId();
 		}
 
 		/**
 		 */
-		private function onComponentAddedHandler(p_signal:BBSignal):void
+		private function onAddedToNodeHandler(p_signal:BBSignal):void
 		{
 			var params:Object = p_signal.params;
 			_node = params.node;
@@ -133,6 +123,7 @@ package bb.core
 		 */
 		public function get onRemoved():BBSignal
 		{
+			if (_onRemoved == null) _onRemoved = BBSignal.get(this);
 			return _onRemoved;
 		}
 
@@ -219,7 +210,7 @@ package bb.core
 
 			if (cacheable)
 			{
-				_onAdded.add(onComponentAddedHandler);
+				_onAdded.addFirst(onAddedToNodeHandler);
 				put(this);
 			}
 			else rid();
@@ -235,7 +226,7 @@ package bb.core
 
 			onUpdate.removeAllListeners();
 			_onAdded.removeAllListeners();
-			_onRemoved.removeAllListeners();
+			if (_onRemoved) _onRemoved.removeAllListeners();
 
 			_node = null;
 			_updateEnable = false;
@@ -255,7 +246,7 @@ package bb.core
 				_isRid = true;
 				onUpdate.dispose();
 				_onAdded.dispose();
-				_onRemoved.dispose();
+				if (_onRemoved) _onRemoved.dispose();
 				onUpdate = null;
 				_onAdded = null;
 				_onRemoved = null;

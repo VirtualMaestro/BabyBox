@@ -9,8 +9,6 @@ package bb.input
 	import bb.modules.BBModule;
 	import bb.signals.BBSignal;
 
-	import flash.events.Event;
-
 	import flash.events.KeyboardEvent;
 
 	/**
@@ -143,17 +141,11 @@ package bb.input
 				{
 					stage.addEventListener(KeyboardEvent.KEY_DOWN, keyboardDownHandler);
 					stage.addEventListener(KeyboardEvent.KEY_UP, keyboardUpHandler);
-//					stage.addEventListener(Event.MOUSE_LEAVE, mouseLeaveHandler);
-//					stage.addEventListener(Event.ACTIVATE, mouseLeaveHandler);
-//					stage.addEventListener(Event.DEACTIVATE, mouseLeaveHandler);
 				}
 				else
 				{
 					stage.removeEventListener(KeyboardEvent.KEY_DOWN, keyboardDownHandler);
 					stage.removeEventListener(KeyboardEvent.KEY_UP, keyboardUpHandler);
-//					stage.removeEventListener(Event.MOUSE_LEAVE, mouseLeaveHandler);
-//					stage.removeEventListener(Event.ACTIVATE, mouseLeaveHandler);
-//					stage.removeEventListener(Event.DEACTIVATE, mouseLeaveHandler);
 				}
 			}
 		}
@@ -164,14 +156,6 @@ package bb.input
 		{
 			return _inputDispatcher.enableDispatching;
 		}
-
-//		/**
-//		 */
-//		private function mouseLeaveHandler(p_event:Event):void
-//		{
-//			trace("Event type: " + p_event.type);
-//			_inputDispatcher.clearActions();
-//		}
 
 		/**
 		 * Determines how often 'dispatch' method is invoked. By default it is set to 0, mean that method is invoked as often as app runs.

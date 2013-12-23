@@ -21,13 +21,11 @@ package bb.core
 	 */
 	final public class BBTransform extends BBComponent
 	{
-		private const PI2:Number = Math.PI * 2;
+		private const PI2_RAD:Number = Math.PI * 2;
 		private const RAD_TO_DEG:Number = 180.0 / Math.PI;
 		private const DEG_TO_RAD:Number = Math.PI / 180.0;
 
 		//
-		private var PRECISE_ROTATION:Number = (Math.PI / 180.0) / 10;
-
 		private var _localX:Number = 0;
 		private var _localY:Number = 0;
 		bb_private var worldX:Number = 0;
@@ -40,12 +38,6 @@ package bb.core
 		private var _localScaleY:Number = 1;
 		bb_private var worldScaleX:Number = 1;
 		bb_private var worldScaleY:Number = 1;
-
-		// TODO: Add able to skew
-		private var _localSkewX:Number = 0;
-		private var _localSkewY:Number = 0;
-		bb_private var worldSkewX:Number = 0;
-		bb_private var worldSkewY:Number = 0;
 
 		private var _worldTransformMatrix:Matrix = null;
 		private var _localTransformMatrix:Matrix = null;
@@ -76,15 +68,10 @@ package bb.core
 		private var _alpha:Number = 1;
 
 		/**
-		 * Flag need when world transforms (like worldX, worldY etc.) updates directly, avoid update pipeline. E.g. updates by physic component.
-		 * This mean every time when need to get local params like worldX/Y, worldRotation etc. related local params will calculates every time.
-		 */
-		bb_private var independentUpdateWorldParameters:Boolean = false;
-
-		/**
 		 * Lock invalidation method, so world's parameters like worldX, worldRotation etc. won't not update (changed).
 		 */
 		public var lockInvalidation:Boolean = false;
+		public var invalidateOnce:Boolean = false;
 
 		/**
 		 * Is transform changed and updated values.
@@ -93,6 +80,7 @@ package bb.core
 		public var isPositionInvalidated:Boolean = false;
 		public var isRotationInvalidated:Boolean = false;
 		public var isScaleInvalidated:Boolean = false;
+		public var isPRSInvalidated:Boolean = false;
 		public var isColorInvalidated:Boolean = false;
 
 		/**
@@ -194,7 +182,8 @@ package bb.core
 		 * If after using instance is not need anymore there is possible to take back it to pool - BBNativePool.putMatrix(matrix);
 		 * NOTICE: scale and rotation won't change the translation of matrix (tx/ty).
 		 */
-		public function transformWorldMatrix(p_scaleX:Number = 1.0, p_scaleY:Number = 1.0, p_rotation:Number = 0.0, p_x:Number = 0, p_y:Number = 0, p_invert:Boolean = false):Matrix
+		public function transformWorldMatrix(p_scaleX:Number = 1.0, p_scaleY:Number = 1.0, p_rotation:Number = 0.0, p_x:Number = 0, p_y:Number = 0,
+		                                     p_invert:Boolean = false):Matrix
 		{
 			var matrix:Matrix = BBNativePool.getMatrix();
 			var worldMatrix:Matrix = worldTransformMatrix;
@@ -259,8 +248,7 @@ package bb.core
 			_localY = p_y;
 			isTransformChanged = true;
 			isPositionChanged = true;
-
-			if (independentUpdateWorldParameters && node.parent) invalidate(true, false);
+			invalidateOnce = true;
 		}
 
 		/**
@@ -287,12 +275,7 @@ package bb.core
 		[Inline]
 		final public function set x(p_x:Number):void
 		{
-			/*worldX = */
-			_localX = p_x;
-			isTransformChanged = true;
-			isPositionChanged = true;
-
-			if (independentUpdateWorldParameters && node.parent) invalidate(true, false);
+			setPosition(p_x, _localY);
 		}
 
 		/**
@@ -300,12 +283,6 @@ package bb.core
 		 */
 		public function get x():Number
 		{
-			if (independentUpdateWorldParameters)
-			{
-				var parentNode:BBNode = node.parent;
-				if (parentNode) _localX = worldX - parentNode.transform.worldX;
-			}
-
 			return _localX;
 		}
 
@@ -315,12 +292,7 @@ package bb.core
 		[Inline]
 		final public function set y(p_y:Number):void
 		{
-			/*worldY = */
-			_localY = p_y;
-			isTransformChanged = true;
-			isPositionChanged = true;
-
-			if (independentUpdateWorldParameters && node.parent) invalidate(true, false);
+			setPosition(_localX, p_y);
 		}
 
 		/**
@@ -328,12 +300,6 @@ package bb.core
 		 */
 		public function get y():Number
 		{
-			if (independentUpdateWorldParameters)
-			{
-				var parentNode:BBNode = node.parent;
-				if (parentNode) _localY = worldY - parentNode.transform.worldY;
-			}
-
 			return _localY;
 		}
 
@@ -342,8 +308,14 @@ package bb.core
 		 */
 		public function setPositionAndRotation(p_x:Number, p_y:Number, p_angle:Number):void
 		{
-			setPosition(p_x, p_y);
-			rotation = p_angle;
+			_localX = p_x;
+			_localY = p_y;
+			_localRotation = p_angle % PI2_RAD;
+
+			isTransformChanged = true;
+			isPositionChanged = true;
+			isRotationChanged = true;
+			invalidateOnce = true;
 		}
 
 		/**
@@ -352,28 +324,17 @@ package bb.core
 		[Inline]
 		final public function set rotation(p_angle:Number):void
 		{
-			p_angle %= PI2;
-			if (Math.abs(p_angle) < PRECISE_ROTATION) p_angle = 0;
-
-			/*worldRotation = */
-			_localRotation = p_angle;
+			_localRotation = p_angle % PI2_RAD;
 
 			isTransformChanged = true;
 			isRotationChanged = true;
-
-			if (independentUpdateWorldParameters && node.parent) invalidate(true, false);
+			invalidateOnce = true;
 		}
 
 		/**
 		 */
 		public function get rotation():Number
 		{
-			if (independentUpdateWorldParameters)
-			{
-				var parentNode:BBNode = node.parent;
-				if (parentNode) _localRotation = worldRotation - parentNode.transform.worldRotation;
-			}
-
 			return _localRotation;
 		}
 
@@ -402,35 +363,53 @@ package bb.core
 		}
 
 		/**
+		 */
+		bb_private function setWorldPositionAndRotation(p_x:Number, p_y:Number, p_rotation:Number):void
+		{
+			worldX = p_x;
+			worldY = p_y;
+			worldRotation = p_rotation;
+
+			var trans:BBTransform = node.parent.transform;
+			_localX = worldX - trans.worldX;
+			_localY = worldY - trans.worldY;
+			_localRotation = worldRotation - trans.worldRotation;
+
+			isTransformChanged = true;
+			isPositionChanged = true;
+			isRotationChanged = true;
+
+			if (node.numChildren > 0)
+			{
+				COS = Math.cos(worldRotation);
+				SIN = Math.sin(worldRotation);
+			}
+		}
+
+		/**
 		 * Sets scale.
 		 */
-		[Inline]
 		final public function setScale(p_scaleX:Number, p_scaleY:Number):void
 		{
 			_localScaleX = p_scaleX;
 			_localScaleY = p_scaleY;
+
 			isTransformChanged = true;
 			isScaleChanged = true;
-
-			keepSamePositionWhenScaled();
+			invalidateOnce = true;
 		}
 
 		/**
 		 */
 		public function set scaleX(p_val:Number):void
 		{
-			_localScaleX = p_val;
-			isTransformChanged = true;
-			isScaleChanged = true;
-
-			keepSamePositionWhenScaled();
+			setScale(p_val, _localScaleY);
 		}
 
 		/**
 		 */
 		public function get scaleX():Number
 		{
-			calcLocalScaleWhenIndependentUpdate();
 			return _localScaleX;
 		}
 
@@ -438,18 +417,13 @@ package bb.core
 		 */
 		public function set scaleY(p_val:Number):void
 		{
-			_localScaleY = p_val;
-			isTransformChanged = true;
-			isScaleChanged = true;
-
-			keepSamePositionWhenScaled();
+			setScale(_localScaleX, p_val);
 		}
 
 		/**
 		 */
 		public function get scaleY():Number
 		{
-			calcLocalScaleWhenIndependentUpdate();
 			return _localScaleY;
 		}
 
@@ -460,40 +434,6 @@ package bb.core
 		public function getScaleWorld():Vec2
 		{
 			return Vec2.get(worldScaleX, worldScaleY);
-		}
-
-		/**
-		 * if 'independentUpdateWorldParameters' is true (mostly it is related to physics component) and doing scaling, need to keep position at the same place.
-		 */
-		[Inline]
-		private function keepSamePositionWhenScaled():void
-		{
-			if (independentUpdateWorldParameters)
-			{
-				var parentNode:BBNode = node.parent;
-				if (parentNode)
-				{
-					_localX = worldX - parentNode.transform.worldX;
-					_localY = worldY - parentNode.transform.worldY;
-				}
-			}
-		}
-
-		/**
-		 * if 'independentUpdateWorldParameters' is true (mostly it is related to physics component) and trying to get scaleX or scaleY.
-		 */
-		[Inline]
-		private function calcLocalScaleWhenIndependentUpdate():void
-		{
-			if (independentUpdateWorldParameters)
-			{
-				var parentNode:BBNode = node.parent;
-				if (parentNode)
-				{
-					_localScaleX = worldScaleX - parentNode.transform.worldScaleX;
-					_localScaleY = worldScaleY - parentNode.transform.worldScaleY;
-				}
-			}
 		}
 
 		/**
@@ -578,14 +518,12 @@ package bb.core
 		 * Invalidate transformation settings.
 		 */
 		[Inline]
-		final bb_private function invalidate(p_updateTransformation:Boolean, p_updateColor:Boolean):void
+		final bb_private function invalidate(p_updatedTransformation:Boolean, p_updateColor:Boolean):void
 		{
-			if (lockInvalidation) return;
-
 			var parentTransform:BBTransform = node.parent.transform;
 
 			// Update transformation
-			if (p_updateTransformation)
+			if (p_updatedTransformation && !(lockInvalidation && !invalidateOnce && !parentTransform.isPRSInvalidated))
 			{
 				var parentWorldRotation:Number = parentTransform.worldRotation;
 				var parentWorldScaleX:Number = parentTransform.worldScaleX;
@@ -626,12 +564,7 @@ package bb.core
 				}
 
 				_isWorldTransformMatrixChanged = true;
-
-				// mark transform as updated
-				isTransformChanged = false;
-				isPositionChanged = false;
-				isRotationChanged = false;
-				isScaleChanged = false;
+				isPRSInvalidated = true;
 			}
 
 			// Update color
@@ -642,13 +575,13 @@ package bb.core
 				worldGreen = _green * parentTransform.worldGreen;
 				worldBlue = _blue * parentTransform.worldBlue;
 
-				isColorChanged = false;
 				isColorShouldBeDisplayed = (4.0 - (worldRed + worldGreen + worldBlue + worldAlpha)) > 0.02 * 4;  // 0.02 - precise color
 				isColorInvalidated = true;
 			}
 
 			//
 			isInvalidated = true;
+			invalidateOnce = false;
 		}
 
 		/**
@@ -661,6 +594,13 @@ package bb.core
 			isPositionInvalidated = false;
 			isRotationInvalidated = false;
 			isScaleInvalidated = false;
+			isPRSInvalidated = false;
+
+			isTransformChanged = false;
+			isPositionChanged = false;
+			isRotationChanged = false;
+			isScaleChanged = false;
+			isColorChanged = false;
 		}
 
 		/**
@@ -679,10 +619,6 @@ package bb.core
 			_localScaleY = 1;
 			worldScaleX = 1;
 			worldScaleY = 1;
-			_localSkewX = 0;
-			_localSkewY = 0;
-			worldSkewX = 0;
-			worldSkewY = 0;
 			_alpha = 1;
 			worldAlpha = 1;
 			_red = 1;
@@ -693,8 +629,6 @@ package bb.core
 			worldBlue = 1;
 			COS = 1;
 			SIN = 0;
-
-			PRECISE_ROTATION = (Math.PI / 180.0) / 10;
 
 			isScaleChanged = false;
 			isRotationChanged = false;
@@ -708,7 +642,9 @@ package bb.core
 			isColorInvalidated = false;
 			isPositionInvalidated = false;
 			isRotationInvalidated = false;
-			independentUpdateWorldParameters = false;
+			isPRSInvalidated = false;
+			lockInvalidation = false;
+			invalidateOnce = false;
 		}
 
 		/**
@@ -726,10 +662,6 @@ package bb.core
 			component._localScaleY = _localScaleY;
 			component.worldScaleX = worldScaleX;
 			component.worldScaleY = worldScaleY;
-			component._localSkewX = _localSkewX;
-			component._localSkewY = _localSkewY;
-			component.worldSkewX = worldSkewX;
-			component.worldSkewY = worldSkewY;
 			component._alpha = _alpha;
 			component.worldAlpha = worldAlpha;
 			component._red = _red;
@@ -740,7 +672,6 @@ package bb.core
 			component.worldBlue = worldBlue;
 			component.COS = COS;
 			component.SIN = SIN;
-			component.PRECISE_ROTATION = PRECISE_ROTATION;
 
 			return component;
 		}
@@ -754,9 +685,9 @@ package bb.core
 					super.toString() + "\n" +
 					"{localX/localY: " + _localX + " / " + _localY + "}-{worldX/worldY: " + worldX + " / " + worldY + "}-{local/world rotation: " + _localRotation + " / " + worldRotation + "}-" +
 					"{scale local: " + _localScaleX + " / " + _localScaleY + "}-{ scale world: " + worldScaleX + " / " + worldScaleY + "}" + "\n" +
-					"{isTransformChanged: " + isTransformChanged + "}-{isScaleInvalidated: " + isScaleInvalidated + "}-{isColorChanged: " + isColorChanged + "}-" +
+					"{lockInvalidation: " + lockInvalidation + "}-{isTransformChanged: " + isTransformChanged + "}-{isScaleInvalidated: " + isScaleInvalidated + "}-{isColorChanged: " + isColorChanged + "}-" +
 					"{local/world ARGB: " + _alpha + ";" + _red + ";" + _green + ";" + _blue + " / " + worldAlpha + ";" + worldRed + ";" + worldGreen + ";" + worldBlue + "}] \n" +
-					"{COS: " + COS + "}-{SIN: " + SIN + "}-{PRECISE_ROTATION: " + PRECISE_ROTATION + "}" +
+					"{COS: " + COS + "}-{SIN: " + SIN + "}" +
 					"\n" + "------------------------------------------------------------------------------------------------------------------------\n";
 		}
 	}
