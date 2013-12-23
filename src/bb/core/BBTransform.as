@@ -182,26 +182,41 @@ package bb.core
 		 * If after using instance is not need anymore there is possible to take back it to pool - BBNativePool.putMatrix(matrix);
 		 * NOTICE: scale and rotation won't change the translation of matrix (tx/ty).
 		 */
-		public function transformWorldMatrix(p_scaleX:Number = 1.0, p_scaleY:Number = 1.0, p_rotation:Number = 0.0, p_x:Number = 0, p_y:Number = 0,
-		                                     p_invert:Boolean = false):Matrix
+		public function getTransformedWorldMatrix(p_scaleX:Number = 1.0, p_scaleY:Number = 1.0, p_rotation:Number = 0.0, p_x:Number = 0, p_y:Number = 0,
+		                                          p_invert:Boolean = false):Matrix
 		{
-			var matrix:Matrix = BBNativePool.getMatrix();
 			var worldMatrix:Matrix = worldTransformMatrix;
-			matrix.a = worldMatrix.a;
-			matrix.b = worldMatrix.b;
-			matrix.c = worldMatrix.c;
-			matrix.d = worldMatrix.d;
-			matrix.tx = worldMatrix.tx;
-			matrix.ty = worldMatrix.ty;
+			var a:Number = worldMatrix.a;
+			var b:Number = worldMatrix.b;
+			var c:Number = worldMatrix.c;
+			var d:Number = worldMatrix.d;
+			var tx:Number = worldMatrix.tx + p_x;
+			var ty:Number = worldMatrix.ty + p_y;
 
-			var tx:Number = matrix.tx + p_x;
-			var ty:Number = matrix.ty + p_y;
+			if (p_scaleX != 1 && p_scaleY != 1)
+			{
+				a *= p_scaleX;
+				b *= p_scaleY;
+				c *= p_scaleX;
+				d *= p_scaleY;
+			}
 
-			if (p_scaleX != 1 && p_scaleY != 1) matrix.scale(p_scaleX, p_scaleY);
-			if (p_rotation != 0) matrix.rotate(p_rotation);
+			if (p_rotation != 0)
+			{
+				var cos:Number = Math.cos(p_rotation);
+				var sin:Number = Math.sin(p_rotation);
+				var aa:Number = cos * a - b * sin;
+				var bb:Number = sin * a + b * cos;
+				var cc:Number = cos * c - d * sin;
+				var dd:Number = sin * c + d * cos;
 
-			matrix.tx = tx;
-			matrix.ty = ty;
+				a = aa;
+				b = bb;
+				c = cc;
+				d = dd;
+			}
+
+			var matrix:Matrix = BBNativePool.getMatrix(a, b, c, d, tx, ty);
 
 			if (p_invert) matrix.invert();
 
@@ -211,7 +226,7 @@ package bb.core
 		/**
 		 * Returns world transform matrix.
 		 */
-		public function get worldTransformMatrix():Matrix
+		final public function get worldTransformMatrix():Matrix
 		{
 			if (isTransformChanged) invalidate(true, false);
 			if (_isWorldTransformMatrixChanged)
@@ -220,7 +235,23 @@ package bb.core
 				var sY:Number = (worldScaleY == 0) ? 0.000001 : worldScaleY;
 
 				if (_worldTransformMatrix == null) _worldTransformMatrix = BBNativePool.getMatrix();
-				_worldTransformMatrix.createBox(sX, sY, worldRotation, worldX, worldY);
+
+				if (lockInvalidation && node.numChildren == 0)
+				{
+					COS = Math.cos(worldRotation);
+					SIN = Math.sin(worldRotation);
+				}
+
+				var cos:Number = COS;
+				var sin:Number = SIN;
+
+				_worldTransformMatrix.a = cos * sX;
+				_worldTransformMatrix.b = sin * sY;
+				_worldTransformMatrix.c = -sin * sX;
+				_worldTransformMatrix.d = cos * sY;
+				_worldTransformMatrix.tx = worldX;
+				_worldTransformMatrix.ty = worldY;
+
 				_isWorldTransformMatrixChanged = false;
 			}
 
@@ -378,6 +409,7 @@ package bb.core
 			isTransformChanged = true;
 			isPositionChanged = true;
 			isRotationChanged = true;
+			_isWorldTransformMatrixChanged = true;
 
 			if (node.numChildren > 0)
 			{
@@ -479,7 +511,8 @@ package bb.core
 			if (node)
 			{
 				var matrix:Matrix = worldTransformMatrix;
-				resultPoint.setTo(p_x * matrix.a + p_y * matrix.c + matrix.tx, p_x * matrix.b + p_y * matrix.d + matrix.ty);
+				resultPoint.x = p_x * matrix.a + p_y * matrix.c + matrix.tx;
+				resultPoint.y = p_x * matrix.b + p_y * matrix.d + matrix.ty;
 			}
 
 			return resultPoint;
@@ -506,7 +539,8 @@ package bb.core
 				matrix.ty = worldMatrix.ty;
 				matrix.invert();
 
-				resultPoint.setTo(p_x * matrix.a + p_y * matrix.c + matrix.tx, p_x * matrix.b + p_y * matrix.d + matrix.ty);
+				resultPoint.x = p_x * matrix.a + p_y * matrix.c + matrix.tx;
+				resultPoint.y = p_x * matrix.b + p_y * matrix.d + matrix.ty;
 
 				BBNativePool.putMatrix(matrix);
 			}

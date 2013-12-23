@@ -113,7 +113,7 @@ package bb.config
 		 *
 		 * [runtime]
 		 */
-		public var isCulling:Boolean = false;
+		public var isCulling:Boolean = true;
 
 		/**
 		 * Determines whether can objects go to sleep.

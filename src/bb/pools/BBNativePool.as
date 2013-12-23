@@ -31,7 +31,10 @@ package bb.pools
 			if (_rectSize > 0)
 			{
 				rect = _rectPool[--_rectSize];
-				rect.setTo(p_x, p_y, p_width, p_height);
+				rect.x = p_x;
+				rect.y = p_y;
+				rect.width = p_width;
+				rect.height = p_height;
 			}
 			else rect = new Rectangle(p_x, p_y, p_width, p_height);
 
@@ -91,7 +94,8 @@ package bb.pools
 			if (_pointSize > 0)
 			{
 				point = _pointPool[--_pointSize];
-				point.setTo(p_x, p_y);
+				point.x = p_x;
+				point.y = p_y;
 			}
 			else point = new Point(p_x, p_y);
 
@@ -143,17 +147,23 @@ package bb.pools
 
 		/**
 		 * Returns instance of Matrix class.
+		 * Returned matrix identity already.
 		 */
-		static public function getMatrix():Matrix
+		static public function getMatrix(p_a:Number = 1, p_b:Number = 0, p_c:Number = 0, p_d:Number = 1, p_tx:Number = 0, p_ty:Number = 0):Matrix
 		{
 			var matrix:Matrix;
 
 			if (_matrixSize > 0)
 			{
 				matrix = _matrixPool[--_matrixSize];
-				matrix.identity();
+				matrix.a = p_a;
+				matrix.b = p_b;
+				matrix.c = p_c;
+				matrix.d = p_d;
+				matrix.tx = p_tx;
+				matrix.ty = p_ty;
 			}
-			else matrix = new Matrix();
+			else matrix = new Matrix(p_a, p_b, p_c, p_d, p_tx, p_ty);
 
 			return matrix;
 		}

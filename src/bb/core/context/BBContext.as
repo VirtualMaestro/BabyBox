@@ -34,10 +34,12 @@ package bb.core.context
 	 */
 	public class BBContext
 	{
+		static private const RAD_TO_DEG:Number = TrigUtil.RAD_TO_DEG;
+
 		/**
 		 * Sends when context was initialized.
 		 */
-		public var onInitialized:BBSignal = null;
+		private var _onInitialized:BBSignal = null;
 
 		//
 		private var _stage:Stage = null;
@@ -75,20 +77,36 @@ package bb.core.context
 		private var _currentCameraViewportHeight_add_Y:Number;
 
 		//
-		private var _rect:Rectangle = null;
+		private var _rectTextureRender:Rectangle = null;
 		private var _point:Point = null;
 		private var _matrix:Matrix = null;
 		private var _colorTransform:ColorTransform = null;
+
+		private var _sinTable:Vector.<Number>;
+		private var _cosTable:Vector.<Number>;
 
 		/**
 		 */
 		public function BBContext()
 		{
-			onInitialized = BBSignal.get(this, true);
-			_rect = new Rectangle();
+			_onInitialized = BBSignal.get(this, true);
+			_rectTextureRender = new Rectangle();
 			_point = new Point();
 			_matrix = new Matrix();
 			_colorTransform = new ColorTransform();
+
+			// prepare sin and cos tables
+			_sinTable = new <Number>[];
+			_cosTable = new <Number>[];
+			var angleRad:Number = -2 * Math.PI;
+			var stepAngle:Number = Math.PI / 180.0;
+
+			for (var i:int = 0; i < 720; i++)
+			{
+				_sinTable[i] = Math.sin(angleRad);
+				_cosTable[i] = Math.cos(angleRad);
+				angleRad += stepAngle;
+			}
 		}
 
 		/**
@@ -244,20 +262,20 @@ package bb.core.context
 		public function draw(p_texture:BBTexture, p_x:Number, p_y:Number, p_rotation:Number = 0, p_scaleX:Number = 1.0, p_scaleY:Number = 1.0,
 		                     p_offsetX:Number = 0, p_offsetY:Number = 0, p_offsetRotation:Number = 0, p_offsetScaleX:Number = 1.0, p_offsetScaleY:Number = 1.0,
 		                     p_alphaMultiplier:Number = 1.0, p_redMultiplier:Number = 1.0, p_greenMultiplier:Number = 1.0, p_blueMultiplier:Number = 1.0,
-		                     p_isCulling:Boolean = false, p_smoothing:Boolean = true, p_allowRotation:Boolean = true, p_allowScale:Boolean = true,
+		                     p_isCulling:Boolean = true, p_smoothing:Boolean = true, p_allowRotation:Boolean = true, p_allowScale:Boolean = true,
 		                     p_blendMode:String = null):void
 		{
 			var bitmap:BitmapData = p_texture.bitmapData;
 			var textureWidth:Number = bitmap.width;
 			var textureHeight:Number = bitmap.height;
 
-			var sin:Number = _currentCameraSIN;
-			var cos:Number = _currentCameraCOS;
+			var sinCam:Number = _currentCameraSIN;
+			var cosCam:Number = _currentCameraCOS;
 			var dx:Number = p_x - _currentCameraX;
 			var dy:Number = p_y - _currentCameraY;
 
-			var newTextureX:Number = (dx * cos - sin * dy) * _currentCameraTotalScaleX + _currentCameraViewportCenterX + p_offsetX;
-			var newTextureY:Number = (dx * sin + cos * dy) * _currentCameraTotalScaleY + _currentCameraViewportCenterY + p_offsetY;
+			var newTextureX:Number = (dx * cosCam - sinCam * dy) * _currentCameraTotalScaleX + _currentCameraViewportCenterX + p_offsetX;
+			var newTextureY:Number = (dx * sinCam + cosCam * dy) * _currentCameraTotalScaleY + _currentCameraViewportCenterY + p_offsetY;
 
 			var totalRotation:Number = p_allowRotation ? (p_rotation - _currentCameraRotation + p_offsetRotation) % TrigUtil.PI2 : 0;
 			var totalScaleX:Number = 1.0;
@@ -272,42 +290,88 @@ package bb.core.context
 			var texturePivotX:Number = p_texture.pivotX * totalScaleX;
 			var texturePivotY:Number = p_texture.pivotY * totalScaleY;
 
+			//
+			var xRectTextureRender:Number = 0;
+			var yRectTextureRender:Number = 0;
+			var widthRectTextureRender:Number = textureWidth;
+			var heightRectTextureRender:Number = textureHeight;
+
+			//
+			var totalRotABS:Number = Math.abs(totalRotation);
+			var isRotationNotChanged:Boolean = totalRotABS < BBConfig.ROTATION_PRECISE || (TrigUtil.PI2 - totalRotABS) < BBConfig.ROTATION_PRECISE;
+			var isScaleNotChanged:Boolean = Math.abs(1 - totalScaleX) < BBConfig.SCALE_PRECISE && Math.abs(1 - totalScaleY) < BBConfig.SCALE_PRECISE;
+			var isColorTransformNotChanged:Boolean = !((1.0 - (p_alphaMultiplier * p_redMultiplier * p_greenMultiplier * p_blueMultiplier)) > BBConfig.COLOR_PRECISE);
+			var isCopyPixelsDrawing:Boolean = isRotationNotChanged && isColorTransformNotChanged && isScaleNotChanged && (p_blendMode == null);
+
+			var totalRotCos:Number = 1.0;
+			var totalRotSin:Number = 0.0;
+
 			///  Test for getting into the viewport /////////////
 			if (p_isCulling)
 			{
-				var rightX:Number = texturePivotX + textureWidth * totalScaleX;
-				var bottomY:Number = texturePivotY + textureHeight * totalScaleY;
+				var boundingBoxTopLeftX:Number;
+				var boundingBoxTopLeftY:Number;
+				var boundingBoxBottomRightX:Number;
+				var boundingBoxBottomRightY:Number;
 
-				var totalRotCos:Number = Math.cos(totalRotation);
-				var totalRotSin:Number = Math.sin(totalRotation);
+				if (isRotationNotChanged)  // texture isn't rotated
+				{
+					boundingBoxTopLeftX = newTextureX + texturePivotX;
+					boundingBoxTopLeftY = newTextureY + texturePivotY;
+					boundingBoxBottomRightX = boundingBoxTopLeftX + textureWidth * totalScaleX;
+					boundingBoxBottomRightY = boundingBoxTopLeftY + textureHeight * totalScaleY;
 
-				var topLeftX:Number = (texturePivotX * totalRotCos - totalRotSin * texturePivotY) + newTextureX;
-				var topLeftY:Number = (texturePivotX * totalRotSin + totalRotCos * texturePivotY) + newTextureY;
+					// is texture and viewport intersected
+					if (!isIntersect(boundingBoxTopLeftX, boundingBoxTopLeftY, boundingBoxBottomRightX, boundingBoxBottomRightY,
+					                 _currentCameraViewportX, _currentCameraViewportY,
+					                 _currentCameraViewportWidth_add_X, _currentCameraViewportHeight_add_Y)) return;
 
-				var topRightX:Number = (rightX * totalRotCos - totalRotSin * texturePivotY) + newTextureX;
-				var topRightY:Number = (rightX * totalRotSin + totalRotCos * texturePivotY) + newTextureY;
+					// if texture can be draw by copyPixels method - try to find only part which in viewport.
+					if (isCopyPixelsDrawing)
+					{
+						xRectTextureRender = max(_currentCameraViewportX - boundingBoxTopLeftX, 0);
+						yRectTextureRender = max(_currentCameraViewportY - boundingBoxTopLeftY, 0);
+						widthRectTextureRender = textureWidth - xRectTextureRender + min(_currentCameraViewportWidth_add_X - boundingBoxBottomRightX, 0);
+						heightRectTextureRender = textureHeight - yRectTextureRender + min(_currentCameraViewportHeight_add_Y - boundingBoxBottomRightY, 0);
+					}
+				}
+				else  // find bounding box for rotated texture
+				{
+					var rightX:Number = texturePivotX + textureWidth * totalScaleX;
+					var bottomY:Number = texturePivotY + textureHeight * totalScaleY;
 
-				var bottomRightX:Number = (rightX * totalRotCos - totalRotSin * bottomY) + newTextureX;
-				var bottomRightY:Number = (rightX * totalRotSin + totalRotCos * bottomY) + newTextureY;
+					totalRotCos = cos(totalRotation);
+					totalRotSin = sin(totalRotation);
 
-				var bottomLeftX:Number = (texturePivotX * totalRotCos - totalRotSin * bottomY) + newTextureX;
-				var bottomLeftY:Number = (texturePivotX * totalRotSin + totalRotCos * bottomY) + newTextureY;
+					var topLeftX:Number = (texturePivotX * totalRotCos - totalRotSin * texturePivotY) + newTextureX;
+					var topLeftY:Number = (texturePivotX * totalRotSin + totalRotCos * texturePivotY) + newTextureY;
 
-				var boundingBoxTopLeftX:Number = min(min(topLeftX, topRightX), min(bottomRightX, bottomLeftX));
-				var boundingBoxTopLeftY:Number = min(min(topLeftY, topRightY), min(bottomRightY, bottomLeftY));
+					var topRightX:Number = (rightX * totalRotCos - totalRotSin * texturePivotY) + newTextureX;
+					var topRightY:Number = (rightX * totalRotSin + totalRotCos * texturePivotY) + newTextureY;
 
-				var boundingBoxBottomRightX:Number = max(max(topLeftX, topRightX), max(bottomRightX, bottomLeftX));
-				var boundingBoxBottomRightY:Number = max(max(topLeftY, topRightY), max(bottomRightY, bottomLeftY));
+					var bottomRightX:Number = (rightX * totalRotCos - totalRotSin * bottomY) + newTextureX;
+					var bottomRightY:Number = (rightX * totalRotSin + totalRotCos * bottomY) + newTextureY;
 
-				if (!isIntersect(boundingBoxTopLeftX, boundingBoxTopLeftY, boundingBoxBottomRightX, boundingBoxBottomRightY,
-				                 _currentCameraViewportX, _currentCameraViewportY,
-				                 _currentCameraViewportWidth_add_X, _currentCameraViewportHeight_add_Y)) return;
+					var bottomLeftX:Number = (texturePivotX * totalRotCos - totalRotSin * bottomY) + newTextureX;
+					var bottomLeftY:Number = (texturePivotX * totalRotSin + totalRotCos * bottomY) + newTextureY;
+
+					boundingBoxTopLeftX = min(min(topLeftX, topRightX), min(bottomRightX, bottomLeftX));
+					boundingBoxTopLeftY = min(min(topLeftY, topRightY), min(bottomRightY, bottomLeftY));
+
+					boundingBoxBottomRightX = max(max(topLeftX, topRightX), max(bottomRightX, bottomLeftX));
+					boundingBoxBottomRightY = max(max(topLeftY, topRightY), max(bottomRightY, bottomLeftY));
+
+					//
+					if (!isIntersect(boundingBoxTopLeftX, boundingBoxTopLeftY, boundingBoxBottomRightX, boundingBoxBottomRightY,
+					                 _currentCameraViewportX, _currentCameraViewportY,
+					                 _currentCameraViewportWidth_add_X, _currentCameraViewportHeight_add_Y)) return;
+				}
 			}
 			////////////////////////////////
 
 			// if need apply color transformation
 			var colorTransform:ColorTransform = null;
-			if ((1.0 - (p_alphaMultiplier * p_redMultiplier * p_greenMultiplier * p_blueMultiplier)) > BBConfig.COLOR_PRECISE)
+			if (!isColorTransformNotChanged)
 			{
 				colorTransform = _colorTransform;
 				colorTransform.alphaMultiplier = p_alphaMultiplier;
@@ -317,29 +381,35 @@ package bb.core.context
 			}
 
 			//
-			var totalRotABS:Number = Math.abs(totalRotation);
-			var isScaleNotChanged:Boolean = Math.abs(1 - totalScaleX) < BBConfig.SCALE_PRECISE && Math.abs(1 - totalScaleY) < BBConfig.SCALE_PRECISE;
-			var isRotationNotChanged:Boolean = totalRotABS < BBConfig.ROTATION_PRECISE || (TrigUtil.PI2 - totalRotABS) < BBConfig.ROTATION_PRECISE;
-
-			//
-			if (isRotationNotChanged && isScaleNotChanged && !colorTransform && !p_blendMode)
+			if (isCopyPixelsDrawing)
 			{
-				_rect.setTo(0, 0, textureWidth, textureHeight);
-				_point.setTo(newTextureX + texturePivotX, newTextureY + texturePivotY);
+				_rectTextureRender.x = xRectTextureRender;
+				_rectTextureRender.y = yRectTextureRender;
+				_rectTextureRender.width = widthRectTextureRender;
+				_rectTextureRender.height = heightRectTextureRender;
+
+				_point.x = newTextureX + texturePivotX + xRectTextureRender;
+				_point.y = newTextureY + texturePivotY + yRectTextureRender;
 
 				// TODO:
 //				var bitmapN:BitmapData = new BitmapData(textureWidth, textureHeight, bitmap.transparent);
 //				bitmapN.applyFilter(bitmap, _rect, new Point(0,0), new BlurFilter());
-				_canvas.copyPixels(bitmap, _rect, _point, null, null, bitmap.transparent);
+				_canvas.copyPixels(bitmap, _rectTextureRender, _point, null, null, bitmap.transparent);
 			}
 			else
 			{
 				// tuning of matrix
-				_matrix.identity();
-				_matrix.scale(totalScaleX, totalScaleY);
-				_matrix.translate(texturePivotX, texturePivotY);
-				_matrix.rotate(totalRotation);
-				_matrix.translate(newTextureX, newTextureY);
+				var a:Number = totalScaleX;
+				var b:Number = 0;
+				var c:Number = 0;
+				var d:Number = totalScaleY;
+
+				_matrix.a = a * totalRotCos - b * totalRotSin;
+				_matrix.b = a * totalRotSin + b * totalRotCos;
+				_matrix.c = c * totalRotCos - d * totalRotSin;
+				_matrix.d = c * totalRotSin + d * totalRotCos;
+				_matrix.tx = (totalRotCos * texturePivotX - totalRotSin * texturePivotY) + newTextureX;
+				_matrix.ty = (totalRotSin * texturePivotX + totalRotCos * texturePivotY) + newTextureY;
 
 				_canvas.draw(bitmap, _matrix, colorTransform, p_blendMode, _currentCameraViewport, p_smoothing);
 			}
@@ -367,6 +437,8 @@ package bb.core.context
 		final private function isIntersect(p_leftTopX:Number, p_leftTopY:Number, p_rightBottomX:Number, p_rightBottomY:Number, p_leftTopX_1:Number,
 		                                   p_leftTopY_1:Number, p_rightBottomX_1:Number, p_rightBottomY_1:Number):Boolean
 		{
+			if (p_leftTopX > p_rightBottomX_1 || p_rightBottomX < p_leftTopX_1 || p_rightBottomY < p_leftTopY_1 || p_leftTopY > p_rightBottomY_1)  return false;
+
 			var exp:Boolean = false;
 
 			if (p_leftTopX >= p_leftTopX_1)
@@ -397,13 +469,33 @@ package bb.core.context
 		}
 
 		/**
+		 */
+		[Inline]
+		final private function cos(p_angleRad:Number):Number
+		{
+			return _cosTable[int(p_angleRad * RAD_TO_DEG + 360)];
+		}
+
+		/**
+		 */
+		[Inline]
+		final private function sin(p_angleRad:Number):Number
+		{
+			return _sinTable[int(p_angleRad * RAD_TO_DEG + 360)];
+		}
+
+		/**
 		 * Fill with specify color some rect area.
 		 */
 		[Inline]
 		final public function fillRect(p_x:Number, p_y:Number, p_width:int, p_height:int, p_color:uint):void
 		{
-			_rect.setTo(p_x, p_y, p_width, p_height);
-			_canvas.fillRect(_rect, p_color);
+			_rectTextureRender.x = p_x;
+			_rectTextureRender.y = p_y;
+			_rectTextureRender.width = p_width;
+			_rectTextureRender.height = p_height;
+
+			_canvas.fillRect(_rectTextureRender, p_color);
 		}
 
 		/**
@@ -412,6 +504,14 @@ package bb.core.context
 		public function get isStage3d():Boolean
 		{
 			return _isStage3d;
+		}
+
+		/**
+		 * Sends when context was initialized.
+		 */
+		public function get onInitialized():BBSignal
+		{
+			return _onInitialized;
 		}
 	}
 }
