@@ -282,22 +282,32 @@ package bb.core
 			invalidateOnce = true;
 		}
 
+		//
+		private var _localPos:Vec2;
+
 		/**
-		 * Returns instance of Vec2 with position values.
-		 * Creates new Vec2 non-weak instance.
+		 * Returns Vec2 with position values.
 		 */
 		final public function getPosition():Vec2
 		{
-			return Vec2.get(x, y);
+			if (_localPos) _localPos.setxy(_localX, _localY);
+			else _localPos = Vec2.get(_localX, _localY);
+
+			return _localPos;
 		}
 
+		//
+		private var _worldPos:Vec2;
+
 		/**
-		 * Returns point with world position.
-		 * Returns new Vec2 instance non-weak.
+		 * Returns Vec2 with world position.
 		 */
 		final public function getPositionWorld():Vec2
 		{
-			return Vec2.get(worldX, worldY);
+			if (_worldPos) _worldPos.setxy(worldX, worldY);
+			else _worldPos = Vec2.get(worldX, worldY);
+
+			return _worldPos;
 		}
 
 		/**
@@ -663,6 +673,12 @@ package bb.core
 			worldBlue = 1;
 			COS = 1;
 			SIN = 0;
+
+			if (_localPos) _localPos.dispose();
+			_localPos = null;
+
+			if (_worldPos) _worldPos.dispose();
+			_worldPos = null;
 
 			isScaleChanged = false;
 			isRotationChanged = false;
