@@ -419,7 +419,7 @@ package bb.core
 		static private var _numInPool:int = 0;
 
 		/**
-		 * Adds component instance to pool of course of component isn't disposed.
+		 * Adds component instance to pool of course if component isn't disposed.
 		 */
 		static private function put(p_component:BBComponent):void
 		{

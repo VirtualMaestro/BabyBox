@@ -50,6 +50,15 @@ package bb.gameobjects.weapons
 		}
 
 		/**
+		 * When action happens.
+		 */
+		public function fire():void
+		{
+			// override in children
+		}
+
+		/**
+		 * Returns direction of current gun.
 		 */
 		[Inline]
 		final protected function get direction():Vec2
