@@ -161,7 +161,7 @@ package bb.physics.components
 		 */
 		private function initBody(p_signal:BBSignal):void
 		{
-			if (_active)
+			if (active)
 			{
 				p_signal.removeCurrentListener();
 
@@ -394,7 +394,7 @@ package bb.physics.components
 		{
 			if (!_initJointList) _initJointList = new <BBJoint>[];
 
-			_initJointList.push(p_joint);
+			_initJointList[_initJointList.length] = p_joint;
 
 			if (!_isNeedInitJoints)
 			{
@@ -407,7 +407,7 @@ package bb.physics.components
 		 */
 		private function initJoints(p_signal:BBSignal):void
 		{
-			if (_active)
+			if (active)
 			{
 				p_signal.removeCurrentListener();
 
@@ -421,6 +421,7 @@ package bb.physics.components
 					var currentNodeName:String = node.name;
 					var jointsNum:int = _initJointList.length;
 					var joint:BBJoint;
+
 					for (var i:int = 0; i < jointsNum; i++)
 					{
 						joint = _initJointList[i];
@@ -840,10 +841,10 @@ package bb.physics.components
 		 */
 		override public function set active(p_val:Boolean):void
 		{
-			if (_active == p_val) return;
+			if (active == p_val) return;
 			super.active = p_val;
 
-			if (_active)
+			if (p_val)
 			{
 				if (node && node.isOnStage)
 				{

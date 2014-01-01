@@ -105,10 +105,10 @@ package bb.render.components
 		 */
 		override public function set active(p_val:Boolean):void
 		{
-			if (_active == p_val) return;
+			if (active == p_val) return;
 			super.active = p_val;
 
-			if (node) node.visible = node.visible;
+			if (node) node.visible = !node.visible;
 		}
 
 		/**

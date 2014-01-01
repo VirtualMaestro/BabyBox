@@ -276,11 +276,8 @@ package bb.core
 			}
 
 			_lookupComponentTable[lookup] = component;
-			component.onAdded.dispatch({node: this, lookupClass: lookup});
-			component.onUpdate.add(onUpdateComponentHandler);
-
-			// If component need to update add it to update list
-			if (component.active && component.updateEnable) addComponentToUpdateList(component);
+			++_numComponents;
+			component.init(this, lookup, onUpdateComponentHandler);
 
 			// If component renderable set to render component ref
 			if (component is BBRenderable)
@@ -289,20 +286,15 @@ package bb.core
 				if (component.active && _visible) z_renderComponent = _backupRenderComponent;
 			}
 
-			++_numComponents;
-
 			return component;
 		}
 
 		/**
 		 */
-		private function onUpdateComponentHandler(signal:BBSignal):void
+		final private function onUpdateComponentHandler(p_component:BBComponent, p_isNeedAdded:Boolean):void
 		{
-			var component:BBComponent = signal.dispatcher as BBComponent;
-			var isNeedAdd:Boolean = signal.params;
-
-			if (isNeedAdd) addComponentToUpdateList(component);
-			else unlinkComponentFromUpdateList(component);
+			if (p_isNeedAdded) addComponentToUpdateList(p_component);
+			else unlinkComponentFromUpdateList(p_component);
 		}
 
 		/**
@@ -393,13 +385,10 @@ package bb.core
 			// remove it from lookup table
 			delete _lookupComponentTable[p_componentLookupClass];
 
-			// send signal to component when it was unlinked
-			if (component._onRemoved) component._onRemoved.dispatch();
-
-			//
-			component._node = null;
-
 			--_numComponents;
+
+			// init component's props in null
+			component.init(null, null, null);
 		}
 
 		/**

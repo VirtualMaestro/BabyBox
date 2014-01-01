@@ -1,6 +1,5 @@
 package bb.core
 {
-	import bb.bb_spaces.bb_private;
 	import bb.signals.BBSignal;
 
 	import flash.utils.Dictionary;
@@ -11,39 +10,40 @@ package bb.core
 	import vm.classes.ClassUtil;
 	import vm.math.unique.UniqueId;
 
-	use namespace bb_private;
-
 	/**
 	 * Base class for components.
 	 */
 	public class BBComponent
 	{
 		// Next/prev links for able to create dynamic linked list
-		bb_private var next:BBComponent = null;
-		bb_private var prev:BBComponent = null;
-
-		/**
-		 * Signal dispatches when component adds or removes from update list of node.
-		 */
-		bb_private var onUpdate:BBSignal = null;
-		bb_private var _node:BBNode = null;
-
-		// Dispatches when component was unlinked from its node.
-		internal var _onRemoved:BBSignal = null;
+		internal var next:BBComponent = null;
+		internal var prev:BBComponent = null;
 
 		/**
 		 * If this component should be cached.
 		 */
 		protected var cacheable:Boolean = true;
-		protected var _active:Boolean = true;
+
+		// Dispatches when component was unlinked from its node.
+		private var _onRemoved:BBSignal = null;
 
 		// Dispatches when component was added to node.
 		private var _onAdded:BBSignal = null;
-		private var _id:int;
+
+		/**
+		 * Reference to node's function of adding component to update list.
+		 * Signature: (p_component:BBComponent, p_isNeedAdded:Boolean);
+		 */
+		private var _updateCallback:Function = null;
+		private var _node:BBNode = null;
 		private var _lookupClass:Class = null;
 		private var _componentClass:Class = null;
+		private var _userData:Object = null;
+
+		private var _id:int;
+
+		private var _active:Boolean = true;
 		private var _updateEnable:Boolean = false;
-		private var _userData:Object;
 		private var _isDisposed:Boolean = false;
 		private var _isRid:Boolean = false;
 
@@ -51,22 +51,29 @@ package bb.core
 		 */
 		public function BBComponent()
 		{
-			// System signal. Dispatches when component enable/disable to update
-			onUpdate = BBSignal.get(this);
-
-			_onAdded = BBSignal.get(this);
-			_onAdded.add(onAddedToNodeHandler);
-
+			// generate unique id for current instance
 			_id = UniqueId.getId();
 		}
 
 		/**
+		 * Method invoked when component was added/removed to/from node.
 		 */
-		private function onAddedToNodeHandler(p_signal:BBSignal):void
+		final internal function init(p_node:BBNode, p_lookupClass:Class, p_onUpdateComponent:Function):void
 		{
-			var params:Object = p_signal.params;
-			_node = params.node;
-			_lookupClass = params.lookupClass;
+			_lookupClass = p_lookupClass;
+			_updateCallback = p_onUpdateComponent;
+
+			if (p_lookupClass)
+			{
+				_node = p_node;
+				if (_onAdded) _onAdded.dispatch();
+				if (_updateEnable && _active) _updateCallback(this, true);
+			}
+			else
+			{
+				if (_onRemoved) _onRemoved.dispatch();
+				_node = p_node;
+			}
 		}
 
 		/**
@@ -115,6 +122,7 @@ package bb.core
 		 */
 		public function get onAdded():BBSignal
 		{
+			if (_onAdded == null) _onAdded = BBSignal.get(this);
 			return _onAdded;
 		}
 
@@ -145,7 +153,7 @@ package bb.core
 			if (_updateEnable == p_val) return;
 
 			_updateEnable = p_val;
-			if (_active) onUpdate.dispatch(_updateEnable);
+			if (_active && _updateCallback) _updateCallback(this, _updateEnable);
 		}
 
 		/**
@@ -171,10 +179,9 @@ package bb.core
 		{
 			if (_active == p_val) return;
 
-			if (_updateEnable)
+			if (_updateEnable && _updateCallback)
 			{
-				if (p_val) onUpdate.dispatch(true);
-				else onUpdate.dispatch(false);
+				_updateCallback(this, p_val);
 			}
 
 			_active = p_val;
@@ -210,7 +217,6 @@ package bb.core
 
 			if (cacheable)
 			{
-				_onAdded.addFirst(onAddedToNodeHandler);
 				put(this);
 			}
 			else rid();
@@ -218,17 +224,29 @@ package bb.core
 
 		/**
 		 */
-		private function destroy():void
+		[Inline]
+		final private function destroy():void
 		{
 			_isDisposed = true;
 
-			if (_node) _node.removeComponent(_lookupClass);
+			if (_node)
+			{
+				_node.removeComponent(_lookupClass);
+				_node = null;
+			}
 
-			onUpdate.removeAllListeners();
-			_onAdded.removeAllListeners();
-			if (_onRemoved) _onRemoved.removeAllListeners();
+			if (_onAdded)
+			{
+				_onAdded.dispose();
+				_onAdded = null;
+			}
 
-			_node = null;
+			if (_onRemoved)
+			{
+				_onRemoved.dispose();
+				_onRemoved = null;
+			}
+
 			_updateEnable = false;
 			_lookupClass = null;
 			next = null;
@@ -244,12 +262,6 @@ package bb.core
 			if (!_isRid)
 			{
 				_isRid = true;
-				onUpdate.dispose();
-				_onAdded.dispose();
-				if (_onRemoved) _onRemoved.dispose();
-				onUpdate = null;
-				_onAdded = null;
-				_onRemoved = null;
 				_componentClass = null;
 			}
 		}
