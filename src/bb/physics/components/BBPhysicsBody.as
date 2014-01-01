@@ -439,7 +439,7 @@ package bb.physics.components
 
 							//
 							createJoint(joint);
-							_thisJoints.push(joint);
+							_thisJoints[_thisJoints.length] = joint;
 							if (joint.jointedBodyComponent) joint.jointedBodyComponent._attachedJoints.push(joint);
 						}
 					}
@@ -604,25 +604,27 @@ package bb.physics.components
 		 */
 		public function removeAllJoints(p_removeAttached:Boolean = false):void
 		{
-			var numJoints:int;
-			while ((numJoints = _thisJoints.length) > 0)
+			var numJoints:int = _thisJoints.length;
+			while (numJoints > 0)
 			{
-				_thisJoints[numJoints - 1].dispose();
+				_thisJoints[--numJoints].dispose();
 			}
 
 			if (p_removeAttached)
 			{
-				while ((numJoints = _attachedJoints.length) > 0)
+				numJoints = _attachedJoints.length;
+				while (numJoints > 0)
 				{
-					_attachedJoints[numJoints - 1].dispose();
+					_attachedJoints[--numJoints].dispose();
 				}
 			}
 
 			if (_initJointList)
 			{
-				while ((numJoints = _initJointList.length) > 0)
+				numJoints = _initJointList.length;
+				while (numJoints > 0)
 				{
-					_initJointList[numJoints - 1].dispose();
+					_initJointList[--numJoints].dispose();
 				}
 
 				_initJointList = null;
@@ -761,8 +763,8 @@ package bb.physics.components
 				var joint:BBJoint;
 				if (_thisJoints && _thisJoints.length > 0)
 				{
-					var _jointsNum:int = _thisJoints.length;
-					for (var i:int = 0; i < _jointsNum; i++)
+					var jointsNum:int = _thisJoints.length;
+					for (var i:int = 0; i < jointsNum; i++)
 					{
 						joint = _thisJoints[i];
 
