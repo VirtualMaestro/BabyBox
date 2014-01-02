@@ -161,13 +161,11 @@ package bb.core
 		public function BBNode(p_name:String = "")
 		{
 			name = p_name;
+
 			_id = UniqueId.getId();
 			_tags = [];
 			_lookupComponentTable = new Dictionary();
 			_properties = new Dictionary();
-
-			_onAdded = BBSignal.get(this);
-			_onRemoved = BBSignal.get(this);
 
 			//
 			transform = addComponent(BBTransform) as BBTransform;
