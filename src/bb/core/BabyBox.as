@@ -70,7 +70,6 @@ package bb.core
 			BBMasterPool.addRidPoolMethod(BBNode.rid);
 			BBMasterPool.addRidPoolMethod(BBNode.ridCaches);
 			BBMasterPool.addRidPoolMethod(BBComponent.rid);
-			BBMasterPool.addRidPoolMethod(BBNodeStatus.rid);
 			BBMasterPool.addRidPoolMethod(BBMouseEvent.rid);
 			BBMasterPool.addRidPoolMethod(BBNativePool.rid);
 			BBMasterPool.addRidPoolMethod(BBJoint.rid);

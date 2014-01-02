@@ -11,7 +11,6 @@ package bb.camera.components
 	import bb.config.BBConfig;
 	import bb.core.BBComponent;
 	import bb.core.BBNode;
-	import bb.core.BBNodeStatus;
 	import bb.core.BBTransform;
 	import bb.core.BabyBox;
 	import bb.core.context.BBContext;
@@ -226,26 +225,15 @@ package bb.camera.components
 
 			radiusCalm = (_viewPort.width > _viewPort.height ? _viewPort.width : _viewPort.height) / 6;
 
-			node.onAdded.add(nodeAddedToParentHandler);
-
 			if (node.isOnStage) addCameraToEngine();
+			else node.onAddedToStage.addFirst(addCameraToEngine);
 		}
 
 		/**
 		 */
-		private function nodeAddedToParentHandler(p_signal:BBSignal):void
+		private function addCameraToEngine(p_signal:BBSignal = null):void
 		{
-			var status:BBNodeStatus = p_signal.params as BBNodeStatus;
-			if (status.isOnStage) addCameraToEngine();
-
-			updateEnable = true;
-		}
-
-		/**
-		 */
-		private function addCameraToEngine():void
-		{
-			_core = node.z_core;
+			_core = node.tree;
 			(_core.getModule(BBCamerasModule) as BBCamerasModule).addCamera(this);
 
 			if (_parentCamera)
@@ -260,6 +248,8 @@ package bb.camera.components
 				displayLayers = _displayLayers;
 				_displayLayers = null;
 			}
+
+			updateEnable = true;
 		}
 
 		/**
@@ -682,7 +672,14 @@ package bb.camera.components
 		 */
 		public function set displayLayers(p_layers:Array):void
 		{
-			if (p_layers == null || p_layers.length < 1) mask = -1;
+			CONFIG::debug
+			{
+				Assert.isTrue((p_layers != null), "parameter p_layers can't be null", "BBCamera.displayLayers");
+			}
+
+			var numLayers:int = p_layers.length;
+
+			if (numLayers < 1) mask = -1;
 			else
 			{
 				if (node.isOnStage)
@@ -690,10 +687,11 @@ package bb.camera.components
 					var layerModule:BBLayerModule = _core.getModule(BBLayerModule) as BBLayerModule;
 					var groups:Array = [];
 					var layer:BBLayer;
-					for (var i:int = 0; i < p_layers.length; i++)
+
+					for (var i:int = 0; i < numLayers; i++)
 					{
 						layer = layerModule.get(p_layers[i]);
-						groups.push(layer.group);
+						groups[i] = layer.group;
 					}
 
 					displayGroups = groups;
@@ -715,13 +713,16 @@ package bb.camera.components
 					_core = null;
 				}
 
-				if (_onShakeComplete) _onShakeComplete.dispose();
-				_onShakeComplete = null;
+				if (_onShakeComplete)
+				{
+					_onShakeComplete.dispose();
+					_onShakeComplete = null;
+				}
 
 				_parentCamera = null;
 				_parentCameraTransform = null;
-
 				_displayLayers = null;
+
 				mask = -1;
 
 				mouseEnable = false;
