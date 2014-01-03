@@ -5,15 +5,12 @@
  */
 package bb.gameobjects.weapons
 {
-	import bb.bb_spaces.bb_private;
 	import bb.core.BBComponent;
 	import bb.core.BBTransform;
 	import bb.physics.BBPhysicsModule;
 	import bb.signals.BBSignal;
 
 	import nape.geom.Vec2;
-
-	use namespace bb_private;
 
 	/**
 	 * Base class for implementation different weapons.
@@ -28,24 +25,39 @@ package bb.gameobjects.weapons
 		public function BBWeapon()
 		{
 			super();
+		}
 
+		/**
+		 */
+		override protected function init():void
+		{
 			onAdded.add(addedToNodeHandler);
+			onRemoved.add(removedFromNodeHandler);
 		}
 
 		/**
 		 */
 		private function addedToNodeHandler(p_signal:BBSignal):void
 		{
-			if (node.isOnStage) init();
-			else node.onAdded.add(addedToNodeHandler);
+			if (node.isOnStage) initialize();
+			else node.onAddedToStage.add(initialize);
+		}
+
+		/**
+		 */
+		private function removedFromNodeHandler(p_signal:BBSignal):void
+		{
+			node.onAddedToStage.remove(initialize);
+			physicsModule = null;
+			transform = null;
 		}
 
 		/**
 		 * Invokes when components on the stage and need to init weapon.
 		 */
-		private function init():void
+		private function initialize(p_signal:BBSignal = null):void
 		{
-			physicsModule = node.z_core.getModule(BBPhysicsModule) as BBPhysicsModule;
+			physicsModule = node.tree.getModule(BBPhysicsModule) as BBPhysicsModule;
 			transform = node.transform;
 		}
 
@@ -69,6 +81,26 @@ package bb.gameobjects.weapons
 			dir.length = 1;
 
 			return dir;
+		}
+
+		/**
+		 */
+		override protected function destroy():void
+		{
+			// my code
+
+			//
+			super.destroy();
+		}
+
+		/**
+		 */
+		override protected function rid():void
+		{
+			// my code
+
+			//
+			super.rid();
 		}
 	}
 }

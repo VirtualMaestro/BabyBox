@@ -348,7 +348,7 @@ package bb.core
 
 			_lookupComponentTable[lookup] = component;
 			++_numComponents;
-			component.init(this, lookup, onUpdateComponentHandler);
+			component.nodeInit(this, lookup, onUpdateComponentHandler);
 
 			// If component renderable set to render component ref
 			if (component is BBRenderable)
@@ -459,7 +459,7 @@ package bb.core
 			--_numComponents;
 
 			// init component's props in null
-			component.init(null, null, null);
+			component.nodeInit(null, null, null);
 		}
 
 		/**

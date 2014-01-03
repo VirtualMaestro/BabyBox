@@ -93,6 +93,17 @@ package bb.particles
 		public function BBEmitter()
 		{
 			super();
+		}
+
+		/**
+		 */
+		override protected function init():void
+		{
+			super.init();
+
+			isCulling = true;
+			smoothing = false;
+			allowRotation = false;
 
 			onAdded.add(addedToNodeHandler);
 		}
@@ -101,27 +112,14 @@ package bb.particles
 		 */
 		private function addedToNodeHandler(p_signal:BBSignal):void
 		{
-			isCulling = true;
-			smoothing = false;
-			allowRotation = false;
+			_transform = node.transform;
 
-			node.onAdded.add(addedToStage);
-		}
+			if (z_texture == null) z_texture = getDefaultTexture();
 
-		/**
-		 */
-		private function addedToStage(p_signal:BBSignal):void
-		{
-			if (node.isOnStage)
-			{
-				_transform = node.transform;
-				if (z_texture == null) z_texture = getDefaultTexture();
+			_prevX = _transform.worldX;
+			_prevY = _transform.worldY;
 
-				_prevX = _transform.worldX;
-				_prevY = _transform.worldY;
-
-				updateEnable = true;
-			}
+			updateEnable = true;
 		}
 
 		/**
@@ -442,14 +440,14 @@ package bb.particles
 
 		/**
 		 */
-		override public function dispose():void
+		override protected function destroy():void
 		{
 			var curNode:BBNode = node;
-			curNode.onAdded.remove(addedToStage);
 			clearParticles();
-			super.dispose();
 
 			if (curNode.parent) curNode.parent.removeChild(curNode);
+
+			super.destroy();
 		}
 
 		/**

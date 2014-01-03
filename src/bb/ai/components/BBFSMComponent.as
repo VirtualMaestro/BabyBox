@@ -24,7 +24,10 @@ package bb.ai.components
 		public function BBFSMComponent()
 		{
 			super();
+		}
 
+		override protected function init():void
+		{
 			onAdded.add(addedToNode);
 		}
 
@@ -78,14 +81,14 @@ package bb.ai.components
 
 		/**
 		 */
-		override public function dispose():void
+		override protected function destroy():void
 		{
 			_fsm.dispose();
 			_fsm = null;
 			_defaultState = null;
 			_isStack = false;
 
-			super.dispose();
+			super.destroy();
 		}
 
 		/**

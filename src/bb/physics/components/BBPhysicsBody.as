@@ -117,10 +117,14 @@ package bb.physics.components
 			//
 			_thisJoints = new <BBJoint>[];
 			_attachedJoints = new <BBJoint>[];
+		}
 
-			//
+		/**
+		 */
+		override protected function init():void
+		{
 			onAdded.add(addedToNodeHandler);
-			onRemoved.add(unlinkedFromNodeHandler);
+			onRemoved.add(removedFromNodeHandler);
 		}
 
 		/**
@@ -132,29 +136,49 @@ package bb.physics.components
 			_physicsModule = BabyBox.get().getModule(BBPhysicsModule) as BBPhysicsModule;
 			if (!_space) _space = _physicsModule.space;
 
-			if (node.isOnStage) addToStage();
+			if (node.isOnStage) addedToStageHandler();
 
-			node.onAdded.add(addedToStageHandler);
-			node.onRemoved.add(unlinkedFromStageHandler);
+			node.onAddedToStage.add(addedToStageHandler);
+			node.onRemovedFromStage.add(removedFromStageHandler);
 			node.onActive.add(onNodeActiveHandler);
 		}
 
 		/**
 		 */
-		private function addedToStageHandler(p_signal:BBSignal):void
+		private function addedToStageHandler(p_signal:BBSignal = null):void
 		{
-			if (node.isOnStage)
-			{
-				addToStage();
-			}
+			node.onUpdated.add(initBody);
+			node.onUpdated.add(initJoints);
 		}
 
 		/**
 		 */
-		private function addToStage():void
+		private function removedFromStageHandler(p_signal:BBSignal):void
 		{
-			node.onUpdated.add(initBody);
-			node.onUpdated.add(initJoints);
+			activateJoints = false;
+			_body.space = null;
+		}
+
+		/**
+		 */
+		private function removedFromNodeHandler(p_signal:BBSignal):void
+		{
+			node.onAddedToStage.remove(addedToStageHandler);
+			node.onRemovedFromStage.remove(removedFromStageHandler);
+			node.onActive.remove(onNodeActiveHandler);
+
+			///
+			activateJoints = false;
+			_transform.lockInvalidation = false;
+			_body.space = null;
+			_body.group = null;
+		}
+
+		/**
+		 */
+		private function onNodeActiveHandler(p_signal:BBSignal):void
+		{
+			active = p_signal.params;
 		}
 
 		/**
@@ -185,41 +209,6 @@ package bb.physics.components
 					if (parentPhysicsComponent.isBullet) _body.isBullet = parentPhysicsComponent.isBullet;
 				}
 			}
-		}
-
-		/**
-		 */
-		private function unlinkedFromStageHandler(p_signal:BBSignal):void
-		{
-			node.onRemoved.remove(unlinkedFromStageHandler);
-			node.onUpdated.remove(initBody);
-			node.onUpdated.remove(initJoints);
-
-			////
-			activateJoints = false;
-			_body.space = null;
-		}
-
-		/**
-		 */
-		private function unlinkedFromNodeHandler(p_signal:BBSignal):void
-		{
-			node.onAdded.remove(addedToStageHandler);
-			node.onRemoved.remove(unlinkedFromStageHandler);
-			node.onActive.remove(onNodeActiveHandler);
-
-			///
-			activateJoints = false;
-			_transform.lockInvalidation = false;
-			_body.space = null;
-			_body.group = null;
-		}
-
-		/**
-		 */
-		private function onNodeActiveHandler(p_signal:BBSignal):void
-		{
-			active = p_signal.params;
 		}
 
 		/**
@@ -921,12 +910,10 @@ package bb.physics.components
 
 		/**
 		 */
-		override public function dispose():void
+		override protected function destroy():void
 		{
 			removeAllJoints(true);
 			removeShapes();
-
-			super.dispose();
 
 			_transform = null;
 			_scaleX = 1.0;
@@ -934,28 +921,23 @@ package bb.physics.components
 			_isNeedInitJoints = false;
 			sleep = false;
 
-			if (cacheable)
-			{
-				onAdded.add(addedToNodeHandler);
-				onRemoved.add(unlinkedFromNodeHandler);
+			_body.cbTypes.clear();
+			_body.rotation = 0;
+			_body.position.setxy(0, 0);
+			_body.velocity.setxy(0, 0);
+			_body.kinematicVel.setxy(0, 0);
+			_body.surfaceVel.setxy(0, 0);
+			_body.angularVel = 0;
+			_body.kinAngVel = 0;
 
-				_body.cbTypes.clear();
-				_body.rotation = 0;
-				_body.position.setxy(0, 0);
-				_body.velocity.setxy(0, 0);
-				_body.kinematicVel.setxy(0, 0);
-				_body.surfaceVel.setxy(0, 0);
-				_body.angularVel = 0;
-				_body.kinAngVel = 0;
-			}
+			//
+			super.destroy();
 		}
 
 		/**
 		 */
 		override protected function rid():void
 		{
-			super.rid();
-
 			_thisJoints = null;
 			_attachedJoints = null;
 			_initJointList = null;
@@ -964,6 +946,9 @@ package bb.physics.components
 			delete _body.userData.bb_component;
 			_body = null;
 			_bodyPosition = null;
+
+			//
+			super.rid();
 		}
 
 		/**

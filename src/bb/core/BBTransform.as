@@ -26,68 +26,110 @@ package bb.core
 		private const DEG_TO_RAD:Number = Math.PI / 180.0;
 
 		//
-		private var _localX:Number = 0;
-		private var _localY:Number = 0;
-		bb_private var worldX:Number = 0;
-		bb_private var worldY:Number = 0;
+		private var _localX:Number;
+		private var _localY:Number;
+		bb_private var worldX:Number;
+		bb_private var worldY:Number;
 
-		private var _localRotation:Number = 0; // in radians
-		bb_private var worldRotation:Number = 0; // in radians
+		private var _localRotation:Number; // in radians
+		bb_private var worldRotation:Number; // in radians
 
-		private var _localScaleX:Number = 1;
-		private var _localScaleY:Number = 1;
-		bb_private var worldScaleX:Number = 1;
-		bb_private var worldScaleY:Number = 1;
+		private var _localScaleX:Number;
+		private var _localScaleY:Number;
+		bb_private var worldScaleX:Number;
+		bb_private var worldScaleY:Number;
 
-		private var _worldTransformMatrix:Matrix = null;
-		private var _localTransformMatrix:Matrix = null;
-		private var _isWorldTransformMatrixChanged:Boolean = true;
+		private var _worldTransformMatrix:Matrix;
+		private var _localTransformMatrix:Matrix;
+		private var _isWorldTransformMatrixChanged:Boolean;
 
-		bb_private var isTransformChanged:Boolean = false;
-		bb_private var isPositionChanged:Boolean = false;
-		bb_private var isRotationChanged:Boolean = false;
-		bb_private var isScaleChanged:Boolean = false;
-		bb_private var isColorChanged:Boolean = false;
+		bb_private var isTransformChanged:Boolean;
+		bb_private var isPositionChanged:Boolean;
+		bb_private var isRotationChanged:Boolean;
+		bb_private var isScaleChanged:Boolean;
+		bb_private var isColorChanged:Boolean;
 
-		bb_private var COS:Number = 1.0;
-		bb_private var SIN:Number = 0.0;
+		bb_private var COS:Number;
+		bb_private var SIN:Number;
 
 		// color //
-		bb_private var isColorShouldBeDisplayed:Boolean = false;
+		bb_private var isColorShouldBeDisplayed:Boolean;
 
-		bb_private var worldRed:Number = 1;
-		private var _red:Number = 1;
+		bb_private var worldRed:Number;
+		private var _red:Number;
 
-		bb_private var worldGreen:Number = 1;
-		private var _green:Number = 1;
+		bb_private var worldGreen:Number;
+		private var _green:Number;
 
-		bb_private var worldBlue:Number = 1;
-		private var _blue:Number = 1;
+		bb_private var worldBlue:Number;
+		private var _blue:Number;
 
-		bb_private var worldAlpha:Number = 1;
-		private var _alpha:Number = 1;
+		bb_private var worldAlpha:Number;
+		private var _alpha:Number;
 
 		/**
 		 * Lock invalidation method, so world's parameters like worldX, worldRotation etc. won't not update (changed).
 		 */
-		public var lockInvalidation:Boolean = false;
-		public var invalidateOnce:Boolean = false;
+		public var lockInvalidation:Boolean;
+		public var invalidateOnce:Boolean;
 
 		/**
 		 * Is transform changed and updated values.
 		 */
-		public var isInvalidated:Boolean = false;
-		public var isPositionInvalidated:Boolean = false;
-		public var isRotationInvalidated:Boolean = false;
-		public var isScaleInvalidated:Boolean = false;
-		public var isPRSInvalidated:Boolean = false;
-		public var isColorInvalidated:Boolean = false;
+		public var isInvalidated:Boolean;
+		public var isPositionInvalidated:Boolean;
+		public var isRotationInvalidated:Boolean;
+		public var isScaleInvalidated:Boolean;
+		public var isPRSInvalidated:Boolean;
+		public var isColorInvalidated:Boolean;
 
 		/**
 		 */
 		public function BBTransform()
 		{
 			super();
+		}
+
+		/**
+		 */
+		override protected function init():void
+		{
+			_localX = 0;
+			_localY = 0;
+			worldX = 0;
+			worldY = 0;
+			_localRotation = 0;
+			worldRotation = 0;
+			_localScaleX = 1;
+			_localScaleY = 1;
+			worldScaleX = 1;
+			worldScaleY = 1;
+			_alpha = 1;
+			worldAlpha = 1;
+			_red = 1;
+			worldRed = 1;
+			_green = 1;
+			worldGreen = 1;
+			_blue = 1;
+			worldBlue = 1;
+			COS = 1;
+			SIN = 0;
+
+			isScaleChanged = false;
+			isRotationChanged = false;
+			isPositionChanged = false;
+			isTransformChanged = false;
+			isColorChanged = false;
+			isColorShouldBeDisplayed = false;
+			_isWorldTransformMatrixChanged = true;
+			isInvalidated = false;
+			isScaleInvalidated = false;
+			isColorInvalidated = false;
+			isPositionInvalidated = false;
+			isRotationInvalidated = false;
+			isPRSInvalidated = false;
+			lockInvalidation = false;
+			invalidateOnce = false;
 		}
 
 		/**
@@ -649,52 +691,34 @@ package bb.core
 
 		/**
 		 */
-		override public function dispose():void
+		override protected function destroy():void
 		{
-			super.dispose();
+			if (_localPos)
+			{
+				_localPos.dispose();
+				_localPos = null;
+			}
 
-			_localX = 0;
-			_localY = 0;
-			worldX = 0;
-			worldY = 0;
-			_localRotation = 0;
-			worldRotation = 0;
-			_localScaleX = 1;
-			_localScaleY = 1;
-			worldScaleX = 1;
-			worldScaleY = 1;
-			_alpha = 1;
-			worldAlpha = 1;
-			_red = 1;
-			worldRed = 1;
-			_green = 1;
-			worldGreen = 1;
-			_blue = 1;
-			worldBlue = 1;
-			COS = 1;
-			SIN = 0;
+			if (_worldPos)
+			{
+				_worldPos.dispose();
+				_worldPos = null;
+			}
 
-			if (_localPos) _localPos.dispose();
-			_localPos = null;
+			if (_worldTransformMatrix)
+			{
+				BBNativePool.putMatrix(_worldTransformMatrix);
+				_worldTransformMatrix = null;
+			}
 
-			if (_worldPos) _worldPos.dispose();
-			_worldPos = null;
+			if (_localTransformMatrix)
+			{
+				BBNativePool.putMatrix(_localTransformMatrix);
+				_localTransformMatrix = null;
+			}
 
-			isScaleChanged = false;
-			isRotationChanged = false;
-			isPositionChanged = false;
-			isTransformChanged = false;
-			isColorChanged = false;
-			isColorShouldBeDisplayed = false;
-			_isWorldTransformMatrixChanged = true;
-			isInvalidated = false;
-			isScaleInvalidated = false;
-			isColorInvalidated = false;
-			isPositionInvalidated = false;
-			isRotationInvalidated = false;
-			isPRSInvalidated = false;
-			lockInvalidation = false;
-			invalidateOnce = false;
+			//
+			super.destroy();
 		}
 
 		/**

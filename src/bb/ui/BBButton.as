@@ -117,14 +117,14 @@ package bb.ui
 
 		/**
 		 */
-		override public function dispose():void
+		override protected function destroy():void
 		{
 			_upState = null;
 			_downState = null;
 			_overState = null;
 			_isOver = false;
 
-			super.dispose();
+			super.destroy();
 		}
 
 		/**

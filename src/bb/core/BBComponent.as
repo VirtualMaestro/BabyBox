@@ -45,7 +45,6 @@ package bb.core
 		private var _active:Boolean = true;
 		private var _updateEnable:Boolean = false;
 		private var _isDisposed:Boolean = false;
-		private var _isRid:Boolean = false;
 
 		/**
 		 */
@@ -53,12 +52,23 @@ package bb.core
 		{
 			// generate unique id for current instance
 			_id = UniqueId.getId();
+
+			init();
+		}
+
+		/**
+		 * Method invoked when component created or get from pool.
+		 * It is can be override in children with invocation of super method.
+		 */
+		protected function init():void
+		{
+			// override in children
 		}
 
 		/**
 		 * Method invoked when component was added/removed to/from node.
 		 */
-		final internal function init(p_node:BBNode, p_lookupClass:Class, p_onUpdateComponent:Function):void
+		final internal function nodeInit(p_node:BBNode, p_lookupClass:Class, p_onUpdateComponent:Function):void
 		{
 			_lookupClass = p_lookupClass;
 			_updateCallback = p_onUpdateComponent;
@@ -202,7 +212,8 @@ package bb.core
 		 * If yes this is mean that component can't reuse any more.
 		 * Also this component can't be putted to pool.
 		 */
-		public function get isDisposed():Boolean
+		[Inline]
+		final public function get isDisposed():Boolean
 		{
 			return _isDisposed;
 		}
@@ -210,25 +221,25 @@ package bb.core
 		/**
 		 * Dispose component.
 		 */
-		public function dispose():void
+		final public function dispose():void
 		{
 			if (_isDisposed) return;
+			_isDisposed = true;
+
+			//
 			destroy();
 
-			if (cacheable)
-			{
-				put(this);
-			}
+			//
+			if (cacheable) put(this);
 			else rid();
 		}
 
 		/**
+		 * Method invoked when component destroying.
+		 * Need to override in children with invocation of super method for custom implementation.
 		 */
-		[Inline]
-		final private function destroy():void
+		protected function destroy():void
 		{
-			_isDisposed = true;
-
 			if (_node)
 			{
 				_node.removeComponent(_lookupClass);
@@ -255,15 +266,12 @@ package bb.core
 		}
 
 		/**
+		 * Use when need completely remove component (without caching).
+		 * Need to override in children with invocation of super method for custom implementation.
 		 */
 		protected function rid():void
 		{
-			if (!_isDisposed) destroy();
-			if (!_isRid)
-			{
-				_isRid = true;
-				_componentClass = null;
-			}
+			_componentClass = null;
 		}
 
 		/**
@@ -462,6 +470,7 @@ package bb.core
 				_pool[componentClass] = head;
 				component.next = null;
 				component._isDisposed = false;
+				component.init();
 				--_numInPool;
 			}
 			else component = new componentClass();
