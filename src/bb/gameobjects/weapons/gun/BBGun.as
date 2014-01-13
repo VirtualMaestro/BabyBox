@@ -7,10 +7,6 @@ package bb.gameobjects.weapons.gun
 {
 	import bb.gameobjects.weapons.BBWeapon;
 
-	import flash.utils.getTimer;
-
-	import nape.geom.Ray;
-	import nape.geom.RayResult;
 	import nape.geom.Vec2;
 
 	/**
@@ -18,13 +14,13 @@ package bb.gameobjects.weapons.gun
 	 */
 	public class BBGun extends BBWeapon
 	{
-		protected var fireDistance:Number = 300;
-		protected var fireRate:Number = 1; // num bullets per second
+		public var callbackResult:Function = null;
+		public var influenceTime:Boolean = false;
+		public var multiAims:Boolean = false;
 
-		private var _multiAims:Boolean = false;
+		private var _fireDistance:Number = 300;
 
-		private var _fireRateTimeCollector:int = 0;
-		private var _prevTime:int = 0;
+		private var _etalonBullet:BBBullet;
 
 		/**
 		 */
@@ -35,38 +31,71 @@ package bb.gameobjects.weapons.gun
 
 		/**
 		 */
-		override public function fire():void
+		override protected function init():void
 		{
-			var currentTime:int = getTimer();
-			_fireRateTimeCollector = currentTime - _prevTime;
+			super.init();
 
-			// can fire
-			if (_fireRateTimeCollector >= 1000 / fireRate)
+			setupBullet();
+		}
+
+		/**
+		 * Implementation of fire action for gun.
+		 */
+		override protected function fireAction():void
+		{
+			var dir:Vec2 = direction;
+			var startPos:Vec2 = transform.getPositionWorld().copy();
+			var endPos:Vec2 = dir.mul(_fireDistance).addeq(startPos);
+
+			var bullet:BBBullet = _etalonBullet.copy();
+			bullet.multiAims = multiAims;
+			bullet.influenceTime = influenceTime;
+			bullet.start = startPos;
+			bullet.end = endPos;
+			bullet.direction = dir;
+			bullet.filter = filter;
+			bullet.callbackResult = callbackResult;
+
+			weaponModule.addBullet(bullet);
+		}
+
+		/**
+		 * Init parameters which will has bullet that used by this gun.
+		 */
+		public function setupBullet(p_mass:Number = 7.0, p_speed:Number = 400, p_radiusTip:Number = 3.0):void
+		{
+			if (!_etalonBullet) _etalonBullet = BBBullet.get(p_mass, p_speed, p_radiusTip);
+			else
 			{
-				_fireRateTimeCollector = 0;
-
-				//
-				if (_multiAims)
-				{
-
-				}
-				else
-				{
-					var startPos:Vec2 = transform.getPositionWorld();
-					var endPos:Vec2 = direction.muleq(fireDistance).addeq(startPos);
-					var result:RayResult = physicsModule.space.rayCast(Ray.fromSegment(startPos, endPos));
-//					result.
-				}
+				_etalonBullet.mass = p_mass;
+				_etalonBullet.speed = p_speed;
+				_etalonBullet.radiusTip = p_radiusTip;
 			}
-
-			_prevTime = currentTime;
 		}
 
 		/**
 		 */
-		override public function update(p_deltaTime:int):void
+		override protected function destroy():void
 		{
+			if (_etalonBullet)
+			{
+				_etalonBullet.dispose();
+				_etalonBullet = null;
+			}
 
+			super.destroy();
+		}
+
+		/**
+		 */
+		public function get fireDistance():Number
+		{
+			return _fireDistance;
+		}
+
+		public function set fireDistance(p_value:Number):void
+		{
+			_fireDistance = p_value < 1 ? 1 : p_value;
 		}
 	}
 }

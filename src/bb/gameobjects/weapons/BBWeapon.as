@@ -7,9 +7,11 @@ package bb.gameobjects.weapons
 {
 	import bb.core.BBComponent;
 	import bb.core.BBTransform;
-	import bb.physics.BBPhysicsModule;
 	import bb.signals.BBSignal;
 
+	import flash.utils.getTimer;
+
+	import nape.dynamics.InteractionFilter;
 	import nape.geom.Vec2;
 
 	/**
@@ -17,8 +19,15 @@ package bb.gameobjects.weapons
 	 */
 	public class BBWeapon extends BBComponent
 	{
-		protected var physicsModule:BBPhysicsModule;
+		public var filter:InteractionFilter;
+
+		protected var weaponModule:BBWeaponModule;
 		protected var transform:BBTransform;
+
+		private var _fireRate:Number = 1; // num fires per second
+
+		private var _fireRateTimeCollector:int = 0;
+		private var _prevTime:int = 0;
 
 		/**
 		 */
@@ -48,7 +57,7 @@ package bb.gameobjects.weapons
 		private function removedFromNodeHandler(p_signal:BBSignal):void
 		{
 			node.onAddedToStage.remove(initialize);
-			physicsModule = null;
+			weaponModule = null;
 			transform = null;
 		}
 
@@ -57,14 +66,37 @@ package bb.gameobjects.weapons
 		 */
 		private function initialize(p_signal:BBSignal = null):void
 		{
-			physicsModule = node.tree.getModule(BBPhysicsModule) as BBPhysicsModule;
+			weaponModule = node.tree.getModule(BBWeaponModule) as BBWeaponModule;
+			if (!weaponModule) weaponModule = node.tree.addModule(BBWeaponModule, true) as BBWeaponModule;
+
 			transform = node.transform;
 		}
 
 		/**
-		 * When action happens.
+		 * Weapon starts shooting.
+		 * For implementation specific fire logic should to override of fireAction method.
 		 */
-		public function fire():void
+		final public function fire():void
+		{
+			var currentTime:int = getTimer();
+			_fireRateTimeCollector += currentTime - _prevTime;
+
+			// can fire
+			if (_fireRateTimeCollector > 999 / _fireRate)
+			{
+				_fireRateTimeCollector = 0;
+
+				fireAction();
+			}
+
+			_prevTime = currentTime;
+		}
+
+		/**
+		 * Where happens concrete implementation of fire action.
+		 * That logic should be override in children.
+		 */
+		protected function fireAction():void
 		{
 			// override in children
 		}
@@ -101,6 +133,18 @@ package bb.gameobjects.weapons
 
 			//
 			super.rid();
+		}
+
+		/**
+		 */
+		public function get fireRate():Number
+		{
+			return _fireRate;
+		}
+
+		public function set fireRate(p_value:Number):void
+		{
+			_fireRate = p_value < 1 ? 1 : p_value;
 		}
 	}
 }
