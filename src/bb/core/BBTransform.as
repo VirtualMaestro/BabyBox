@@ -329,6 +329,8 @@ package bb.core
 
 		/**
 		 * Returns Vec2 with position values.
+		 * If you need to change returned vector, you should to make a copy from given,
+		 * because current method isn't creates new instance.
 		 */
 		final public function getPosition():Vec2
 		{
@@ -343,6 +345,8 @@ package bb.core
 
 		/**
 		 * Returns Vec2 with world position.
+		 * If you need to change returned vector, you should to make a copy from given,
+		 * because current method isn't creates new instance.
 		 */
 		final public function getPositionWorld():Vec2
 		{
