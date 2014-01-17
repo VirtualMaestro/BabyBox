@@ -525,6 +525,7 @@ package bb.core
 		}
 
 		/**
+		 * Shifts scale by given value.
 		 */
 		public function shiftScale(p_shiftScaleX:Number, p_shiftScaleY:Number):void
 		{
@@ -540,7 +541,7 @@ package bb.core
 		}
 
 		/**
-		 * Shift rotation by given angel.
+		 * Shift rotation by given angel (in radians).
 		 */
 		public function set shiftRotation(p_offsetAngle:Number):void
 		{
@@ -548,6 +549,8 @@ package bb.core
 		}
 
 		/**
+		 * Shifted position and angle by given values.
+		 * (angle in radians)
 		 */
 		public function shiftPositionAndRotation(p_offsetX:Number, p_offsetY:Number, p_offsetAngle:Number):void
 		{
