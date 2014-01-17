@@ -188,6 +188,7 @@ package bb.camera.components
 		/**
 		 * Calculate new position of given point related to coordinate system of camera.
 		 * Return false if point is not in the camera's viewPort.
+		 * (given p_point instance will be updated with new results values)
 		 */
 		bb_private function calcRelatedPosition(p_point:Point):Boolean
 		{

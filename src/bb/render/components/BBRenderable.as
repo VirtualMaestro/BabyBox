@@ -282,8 +282,8 @@ package bb.render.components
 			else
 			{
 				var matrix:Matrix = currentNode.transform.getTransformedWorldMatrix(offsetScaleX, offsetScaleY, offsetRotation, offsetX, offsetY, true);
-				var camX:Number = p_event.cameraX;
-				var camY:Number = p_event.cameraY;
+				var camX:Number = p_event.worldX;
+				var camY:Number = p_event.worldY;
 				var localMouseX:Number = camX * matrix.a + camY * matrix.c + matrix.tx;
 				var localMouseY:Number = camX * matrix.b + camY * matrix.d + matrix.ty;
 				var texPivotX:Number = z_texture.pivotX;

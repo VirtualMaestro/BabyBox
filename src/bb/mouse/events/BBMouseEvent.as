@@ -37,26 +37,56 @@ package bb.mouse.events
 		public var isButtonDown:Boolean = false;
 		public var isCtrlDown:Boolean = false;
 
+		/** X mouse position calculated for current node (with texture)*/
 		public var localX:int = 0;
+
+		/** Y mouse position calculated for current node (with texture)*/
 		public var localY:int = 0;
 
+		//
 		public var stageX:int = 0;
 		public var stageY:int = 0;
 
 		/**
-		 *    if value less then 0 it is mean mouse point isn't inside viewRect (canvas).
+		 * X mouse position calculated for view rect (canvas) coordinates.
+		 * if value less then 0 it is mean mouse point isn't inside viewRect (canvas).
 		 */
 		public var viewRectX:int = -1;
+
+		/**
+		 * Y mouse position calculated for view rect (canvas) coordinates.
+		 * if value less then 0 it is mean mouse point isn't inside viewRect (canvas).
+		 */
 		public var viewRectY:int = -1;
 
 		/**
-		 *    if value less then 0 it is mean mouse point isn't inside viewRect of camera.
+		 * X mouse position calculated for camera's view port coordinates.
+		 * if value less then 0 it is mean mouse point isn't inside view port of camera.
 		 */
 		public var cameraViewPortX:Number = -1;
+
+		/**
+		 * Y mouse position calculated for camera's view port coordinates.
+		 * if value less then 0 it is mean mouse point isn't inside view port of camera.
+		 */
 		public var cameraViewPortY:Number = -1;
 
-		public var cameraX:int = 0;
-		public var cameraY:int = 0;
+		/**
+		 * X mouse position represents position in world coordinates for current camera.
+		 * (Current camera can be get from 'capturedCamera' prop).
+		 */
+		public var worldX:int = 0;
+
+		/**
+		 * Y mouse position represents position in world coordinates for current camera.
+		 * (Current camera can be get from 'capturedCamera' prop).
+		 */
+		public var worldY:int = 0;
+
+		/**
+		 * Current camera.
+		 * (Can be absent)
+		 */
 		public var capturedCamera:BBCamera = null;
 
 		public var propagation:Boolean = true;
@@ -66,7 +96,8 @@ package bb.mouse.events
 
 		/**
 		 */
-		public function BBMouseEvent(p_type:uint = 0, p_target:BBNode = null, p_dispatcher:BBNode = null, p_localX:int = 0, p_localY:int = 0, p_buttonDown:Boolean = false, p_ctrlDown:Boolean = false)
+		public function BBMouseEvent(p_type:uint = 0, p_target:BBNode = null, p_dispatcher:BBNode = null, p_localX:int = 0, p_localY:int = 0,
+		                             p_buttonDown:Boolean = false, p_ctrlDown:Boolean = false)
 		{
 			type = p_type;
 			target = p_target;
@@ -88,8 +119,8 @@ package bb.mouse.events
 			cloneInstance.viewRectY = viewRectY;
 			cloneInstance.cameraViewPortX = cameraViewPortX;
 			cloneInstance.cameraViewPortY = cameraViewPortY;
-			cloneInstance.cameraX = cameraX;
-			cloneInstance.cameraY = cameraY;
+			cloneInstance.worldX = worldX;
+			cloneInstance.worldY = worldY;
 			cloneInstance.capturedCamera = capturedCamera;
 			cloneInstance.stopPropagationAfterHandling = stopPropagationAfterHandling;
 
@@ -118,7 +149,7 @@ package bb.mouse.events
 				localX = localY = 0;
 				stageX = stageY = 0;
 				viewRectX = viewRectY = -1;
-				cameraX = cameraY = 0;
+				worldX = worldY = 0;
 				cameraViewPortX = cameraViewPortY = -1;
 				isButtonDown = false;
 				isCtrlDown = false;
@@ -139,14 +170,14 @@ package bb.mouse.events
 		/**
 		 * Returns instance of BBMouseEvent.
 		 */
-		static public function get(p_type:uint = 0, p_target:BBNode = null, p_dispatcher:BBNode = null, p_localX:int = 0, p_localY:int = 0, p_buttonDown:Boolean = false, p_ctrlDown:Boolean = false):BBMouseEvent
+		static public function get(p_type:uint = 0, p_target:BBNode = null, p_dispatcher:BBNode = null, p_localX:int = 0, p_localY:int = 0,
+		                           p_buttonDown:Boolean = false, p_ctrlDown:Boolean = false):BBMouseEvent
 		{
 			var mouseEvent:BBMouseEvent;
 
 			if (_size > 0)
 			{
 				mouseEvent = _pool[--_size];
-				_pool[_size] = null;
 
 				mouseEvent.type = p_type;
 				mouseEvent.target = p_target;

@@ -252,8 +252,8 @@ package bb.physics
 			_mouseModule.onMove.add(mouseMoveHandler);
 
 			var event:BBMouseEvent = p_signal.params as BBMouseEvent;
-			_mouseX = event.cameraX;
-			_mouseY = event.cameraY;
+			_mouseX = event.worldX;
+			_mouseY = event.worldY;
 
 			var mp:Vec2 = Vec2.get(_mouseX, _mouseY);
 			var bodies:BodyList = _space.bodiesUnderPoint(mp);
@@ -291,8 +291,8 @@ package bb.physics
 		private function mouseMoveHandler(p_signal:BBSignal):void
 		{
 			var event:BBMouseEvent = p_signal.params as BBMouseEvent;
-			_mouseX = event.cameraX;
-			_mouseY = event.cameraY;
+			_mouseX = event.worldX;
+			_mouseY = event.worldY;
 		}
 
 		/**

@@ -145,8 +145,8 @@ package bb.mouse
 							cameraViewport = camera.getViewport();
 							event.cameraViewPortX = tMouseX - cameraViewport.x;
 							event.cameraViewPortY = tMouseY - cameraViewport.y;
-							event.cameraX = mousePosition.x;
-							event.cameraY = mousePosition.y;
+							event.worldX = mousePosition.x;
+							event.worldY = mousePosition.y;
 							event.capturedCamera = camera;
 						}
 
