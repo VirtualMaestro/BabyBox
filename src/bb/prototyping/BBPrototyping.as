@@ -82,8 +82,10 @@ package bb.prototyping
 
 		/**
 		 * Creates cart.
+		 * Wheels have names - leftWheel and rightWheel accordingly, so you can get wheel by its name.
 		 */
-		static public function getCart(p_width:Number = 200, p_height:Number = 50, p_radius:Number = 25, p_wheelPosition:Vec2 = null):BBNode
+		static public function getCart(p_width:Number = 200, p_height:Number = 50, p_radius:Number = 25, p_wheelPosition:Vec2 = null,
+		                               p_allowHand:Boolean = true):BBNode
 		{
 			var leftWheelX:Number = -70;
 			var leftWheelY:Number = 20;
@@ -101,6 +103,7 @@ package bb.prototyping
 			var cart:BBNode = BBNode.get("cart");
 			var physics:BBPhysicsBody = BBPhysicsBody.get(BodyType.DYNAMIC);
 			physics.addBox(p_width, p_height);
+			physics.allowHand = p_allowHand;
 			cart.addComponent(physics);
 
 			var skin:BBSprite = BBSprite.get(BBTexture.createFromColorRect(p_width, p_height));
@@ -110,6 +113,7 @@ package bb.prototyping
 			var wheel:BBNode = BBNode.get("leftWheel");
 			physics = BBPhysicsBody.get(BodyType.DYNAMIC);
 			physics.addCircle(p_radius);
+			physics.allowHand = p_allowHand;
 			wheel.addComponent(physics);
 
 			skin = BBSprite.get(BBTexture.createFromColorCircle(p_radius));
@@ -124,8 +128,10 @@ package bb.prototyping
 			wheel = BBNode.get("rightWheel");
 			physics = BBPhysicsBody.get(BodyType.DYNAMIC);
 			physics.addCircle(p_radius);
+			physics.allowHand = p_allowHand;
 			wheel.addComponent(physics);
 
+			//
 			skin = BBSprite.get(BBTexture.createFromColorCircle(p_radius));
 			wheel.addComponent(skin);
 			wheel.transform.setPosition(rightWheelX, rightWheelY);
@@ -135,6 +141,14 @@ package bb.prototyping
 			cart.addChild(wheel);
 
 			return cart;
+		}
+
+		/**
+		 * Returns weapon - gun.
+		 */
+		static public function getGun():BBNode
+		{
+			return null;
 		}
 
 		/**

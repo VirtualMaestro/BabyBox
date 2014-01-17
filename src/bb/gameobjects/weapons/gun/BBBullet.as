@@ -40,18 +40,17 @@ package bb.gameobjects.weapons.gun
 		 * Start bullet position.
 		 * Sets by engine.
 		 */
-		public var start:Vec2;
-
-		/**
-		 * End bullet position.
-		 * Sets by engine.
-		 */
-		public var end:Vec2;
+		public var origin:Vec2;
 
 		/**
 		 * Vector of direction of bullet.
 		 */
 		public var direction:Vec2;
+
+		/**
+		 * Max distance of fire.
+		 */
+		public var fireDistance:Number;
 
 		/**
 		 * If bullet should impact multi aims.
@@ -130,11 +129,8 @@ package bb.gameobjects.weapons.gun
 				removeFromList = null;
 			}
 
-			start.dispose();
-			start = null;
-
-			end.dispose();
-			end = null;
+			origin.dispose();
+			origin = null;
 
 			direction.dispose();
 			direction = null;

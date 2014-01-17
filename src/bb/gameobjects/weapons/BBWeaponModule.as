@@ -11,7 +11,8 @@ package bb.gameobjects.weapons
 	import bb.signals.BBSignal;
 
 	import nape.geom.Ray;
-	import nape.geom.RayResult;
+	import nape.geom.RayResultList;
+	import nape.geom.Vec2;
 
 	/**
 	 * Module for handle bullets.
@@ -22,6 +23,8 @@ package bb.gameobjects.weapons
 
 		private var _bulletHead:BBBullet;
 		private var _bulletTail:BBBullet;
+
+		private var _ray:Ray;
 
 		/**
 		 */
@@ -37,6 +40,7 @@ package bb.gameobjects.weapons
 		private function onInitHandler(p_signal:BBSignal):void
 		{
 			_physicsModule = getModule(BBPhysicsModule) as BBPhysicsModule;
+			_ray = new Ray(Vec2.get(), Vec2.get());
 		}
 
 		/**
@@ -109,30 +113,33 @@ package bb.gameobjects.weapons
 				}
 				else
 				{
-					if (currentBullet.multiAims)
-					{
 
-					}
-					else
-					{
-
-					}
 				}
+
+				getFireResult(currentBullet);
+
+				//if (!_rayResultList.empty() && currentBullet.callbackResult) currentBullet.callbackResult(_rayResultList);
 			}
 		}
+
+		//
+		private var _rayResultList:RayResultList;
 
 		/**
 		 */
 		private function getFireResult(p_bullet:BBBullet):void
 		{
+			_ray.origin.set(p_bullet.origin);
+			_ray.direction.set(p_bullet.direction);
+			_ray.maxDistance = p_bullet.fireDistance;
+
 			if (p_bullet.multiAims)
 			{
-//				var result:RayResult = _physicsModule.space.rayMultiCast(Ray.fromSegment(startPos, endPos));
+				_physicsModule.space.rayMultiCast(_ray, false, p_bullet.filter, _rayResultList);
 			}
 			else
 			{
-				var result:RayResult = _physicsModule.space.rayCast(Ray.fromSegment(p_bullet.start, p_bullet.end));
-//				result.
+				_rayResultList.push(_physicsModule.space.rayCast(_ray, false, p_bullet.filter));
 			}
 		}
 	}
