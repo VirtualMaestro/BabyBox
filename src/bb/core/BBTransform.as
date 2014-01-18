@@ -641,7 +641,6 @@ package bb.core
 		/**
 		 * Invalidate transformation settings.
 		 */
-		[Inline]
 		final bb_private function invalidate(p_updatedTransformation:Boolean, p_updateColor:Boolean):void
 		{
 			var parentTransform:BBTransform = node.parent.transform;
@@ -680,7 +679,7 @@ package bb.core
 				var newWorldRotation:Number = _localRotation + parentWorldRotation;
 				newWorldRotation = newWorldRotation > PI2_RAD ? (newWorldRotation % PI2_RAD) : newWorldRotation;
 
-				if (isRotationChanged || Math.abs(newWorldRotation - worldRotation) > 0.01)
+				if (isRotationChanged || (newWorldRotation > worldRotation ? (newWorldRotation - worldRotation) : (worldRotation - newWorldRotation)) > 0.01)
 				{
 					worldRotation = newWorldRotation;
 					COS = Math.cos(worldRotation);
