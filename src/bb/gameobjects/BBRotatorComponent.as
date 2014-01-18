@@ -24,22 +24,23 @@ package bb.gameobjects
 	{
 		/**
 		 * Angle in radians, which represents of rotation error - mean goal considered achieved if deviation is not bigger than given angle (+/-).
+		 * By default 0, absolutely accurate.
 		 */
-		public var accurate:Number = 0;
+		public var accurate:Number;
 
 		/**
 		 */
-		private var _angularVelocity:Number = 0;
+		private var _angularVelocity:Number;
 
 		private var _onStart:BBSignal;
 		private var _onComplete:BBSignal;
 
 		private var _transform:BBTransform;
 
-		private var _isImmediately:Boolean = true;
-		private var _isRotation:Boolean = false;
-		private var _diffTargetAngle:Number = 0;
-		private var _sign:int = 1;
+		private var _isImmediately:Boolean;
+		private var _isRotation:Boolean;
+		private var _diffTargetAngle:Number;
+		private var _sign:int;
 
 		/**
 		 */
@@ -53,6 +54,13 @@ package bb.gameobjects
 		override protected function init():void
 		{
 			onAdded.add(addedToNodeHandler);
+
+			_isImmediately = true;
+			_isRotation = false;
+			_diffTargetAngle = 0;
+			_sign = 1;
+			_angularVelocity = 0;
+			accurate = 0;
 		}
 
 		/**
