@@ -669,6 +669,12 @@ package bb.core
 				component = _nextComponentUpdList;
 			}
 
+			// if transform was changed by some component so need to invalidate because in another case it will never invalidated
+			updateTransformation = !updateTransformation && transform.isTransformChanged;
+			updateColor = !updateColor && transform.isColorChanged;
+
+			if (updateTransformation || updateColor) transform.invalidate(updateTransformation, updateColor);
+
 			// iterate nested nodes and invokes their update method
 			var childNode:BBNode = childrenHead;
 			var currentNode:BBNode;
