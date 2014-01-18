@@ -448,28 +448,39 @@ package bb.core
 		}
 
 		/**
+		 * Set rotation in world coordinates.
 		 */
-		bb_private function setWorldPositionAndRotation(p_x:Number, p_y:Number, p_rotation:Number):void
+		[Inline]
+		final public function set rotationWorld(p_angle:Number):void
 		{
-			worldX = p_x;
-			worldY = p_y;
-			worldRotation = fitAngle(p_rotation);
-
-			var trans:BBTransform = node.parent.transform;
-			_localX = worldX - trans.worldX;
-			_localY = worldY - trans.worldY;
-			_localRotation = fitAngle(worldRotation - trans.worldRotation);
-
-			isTransformChanged = true;
-			isPositionChanged = true;
-			isRotationChanged = true;
-			_isWorldTransformMatrixChanged = true;
+			worldRotation = fitAngle(p_angle);
+			_localRotation = fitAngle(worldRotation - node.parent.transform.worldRotation);
 
 			if (node.numChildren > 0)
 			{
 				COS = Math.cos(worldRotation);
 				SIN = Math.sin(worldRotation);
 			}
+
+			isTransformChanged = true;
+			isRotationChanged = true;
+			_isWorldTransformMatrixChanged = true;
+		}
+
+		/**
+		 */
+		bb_private function setWorldPositionAndRotation(p_x:Number, p_y:Number, p_rotation:Number):void
+		{
+			worldX = p_x;
+			worldY = p_y;
+
+			var trans:BBTransform = node.parent.transform;
+			_localX = worldX - trans.worldX;
+			_localY = worldY - trans.worldY;
+
+			isPositionChanged = true;
+
+			rotationWorld = p_rotation;
 		}
 
 		/**

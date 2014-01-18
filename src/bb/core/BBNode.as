@@ -504,7 +504,8 @@ package bb.core
 		/**
 		 * Returns parent if it exist.
 		 */
-		public function get parent():BBNode
+		[Inline]
+		final public function get parent():BBNode
 		{
 			return _parent;
 		}

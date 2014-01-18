@@ -99,7 +99,8 @@ package bb.core
 		 * Returns node to which this component is assigned.
 		 * If component isn't assigned to any node returns null.
 		 */
-		public function get node():BBNode
+		[Inline]
+		final public function get node():BBNode
 		{
 			return _node;
 		}
