@@ -5,6 +5,7 @@
  */
 package bb.gameobjects
 {
+	import bb.bb_spaces.bb_private;
 	import bb.core.BBComponent;
 	import bb.core.BBNode;
 	import bb.core.BBTransform;
@@ -12,18 +13,33 @@ package bb.gameobjects
 
 	import nape.geom.Vec2;
 
+	import vm.math.trigonometry.TrigUtil;
+
+	use namespace bb_private;
+
 	/**
 	 *
 	 */
 	public class BBRotatorComponent extends BBComponent
 	{
+		/**
+		 * Angle in radians, which represents of rotation error - mean goal considered achieved if deviation is not bigger than given angle (+/-).
+		 */
 		public var accurate:Number = 0;
-		public var angularVelocity:Number = 30 * Math.PI / 180.0; // rad per sec
+
+		/**
+		 */
+		private var _angularVelocity:Number = 0;
 
 		private var _onStart:BBSignal;
 		private var _onComplete:BBSignal;
 
 		private var _transform:BBTransform;
+
+		private var _isImmediately:Boolean = true;
+		private var _isRotation:Boolean = false;
+		private var _diffTargetAngle:Number = 0;
+		private var _sign:int = 1;
 
 		/**
 		 */
@@ -59,32 +75,56 @@ package bb.gameobjects
 		public function setTargetPosition(p_x:Number, p_y:Number):void
 		{
 			var selfPosition:Vec2 = _transform.getPositionWorld();
-			var selfRotation:Number = _transform.rotationWorld;
 			var aimAngle:Number = Math.atan2(p_y - selfPosition.y, p_x - selfPosition.x);
-//			_transform.rotation = aimAngle;
 
-//			aimAngle -= _transform.rotationWorld;
-//			_transform.shiftRotation = -aimAngle;
+			if (_isImmediately) _transform.rotationWorld = aimAngle;
+			else
+			{
+				_diffTargetAngle = TrigUtil.fitAngle(aimAngle) - _transform.rotationWorld;
+				_sign = _diffTargetAngle < 0 ? -1 : 1;
+				_diffTargetAngle *= _sign;
 
-			trace("BEFORE rad: " + aimAngle + " grad: " + (aimAngle * 180.0 / Math.PI));
+				if (_diffTargetAngle > TrigUtil.PI)
+				{
+					_diffTargetAngle = TrigUtil.PI2 - _diffTargetAngle;
+					_sign = -_sign;
+				}
 
-			aimAngle = aimAngle < 0 ? (2 * Math.PI + aimAngle) : aimAngle;
-			selfRotation = selfRotation < 0 ? (2 * Math.PI + selfRotation) : selfRotation;
-			trace("AFTER rad: " + aimAngle + " grad: " + (aimAngle * 180.0 / Math.PI));
+				//
+				if (!_isRotation)
+				{
+					updateEnable = true;
+					_isRotation = true;
 
-			aimAngle -= selfRotation;
-
-			trace("DIFF rad: " + aimAngle + " grad: " + (aimAngle * 180.0 / Math.PI));
-
-			_transform.shiftRotation = aimAngle;
-
+					if (_onStart) _onStart.dispatch();
+				}
+			}
 		}
 
 		/**
 		 */
 		override public function update(p_deltaTime:int):void
 		{
+			if (_diffTargetAngle >= -accurate && _diffTargetAngle <= accurate)
+			{
+				updateEnable = false;
+				_isRotation = false;
 
+				if (_onComplete) _onComplete.dispatch();
+			}
+			else
+			{
+				var angularShift:Number = _angularVelocity * p_deltaTime / 1000.0;
+
+				if (angularShift > _diffTargetAngle)
+				{
+					angularShift = _diffTargetAngle;
+					_diffTargetAngle = 0;
+				}
+				else _diffTargetAngle -= angularShift;
+
+				_transform.shiftRotation = angularShift * _sign;
+			}
 		}
 
 		/**
@@ -94,6 +134,41 @@ package bb.gameobjects
 			_transform = null;
 
 			super.destroy();
+		}
+
+		/**
+		 */
+		public function get angularVelocity():Number
+		{
+			return _angularVelocity;
+		}
+
+		/**
+		 * Velocity of rotation in radians (rad/second).
+		 * If velocity less then 1 degree per second, angle applies immediately.
+		 */
+		public function set angularVelocity(p_value:Number):void
+		{
+			_isImmediately = p_value < Math.PI / 180.0;
+			_angularVelocity = p_value;
+		}
+
+		/**
+		 * Signal dispatched when start rotation.
+		 */
+		public function get onStart():BBSignal
+		{
+			if (!_onStart) _onStart = BBSignal.get(this);
+			return _onStart;
+		}
+
+		/**
+		 * Signal dispatched when rotation is finished.
+		 */
+		public function get onComplete():BBSignal
+		{
+			if (!_onComplete) _onComplete = BBSignal.get(this);
+			return _onComplete;
 		}
 	}
 }
