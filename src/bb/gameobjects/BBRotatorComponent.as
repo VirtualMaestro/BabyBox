@@ -59,11 +59,25 @@ package bb.gameobjects
 		public function setTargetPosition(p_x:Number, p_y:Number):void
 		{
 			var selfPosition:Vec2 = _transform.getPositionWorld();
+			var selfRotation:Number = _transform.rotationWorld;
 			var aimAngle:Number = Math.atan2(p_y - selfPosition.y, p_x - selfPosition.x);
-			aimAngle -= _transform.rotationWorld;
+//			_transform.rotation = aimAngle;
+
+//			aimAngle -= _transform.rotationWorld;
+//			_transform.shiftRotation = -aimAngle;
+
+			trace("BEFORE rad: " + aimAngle + " grad: " + (aimAngle * 180.0 / Math.PI));
+
+			aimAngle = aimAngle < 0 ? (2 * Math.PI + aimAngle) : aimAngle;
+			selfRotation = selfRotation < 0 ? (2 * Math.PI + selfRotation) : selfRotation;
+			trace("AFTER rad: " + aimAngle + " grad: " + (aimAngle * 180.0 / Math.PI));
+
+			aimAngle -= selfRotation;
+
+			trace("DIFF rad: " + aimAngle + " grad: " + (aimAngle * 180.0 / Math.PI));
+
 			_transform.shiftRotation = aimAngle;
 
-			trace("rad: " + aimAngle + " grad: " + (aimAngle * Math.PI / 180.0));
 		}
 
 		/**
