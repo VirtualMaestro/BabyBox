@@ -397,12 +397,10 @@ package bb.core
 		{
 			_localX = p_x;
 			_localY = p_y;
-			_localRotation = p_angle % PI2_RAD;
 
-			isTransformChanged = true;
+			rotation = p_angle;
+
 			isPositionChanged = true;
-			isRotationChanged = true;
-			invalidateOnce = true;
 		}
 
 		/**
@@ -411,7 +409,7 @@ package bb.core
 		[Inline]
 		final public function set rotation(p_angle:Number):void
 		{
-			_localRotation = p_angle % PI2_RAD;
+			_localRotation = fitAngle(p_angle);
 
 			isTransformChanged = true;
 			isRotationChanged = true;
@@ -455,12 +453,12 @@ package bb.core
 		{
 			worldX = p_x;
 			worldY = p_y;
-			worldRotation = p_rotation;
+			worldRotation = fitAngle(p_rotation);
 
 			var trans:BBTransform = node.parent.transform;
 			_localX = worldX - trans.worldX;
 			_localY = worldY - trans.worldY;
-			_localRotation = worldRotation - trans.worldRotation;
+			_localRotation = fitAngle(worldRotation - trans.worldRotation);
 
 			isTransformChanged = true;
 			isPositionChanged = true;
@@ -559,6 +557,28 @@ package bb.core
 		}
 
 		/**
+		 * Fit angle to positive value in range 0 - 360.
+		 */
+		[Inline]
+		final private function fitAngle(p_angle:Number):Number
+		{
+			var pi2:Number = PI2_RAD;
+
+			if (p_angle < 0 && p_angle < -pi2)
+			{
+				p_angle %= pi2;
+				p_angle += pi2;
+			}
+			else
+			{
+				if (p_angle < 0) p_angle += pi2;
+				else if (p_angle > pi2) p_angle %= pi2;
+			}
+
+			return p_angle;
+		}
+
+		/**
 		 * Transform given point from local coordinate system to world.
 		 * Returns new Point instance.
 		 * After use if point instance not need it is possible back it to pool - BBNativePool.putPoint(point);
@@ -647,6 +667,8 @@ package bb.core
 				}
 
 				var newWorldRotation:Number = _localRotation + parentWorldRotation;
+				newWorldRotation = newWorldRotation > PI2_RAD ? (newWorldRotation % PI2_RAD) : newWorldRotation;
+
 				if (isRotationChanged || Math.abs(newWorldRotation - worldRotation) > 0.01)
 				{
 					worldRotation = newWorldRotation;
