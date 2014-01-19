@@ -30,13 +30,9 @@ package bb.gameobjects
 	 */
 	public class BBRotatorComponent extends BBComponent
 	{
-		/**
-		 */
 		private var _accurate:Number;
-
-		/**
-		 */
 		private var _angularVelocity:Number;
+		private var _acceleration:Number = 0;
 
 		private var _onStart:BBSignal;
 		private var _onComplete:BBSignal;
@@ -53,6 +49,7 @@ package bb.gameobjects
 		private var _prevX:Number = 0;
 		private var _prevY:Number = 0;
 		private var _prevAimAngle:Number = 0;
+		private var _currentAngularVel:Number = 0;
 
 		private var _isMouseFollow:Boolean = false;
 
@@ -76,9 +73,11 @@ package bb.gameobjects
 			_sign = 1;
 			_angularVelocity = 0;
 			_accurate = 0;
+			_acceleration = 0;
 			_prevX = 0;
 			_prevY = 0;
 			_prevAimAngle = 0;
+			_currentAngularVel = 0;
 			_isMouseFollow = false;
 		}
 
@@ -295,6 +294,7 @@ package bb.gameobjects
 		{
 			if (!_targetTransform) updateEnable = false;
 			_isRotation = false;
+			_currentAngularVel = 0;
 
 			if (_onComplete) _onComplete.dispatch();
 		}
@@ -304,7 +304,14 @@ package bb.gameobjects
 		[Inline]
 		final private function shiftRotation(p_deltaTime:int):void
 		{
-			var angularShift:Number = _angularVelocity * p_deltaTime / 1000.0;
+			if (_acceleration > 0 && (_currentAngularVel < _angularVelocity))
+			{
+				_currentAngularVel += _acceleration * p_deltaTime / 1000.0;
+			}
+			else _currentAngularVel = _angularVelocity;
+
+			//
+			var angularShift:Number = _currentAngularVel * p_deltaTime / 1000.0;
 
 			if (angularShift > _diffTargetAngle)
 			{
@@ -314,14 +321,6 @@ package bb.gameobjects
 			else _diffTargetAngle -= angularShift;
 
 			_transform.shiftRotation = angularShift * _sign;
-		}
-
-		/**
-		 */
-		override protected function destroy():void
-		{
-
-			super.destroy();
 		}
 
 		/**
@@ -355,6 +354,22 @@ package bb.gameobjects
 		public function get accurate():Number
 		{
 			return _accurate;
+		}
+
+		/**
+		 * Acceleration when start to rotate.
+		 * In radians. By default 0, mean no acceleration.
+		 */
+		public function set acceleration(p_val:Number):void
+		{
+			_acceleration = TrigUtil.fitAngle(p_val);
+		}
+
+		/**
+		 */
+		public function get acceleration():Number
+		{
+			return _acceleration;
 		}
 
 		/**
