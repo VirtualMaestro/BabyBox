@@ -275,8 +275,11 @@ package bb.gameobjects
 			}
 
 			//
-			if (checkComplete() && _isRotation) rotationComplete();
-			else shiftRotation(p_deltaTime);
+			if (_isRotation)
+			{
+				shiftRotation(p_deltaTime);
+				if (checkComplete()) rotationComplete();
+			}
 		}
 
 		/**
