@@ -454,7 +454,9 @@ package bb.core
 		final public function set rotationWorld(p_angle:Number):void
 		{
 			worldRotation = fitAngle(p_angle);
-			_localRotation = fitAngle(worldRotation - node.parent.transform.worldRotation);
+
+			var parent:BBNode = node.parent;
+			_localRotation = parent ? fitAngle(worldRotation - parent.transform.worldRotation) : worldRotation;
 
 			if (node.numChildren > 0)
 			{
@@ -468,19 +470,54 @@ package bb.core
 		}
 
 		/**
+		 * Returns direction in world coordinates system.
 		 */
-		bb_private function setWorldPositionAndRotation(p_x:Number, p_y:Number, p_rotation:Number):void
+		final public function get directionWorld():Vec2
+		{
+			if (lockInvalidation && (isRotationChanged || node.numChildren == 0))
+			{
+				COS = Math.cos(worldRotation);
+				SIN = Math.sin(worldRotation);
+			}
+
+			return Vec2.get(COS, SIN);
+		}
+
+		/**
+		 * Set position and rotation in world coordinates.
+		 */
+		final public function setPosAndRotWorld(p_x:Number, p_y:Number, p_rotation:Number):void
+		{
+			setPositionWorld(p_x, p_y);
+			rotationWorld = p_rotation;
+		}
+
+		/**
+		 * Set position in world coordinates.
+		 */
+		[Inline]
+		final public function setPositionWorld(p_x:Number, p_y:Number):void
 		{
 			worldX = p_x;
 			worldY = p_y;
 
-			var trans:BBTransform = node.parent.transform;
-			_localX = worldX - trans.worldX;
-			_localY = worldY - trans.worldY;
+			var parent:BBNode = node.parent;
+
+			if (parent)
+			{
+				var trans:BBTransform = parent.transform;
+				_localX = worldX - trans.worldX;
+				_localY = worldY - trans.worldY;
+			}
+			else
+			{
+				_localX = worldX;
+				_localY = worldY;
+			}
 
 			isPositionChanged = true;
-
-			rotationWorld = p_rotation;
+			isTransformChanged = true;
+			_isWorldTransformMatrixChanged = true;
 		}
 
 		/**
