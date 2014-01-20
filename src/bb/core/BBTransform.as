@@ -329,7 +329,7 @@ package bb.core
 
 		/**
 		 * Returns Vec2 with position values.
-		 * If you need to change returned vector, you should to make a copy from given,
+		 * If you need to change or store returned vector, you should to make a copy from given,
 		 * because current method doesn't creates new instance.
 		 */
 		final public function getPosition():Vec2
@@ -345,7 +345,7 @@ package bb.core
 
 		/**
 		 * Returns Vec2 with world position.
-		 * If you need to change returned vector, you should to make a copy from given,
+		 * If you need to change or store returned vector, you should to make a copy from given,
 		 * because current method doesn't creates new instance.
 		 */
 		final public function getPositionWorld():Vec2
@@ -469,8 +469,13 @@ package bb.core
 			_isWorldTransformMatrixChanged = true;
 		}
 
+		//
+		private var _directionWorld:Vec2;
+
 		/**
 		 * Returns direction in world coordinates system.
+		 * If you need to change or store returned vector, you should to make a copy from given,
+		 * because current method doesn't creates new instance.
 		 */
 		final public function get directionWorld():Vec2
 		{
@@ -480,7 +485,10 @@ package bb.core
 				SIN = Math.sin(worldRotation);
 			}
 
-			return Vec2.get(COS, SIN);
+			if (!_directionWorld) _directionWorld = Vec2.get(COS, SIN);
+			else _directionWorld.setxy(COS, SIN);
+
+			return _directionWorld;
 		}
 
 		/**
@@ -779,6 +787,12 @@ package bb.core
 			{
 				_worldPos.dispose();
 				_worldPos = null;
+			}
+
+			if (_directionWorld)
+			{
+				_directionWorld.dispose();
+				_directionWorld = null;
 			}
 
 			if (_worldTransformMatrix)
