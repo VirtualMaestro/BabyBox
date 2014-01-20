@@ -12,7 +12,6 @@ package bb.gameobjects.weapons
 	import flash.utils.getTimer;
 
 	import nape.dynamics.InteractionFilter;
-	import nape.geom.Vec2;
 
 	/**
 	 * Base class for implementation different weapons.
@@ -99,20 +98,6 @@ package bb.gameobjects.weapons
 		protected function fireAction():void
 		{
 			// override in children
-		}
-
-		/**
-		 * Returns direction of current gun.
-		 */
-		[Inline]
-		final protected function get direction():Vec2
-		{
-			var parentPos:Vec2 = node.parent.transform.getPositionWorld();
-			var pos:Vec2 = transform.getPositionWorld();
-			var dir:Vec2 = pos.sub(parentPos);
-			dir.length = 1;
-
-			return dir;
 		}
 
 		/**

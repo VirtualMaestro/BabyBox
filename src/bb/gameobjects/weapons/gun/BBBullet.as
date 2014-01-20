@@ -112,7 +112,11 @@ package bb.gameobjects.weapons.gun
 		 */
 		public function copy():BBBullet
 		{
-			return BBBullet.get(mass, speed, radiusTip, multiAims, influenceTime, filter);
+			var bullet:BBBullet = BBBullet.get(mass, speed, radiusTip, multiAims, influenceTime, filter);
+			bullet.origin.set(origin);
+			bullet.direction.set(direction);
+
+			return bullet;
 		}
 
 		/**
@@ -165,6 +169,8 @@ package bb.gameobjects.weapons.gun
 				bullet.multiAims = p_multiAims;
 				bullet.influenceTime = p_influenceTime;
 				bullet.filter = p_filter;
+				bullet.origin = Vec2.get();
+				bullet.direction = Vec2.get();
 
 				bullet._isDisposed = false;
 			}

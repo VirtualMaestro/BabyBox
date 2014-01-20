@@ -7,6 +7,8 @@ package bb.gameobjects.weapons.gun
 {
 	import bb.gameobjects.weapons.BBWeapon;
 
+	import nape.geom.Vec2;
+
 	/**
 	 * Implements gun functionality (gun, machine gun...).
 	 */
@@ -15,6 +17,7 @@ package bb.gameobjects.weapons.gun
 		public var callbackResult:Function = null;
 		public var influenceTime:Boolean = false;
 		public var multiAims:Boolean = false;
+		public var barrelLength:Number = 0;
 
 		private var _fireDistance:Number = 1000;
 
@@ -44,8 +47,20 @@ package bb.gameobjects.weapons.gun
 			var bullet:BBBullet = _etalonBullet.copy();
 			bullet.multiAims = multiAims;
 			bullet.influenceTime = influenceTime;
-			bullet.origin = transform.getPositionWorld().copy();
-			bullet.direction = direction;
+
+			var direction:Vec2 = transform.directionWorld;
+			var position:Vec2 = transform.getPositionWorld();
+
+			if (barrelLength > 0)
+			{
+				var x:Number = direction.x * barrelLength + position.x;
+				var y:Number = direction.y * barrelLength + position.y;
+
+				bullet.origin.setxy(x, y);
+			}
+			else bullet.origin.set(position);
+
+			bullet.direction.set(direction);
 			bullet.fireDistance = _fireDistance;
 			bullet.filter = filter;
 			bullet.callbackResult = callbackResult;
