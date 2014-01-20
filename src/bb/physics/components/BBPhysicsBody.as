@@ -894,7 +894,7 @@ package bb.physics.components
 					_body.angularVel = angularVelocityInt / 1000.0;
 				}
 
-				_transform.setWorldPositionAndRotation(_bodyPosition.x, _bodyPosition.y, _body.rotation);
+				_transform.setPosAndRotWorld(_bodyPosition.x, _bodyPosition.y, _body.rotation);
 			}
 		}
 
