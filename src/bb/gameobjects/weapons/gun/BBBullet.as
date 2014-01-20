@@ -171,6 +171,7 @@ package bb.gameobjects.weapons.gun
 				bullet.filter = p_filter;
 				bullet.origin = Vec2.get();
 				bullet.direction = Vec2.get();
+				bullet.elapsedTime = 0;
 
 				bullet._isDisposed = false;
 			}
