@@ -5,6 +5,8 @@
  */
 package bb.gameobjects.weapons.gun
 {
+	import bb.core.BBComponent;
+	import bb.core.BBNode;
 	import bb.gameobjects.weapons.BBWeapon;
 
 	import nape.geom.Vec2;
@@ -70,6 +72,9 @@ package bb.gameobjects.weapons.gun
 
 		/**
 		 * Init parameters which will has bullet that used by this gun.
+		 * p_mass - mass of bullet (in grams).
+		 * p_speed - speed of bullet (meter/second).
+		 * p_radiusTip - radius of the tip of bullet (millimeters).
 		 */
 		public function setupBullet(p_mass:Number = 7.0, p_speed:Number = 400, p_radiusTip:Number = 3.0):void
 		{
@@ -102,9 +107,39 @@ package bb.gameobjects.weapons.gun
 			return _fireDistance;
 		}
 
+		/**
+		 * Max distance for fire range in pixels.
+		 * Min possible value is 1. By default 1000.
+		 */
 		public function set fireDistance(p_value:Number):void
 		{
 			_fireDistance = p_value < 1 ? 1 : p_value;
+		}
+
+		///
+
+		/**
+		 * Return instance of gun.
+		 */
+		static public function get(p_barrelLength:int = 0, p_multiAims:Boolean = false, p_influenceTime:Boolean = false,
+		                           p_callbackFireResult:Function = null):BBGun
+		{
+			var gun:BBGun = BBComponent.get(BBGun) as BBGun;
+			gun.barrelLength = p_barrelLength;
+			gun.multiAims = p_multiAims;
+			gun.influenceTime = p_influenceTime;
+			gun.callbackResult = p_callbackFireResult;
+
+			return gun;
+		}
+
+		/**
+		 * Returns gun instance added to node.
+		 */
+		static public function getWithNode(p_nodeName:String = "", p_barrelLength:int = 0, p_multiAims:Boolean = false, p_influenceTime:Boolean = false,
+		                                   p_callbackFireResult:Function = null):BBGun
+		{
+			return BBNode.get(p_nodeName).addComponent(get(p_barrelLength, p_multiAims, p_influenceTime, p_callbackFireResult)) as BBGun;
 		}
 	}
 }
