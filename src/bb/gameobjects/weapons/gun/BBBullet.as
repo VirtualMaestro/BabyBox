@@ -98,6 +98,8 @@ package bb.gameobjects.weapons.gun
 			multiAims = p_multiAims;
 			influenceTime = p_influenceTime;
 			filter = p_filter;
+			origin = Vec2.get();
+			direction = Vec2.get(1, 0);
 		}
 
 		/**
