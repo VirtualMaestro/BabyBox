@@ -392,5 +392,33 @@ package bb.gameobjects
 			if (!_onComplete) _onComplete = BBSignal.get(this);
 			return _onComplete;
 		}
+
+		///
+
+		/**
+		 * Returns new instance of rotator.
+		 */
+		static public function get(p_angVelocity:Number = 0, p_accurate:Number = 0, p_acceleration:Number = 0, p_followMouse:Boolean = false):BBRotatorComponent
+		{
+			var rotator:BBRotatorComponent = BBComponent.get(BBRotatorComponent) as BBRotatorComponent;
+			rotator.angularVelocity = p_angVelocity;
+			rotator.accurate = p_accurate;
+			rotator.acceleration = p_acceleration;
+			rotator.followMouse = p_followMouse;
+
+			return rotator;
+		}
+
+		/**
+		 * Returns rotator attached to node.
+		 */
+		static public function getWithNode(p_nodeName:String = "", p_angVelocity:Number = 0, p_accurate:Number = 0, p_acceleration:Number = 0,
+		                                   p_followMouse:Boolean = false):BBRotatorComponent
+		{
+			var rotator:BBRotatorComponent = get(p_angVelocity, p_accurate, p_acceleration, p_followMouse);
+			BBNode.get(p_nodeName).addComponent(rotator);
+
+			return rotator;
+		}
 	}
 }
