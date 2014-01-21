@@ -6,6 +6,8 @@
 package bb.prototyping
 {
 	import bb.core.BBNode;
+	import bb.gameobjects.BBRotatorComponent;
+	import bb.gameobjects.weapons.gun.BBGun;
 	import bb.physics.components.BBPhysicsBody;
 	import bb.physics.joints.BBJoint;
 	import bb.physics.utils.BBPhysicalMaterials;
@@ -146,9 +148,28 @@ package bb.prototyping
 		/**
 		 * Returns weapon - gun.
 		 */
-		static public function getGun():BBNode
+		static public function getCannon(p_headSize:int = 100, p_barrelLength:int = 200, p_angVel:Number = 500 * Math.PI / 180.0,
+		                                 p_accurate:Number = 2 * Math.PI / 180.0, p_acceleration:Number = 360 * Math.PI / 180.0,
+		                                 p_followMouse:Boolean = true):BBNode
 		{
-			return null;
+			var barrel:BBNode = BBNode.get("turretBarrel");
+			var barrelSprite:BBSprite = BBSprite.get(BBTexture.createFromColorRect(p_barrelLength, p_headSize / 2, "", BBColor.GRASS));
+			barrel.addComponent(barrelSprite);
+			barrel.transform.setPosition(p_barrelLength / 2 - p_barrelLength / 10, 0);
+
+			var turret:BBNode = BBSprite.getWithNode(BBTexture.createFromColorRect(p_headSize, p_headSize), "turretHead").node;
+			var rotator:BBRotatorComponent = turret.addComponent(BBRotatorComponent) as BBRotatorComponent;
+			rotator.angularVelocity = p_angVel;
+			rotator.accurate = p_accurate;
+			rotator.acceleration = p_acceleration;
+			rotator.followMouse = p_followMouse;
+			turret.addChild(barrel);
+
+			//
+			var gun:BBGun = BBGun.get(p_barrelLength);
+			turret.addComponent(gun);
+
+			return turret;
 		}
 
 		/**
