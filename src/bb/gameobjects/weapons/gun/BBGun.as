@@ -76,7 +76,7 @@ package bb.gameobjects.weapons.gun
 		 * p_speed - speed of bullet (meter/second).
 		 * p_radiusTip - radius of the tip of bullet (millimeters).
 		 */
-		public function setupBullet(p_mass:Number = 7.0, p_speed:Number = 400, p_radiusTip:Number = 3.0):void
+		public function setupBullet(p_mass:Number = 7.0, p_speed:Number = 500, p_radiusTip:Number = 3.0):void
 		{
 			if (!_etalonBullet) _etalonBullet = BBBullet.get(p_mass, p_speed, p_radiusTip);
 			else

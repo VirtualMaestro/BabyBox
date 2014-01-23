@@ -26,6 +26,10 @@ package bb.gameobjects.weapons.gun
 		bb_private var prev:BBBullet;
 
 		/**
+		 */
+		bb_private var passedDistance:Number = 0;
+
+		/**
 		 * Mass of bullet in grams.
 		 * Must be greater then 0.
 		 */
@@ -33,8 +37,10 @@ package bb.gameobjects.weapons.gun
 
 		/**
 		 * Speed of bullet - meter/second.
+		 * If need to know how much it in pixels just multiply by 10.
+		 * (so if speed is 500 meter/second in pixels it is 5000 pixels/second).
 		 */
-		public var speed:Number = 400;
+		public var speed:Number = 500;
 
 		/**
 		 * Radius of tip of bullet.
@@ -62,11 +68,6 @@ package bb.gameobjects.weapons.gun
 		 * Max distance of fire.
 		 */
 		public var fireDistance:Number;
-
-		/**
-		 *
-		 */
-		public var passedDistance:Number = 0;
 
 		/**
 		 * If bullet should impact multi aims.
@@ -106,7 +107,7 @@ package bb.gameobjects.weapons.gun
 
 		/**
 		 */
-		public function BBBullet(p_mass:Number = 7.0, p_speed:Number = 400, p_radiusTip:Number = 3, p_multiAims:Boolean = false,
+		public function BBBullet(p_mass:Number = 7.0, p_speed:Number = 500, p_radiusTip:Number = 3, p_multiAims:Boolean = false,
 		                         p_impactObstacles:Boolean = false, p_filter:InteractionFilter = null)
 		{
 			mass = p_mass;
@@ -122,14 +123,14 @@ package bb.gameobjects.weapons.gun
 
 		/**
 		 */
-		public function get energy():Number
+		bb_private function get energy():Number
 		{
 			return (mass * speed * speed) / (PI4 * radiusTip);
 		}
 
 		/**
 		 */
-		public function set energy(p_val:Number):void
+		bb_private function set energy(p_val:Number):void
 		{
 			speed = p_val > 0 ? Math.sqrt((p_val * PI4 * radiusTip) / mass) : 0;
 		}
@@ -186,7 +187,7 @@ package bb.gameobjects.weapons.gun
 
 		/**
 		 */
-		static public function get(p_mass:Number = 7.0, p_speed:Number = 400, p_radiusTip:Number = 3, p_multiAims:Boolean = false,
+		static public function get(p_mass:Number = 7.0, p_speed:Number = 500, p_radiusTip:Number = 3, p_multiAims:Boolean = false,
 		                           p_impactObstacles:Boolean = false, p_filter:InteractionFilter = null):BBBullet
 		{
 			var bullet:BBBullet;
