@@ -17,7 +17,7 @@ package bb.gameobjects.weapons.gun
 	public class BBGun extends BBWeapon
 	{
 		public var callbackResult:Function = null;
-		public var influenceTime:Boolean = false;
+		public var impactObstacles:Boolean = false;
 		public var multiAims:Boolean = false;
 		public var barrelLength:Number = 0;
 
@@ -46,12 +46,9 @@ package bb.gameobjects.weapons.gun
 		 */
 		override protected function fireAction():void
 		{
-			var bullet:BBBullet = _etalonBullet.copy();
-			bullet.multiAims = multiAims;
-			bullet.influenceTime = influenceTime;
-
 			var direction:Vec2 = transform.directionWorld;
 			var position:Vec2 = transform.getPositionWorld();
+			var bullet:BBBullet = _etalonBullet.copy();
 
 			if (barrelLength > 0)
 			{
@@ -62,8 +59,11 @@ package bb.gameobjects.weapons.gun
 			}
 			else bullet.origin.set(position);
 
+			bullet.currentPosition.set(bullet.origin);
 			bullet.direction.set(direction);
 			bullet.fireDistance = _fireDistance;
+			bullet.multiAims = multiAims;
+			bullet.impactObstacles = impactObstacles;
 			bullet.filter = filter;
 			bullet.callbackResult = callbackResult;
 
@@ -121,13 +121,13 @@ package bb.gameobjects.weapons.gun
 		/**
 		 * Return instance of gun.
 		 */
-		static public function get(p_barrelLength:int = 0, p_multiAims:Boolean = false, p_influenceTime:Boolean = false,
+		static public function get(p_barrelLength:int = 0, p_multiAims:Boolean = false, p_impactObstacles:Boolean = false,
 		                           p_callbackFireResult:Function = null):BBGun
 		{
 			var gun:BBGun = BBComponent.get(BBGun) as BBGun;
 			gun.barrelLength = p_barrelLength;
 			gun.multiAims = p_multiAims;
-			gun.influenceTime = p_influenceTime;
+			gun.impactObstacles = p_impactObstacles;
 			gun.callbackResult = p_callbackFireResult;
 
 			return gun;
@@ -136,10 +136,10 @@ package bb.gameobjects.weapons.gun
 		/**
 		 * Returns gun instance added to node.
 		 */
-		static public function getWithNode(p_nodeName:String = "", p_barrelLength:int = 0, p_multiAims:Boolean = false, p_influenceTime:Boolean = false,
+		static public function getWithNode(p_nodeName:String = "", p_barrelLength:int = 0, p_multiAims:Boolean = false, p_impactObstacles:Boolean = false,
 		                                   p_callbackFireResult:Function = null):BBGun
 		{
-			return BBNode.get(p_nodeName).addComponent(get(p_barrelLength, p_multiAims, p_influenceTime, p_callbackFireResult)) as BBGun;
+			return BBNode.get(p_nodeName).addComponent(get(p_barrelLength, p_multiAims, p_impactObstacles, p_callbackFireResult)) as BBGun;
 		}
 	}
 }
