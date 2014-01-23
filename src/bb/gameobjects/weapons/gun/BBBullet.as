@@ -5,19 +5,25 @@
  */
 package bb.gameobjects.weapons.gun
 {
+	import bb.bb_spaces.bb_private;
+
 	import nape.dynamics.InteractionFilter;
 	import nape.geom.Vec2;
+
+	use namespace bb_private;
 
 	/**
 	 * Bullet data holder for BBGun.
 	 */
 	public class BBBullet
 	{
-		static private const PI2:Number = 6.283185;
+		static private const PI4:Number = 6.283185 * 2;
+
+		bb_private var shouldRemove:Boolean = false;
 
 		// for list
-		public var next:BBBullet;
-		public var prev:BBBullet;
+		bb_private var next:BBBullet;
+		bb_private var prev:BBBullet;
 
 		/**
 		 * Mass of bullet in grams.
@@ -43,6 +49,11 @@ package bb.gameobjects.weapons.gun
 		public var origin:Vec2;
 
 		/**
+		 * Bullet position at the moment.
+		 */
+		public var currentPosition:Vec2;
+
+		/**
 		 * Vector of direction of bullet.
 		 */
 		public var direction:Vec2;
@@ -53,14 +64,20 @@ package bb.gameobjects.weapons.gun
 		public var fireDistance:Number;
 
 		/**
+		 *
+		 */
+		public var passedDistance:Number = 0;
+
+		/**
 		 * If bullet should impact multi aims.
 		 */
 		public var multiAims:Boolean = false;
 
 		/**
-		 * Bullet impact dependent from time.
+		 * If true impact make influence on the bullet. Bullet behaves more realistic but for that need more computation.
+		 * Work if 'multiAims' is true.
 		 */
-		public var influenceTime:Boolean = false;
+		public var impactObstacles:Boolean = false;
 
 		/**
 		 * Filter for aims.
@@ -69,7 +86,7 @@ package bb.gameobjects.weapons.gun
 
 		/**
 		 * Callback of bullet action result.
-		 * TODO: What have to set as parameter.
+		 * Callback should take as parameter Vector of BBFireResult instance (Vector.<BBFireResult>).
 		 */
 		public var callbackResult:Function = null;
 
@@ -90,23 +107,31 @@ package bb.gameobjects.weapons.gun
 		/**
 		 */
 		public function BBBullet(p_mass:Number = 7.0, p_speed:Number = 400, p_radiusTip:Number = 3, p_multiAims:Boolean = false,
-		                         p_influenceTime:Boolean = false, p_filter:InteractionFilter = null)
+		                         p_impactObstacles:Boolean = false, p_filter:InteractionFilter = null)
 		{
 			mass = p_mass;
 			speed = p_speed;
 			radiusTip = p_radiusTip;
 			multiAims = p_multiAims;
-			influenceTime = p_influenceTime;
+			impactObstacles = p_impactObstacles;
 			filter = p_filter;
 			origin = Vec2.get();
 			direction = Vec2.get(1, 0);
+			currentPosition = Vec2.get();
 		}
 
 		/**
 		 */
 		public function get energy():Number
 		{
-			return ((mass * speed * speed) / 2) / (PI2 * radiusTip);
+			return (mass * speed * speed) / (PI4 * radiusTip);
+		}
+
+		/**
+		 */
+		public function set energy(p_val:Number):void
+		{
+			speed = p_val > 0 ? Math.sqrt((p_val * PI4 * radiusTip) / mass) : 0;
 		}
 
 		/**
@@ -114,9 +139,10 @@ package bb.gameobjects.weapons.gun
 		 */
 		public function copy():BBBullet
 		{
-			var bullet:BBBullet = BBBullet.get(mass, speed, radiusTip, multiAims, influenceTime, filter);
+			var bullet:BBBullet = BBBullet.get(mass, speed, radiusTip, multiAims, impactObstacles, filter);
 			bullet.origin.set(origin);
 			bullet.direction.set(direction);
+			bullet.currentPosition.set(currentPosition);
 
 			return bullet;
 		}
@@ -141,6 +167,9 @@ package bb.gameobjects.weapons.gun
 			direction.dispose();
 			direction = null;
 
+			currentPosition.dispose();
+			currentPosition = null;
+
 			filter = null;
 
 			next = prev = null;
@@ -158,7 +187,7 @@ package bb.gameobjects.weapons.gun
 		/**
 		 */
 		static public function get(p_mass:Number = 7.0, p_speed:Number = 400, p_radiusTip:Number = 3, p_multiAims:Boolean = false,
-		                           p_influenceTime:Boolean = false, p_filter:InteractionFilter = null):BBBullet
+		                           p_impactObstacles:Boolean = false, p_filter:InteractionFilter = null):BBBullet
 		{
 			var bullet:BBBullet;
 
@@ -169,15 +198,18 @@ package bb.gameobjects.weapons.gun
 				bullet.speed = p_speed;
 				bullet.radiusTip = p_radiusTip;
 				bullet.multiAims = p_multiAims;
-				bullet.influenceTime = p_influenceTime;
+				bullet.impactObstacles = p_impactObstacles;
 				bullet.filter = p_filter;
 				bullet.origin = Vec2.get();
-				bullet.direction = Vec2.get();
+				bullet.direction = Vec2.get(1, 0);
+				bullet.currentPosition = Vec2.get();
+				bullet.passedDistance = 0;
 				bullet.elapsedTime = 0;
 
+				bullet.shouldRemove = false;
 				bullet._isDisposed = false;
 			}
-			else bullet = new BBBullet(p_mass, p_speed, p_radiusTip, p_multiAims, p_influenceTime, p_filter);
+			else bullet = new BBBullet(p_mass, p_speed, p_radiusTip, p_multiAims, p_impactObstacles, p_filter);
 
 			return bullet;
 		}
