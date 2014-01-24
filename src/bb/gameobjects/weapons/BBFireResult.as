@@ -10,6 +10,7 @@ package bb.gameobjects.weapons
 
 	import nape.geom.RayResult;
 	import nape.geom.Vec2;
+	import nape.shape.Shape;
 
 	use namespace bb_private;
 
@@ -54,6 +55,14 @@ package bb.gameobjects.weapons
 		private var _isDisposed:Boolean = false;
 
 		/**
+		 * Intersected shape.
+		 */
+		public function get shape():Shape
+		{
+			return rayResult.shape;
+		}
+
+		/**
 		 * Disposes instance.
 		 */
 		public function dispose():void
@@ -75,6 +84,10 @@ package bb.gameobjects.weapons
 					outContact.dispose();
 					outContact = null;
 				}
+
+				inContactDistance = 0;
+				outContactDistance = 0;
+				penetration = 1;
 
 				put(this);
 			}
