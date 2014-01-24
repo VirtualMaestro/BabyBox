@@ -9,6 +9,7 @@ package bb.gameobjects.weapons.gun
 
 	import nape.dynamics.InteractionFilter;
 	import nape.geom.Vec2;
+	import nape.shape.Shape;
 
 	use namespace bb_private;
 
@@ -28,6 +29,10 @@ package bb.gameobjects.weapons.gun
 		/**
 		 */
 		bb_private var passedDistance:Number = 0;
+
+		/**
+		 */
+		bb_private var lastShape:Shape;
 
 		/**
 		 * Mass of bullet in grams.
