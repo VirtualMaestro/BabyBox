@@ -36,7 +36,6 @@ package bb.physics.components
 	import nape.space.Space;
 
 	import vm.math.numbers.NumberUtil;
-	import vm.math.trigonometry.TrigUtil;
 	import vm.str.StringUtil;
 
 	CONFIG::debug
@@ -347,15 +346,16 @@ package bb.physics.components
 		                           p_material:Material = null, p_filter:InteractionFilter = null):Polygon
 		{
 			// calc num vertices
-			var numVertices:int = TrigUtil.PI2 / Math.acos(1 - 0.6 / (Math.sqrt(p_radiusX * p_radiusX + p_radiusY * p_radiusY)));
+			var pi2:Number = Math.PI * 2;
+			var numVertices:int = pi2 / Math.acos(1 - 0.6 / (Math.sqrt(p_radiusX * p_radiusX + p_radiusY * p_radiusY)));
 			var vertices:Vector.<Vec2> = new <Vec2>[];
 			var angle:Number;
 
 			// calc coordinates of vertices
 			for (var i:int = 0; i < numVertices; i++)
 			{
-				angle = TrigUtil.PI2 / numVertices * i;
-				vertices[i] = new Vec2(p_radiusX * Math.cos(angle), p_radiusY * Math.sin(angle));
+				angle = pi2 / numVertices * i;
+				vertices[i] = Vec2.get(p_radiusX * Math.cos(angle), p_radiusY * Math.sin(angle));
 			}
 
 			var ellipse:Polygon = new Polygon(vertices, p_material, p_filter);
