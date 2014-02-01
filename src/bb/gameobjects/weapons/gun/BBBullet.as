@@ -9,7 +9,6 @@ package bb.gameobjects.weapons.gun
 
 	import nape.dynamics.InteractionFilter;
 	import nape.geom.Vec2;
-	import nape.shape.Shape;
 
 	use namespace bb_private;
 
@@ -27,12 +26,9 @@ package bb.gameobjects.weapons.gun
 		bb_private var prev:BBBullet;
 
 		/**
+		 * Passed distance at the moment from origin of fire.
 		 */
 		bb_private var passedDistance:Number = 0;
-
-		/**
-		 */
-		bb_private var lastShape:Shape;
 
 		/**
 		 * Mass of bullet in grams.
@@ -78,6 +74,12 @@ package bb.gameobjects.weapons.gun
 		 * If bullet should impact multi aims.
 		 */
 		public var multiAims:Boolean = false;
+
+		/**
+		 * Whether need to calculate out position of bullet.
+		 * That option has a sense if multiAims is true.
+		 */
+		public var outputPosition:Boolean = false;
 
 		/**
 		 * If true impact make influence on the bullet. Bullet behaves more realistic but for that need more computation.
@@ -149,6 +151,7 @@ package bb.gameobjects.weapons.gun
 			bullet.origin.set(origin);
 			bullet.direction.set(direction);
 			bullet.currentPosition.set(currentPosition);
+			bullet.passedDistance = passedDistance;
 
 			return bullet;
 		}
