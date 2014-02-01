@@ -121,12 +121,16 @@ package bb.gameobjects.weapons
 		}
 
 		/**
+		 * Number of fires per second.
 		 */
 		public function get fireRate():Number
 		{
 			return _fireRate;
 		}
 
+		/**
+		 * Number of fires per second.
+		 */
 		public function set fireRate(p_value:Number):void
 		{
 			_fireRate = p_value < 1 ? 1 : p_value;
