@@ -7,6 +7,7 @@ package bb.gameobjects.weapons
 {
 	import bb.bb_spaces.bb_private;
 	import bb.gameobjects.weapons.gun.BBBullet;
+	import bb.physics.components.BBPhysicsBody;
 
 	import nape.geom.RayResult;
 	import nape.geom.Vec2;
@@ -34,14 +35,6 @@ package bb.gameobjects.weapons
 		public var outContactDistance:Number = 0;
 
 		/**
-		 * How deep bullet penetrate in body.
-		 * Works if bullet's prop 'impactObstacles' is true.
-		 * Range from 0 to 1, 1 - bullet fully went through body.
-		 * If 'impactObstacles' is false value always is 1.
-		 */
-		public var penetration:Number = 1;
-
-		/**
 		 * Contact point of first intersection (e.g. point of input bullet in shape).
 		 */
 		public var inContact:Vec2;
@@ -60,6 +53,23 @@ package bb.gameobjects.weapons
 		public function get shape():Shape
 		{
 			return rayResult.shape;
+		}
+
+		/**
+		 * Returns shape name if it exist.
+		 * If shape hasn't name returns empty string.
+		 */
+		public function get shapeName():String
+		{
+			return rayResult.shape.userData.shapeName;
+		}
+
+		/**
+		 * Returns BBPhysicsBody component to which that shape belongs.
+		 */
+		public function get component():BBPhysicsBody
+		{
+			return rayResult.shape.body.userData.bb_component as BBPhysicsBody;
 		}
 
 		/**
@@ -87,7 +97,6 @@ package bb.gameobjects.weapons
 
 				inContactDistance = 0;
 				outContactDistance = 0;
-				penetration = 1;
 
 				put(this);
 			}
