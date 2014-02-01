@@ -148,28 +148,46 @@ package bb.prototyping
 		/**
 		 * Returns weapon - gun.
 		 */
-		static public function getCannon(p_headSize:int = 100, p_barrelLength:int = 200, p_angVel:Number = 500 * Math.PI / 180.0,
+		static public function getCannon(p_baseSize:int = 100, p_barrelLength:int = 100, p_angVel:Number = 500 * Math.PI / 180.0,
 		                                 p_accurate:Number = 2 * Math.PI / 180.0, p_acceleration:Number = 360 * Math.PI / 180.0,
 		                                 p_followMouse:Boolean = true):BBNode
 		{
-			var barrel:BBNode = BBNode.get("turretBarrel");
-			var barrelSprite:BBSprite = BBSprite.get(BBTexture.createFromColorRect(p_barrelLength, p_headSize / 2, "", BBColor.GRASS));
-			barrel.addComponent(barrelSprite);
-			barrel.transform.setPosition(p_barrelLength / 2 - p_barrelLength / 10, 0);
+			var turretBase:BBNode = BBNode.get("turretBase");
+			var turretBaseTextureName:String = "turretBase_s" + p_baseSize / 2 + "_c_" + BBColor.BLUE + "_co_" + BBColor.WHITE;
+			turretBase.addComponent(BBSprite.get(BBTexture.createFromColorCircle(p_baseSize / 2, turretBaseTextureName, [BBColor.SKY], BBColor.WHITE, 2)));
+			turretBase.addComponent(BBGun.get(p_barrelLength));
 
-			var turret:BBNode = BBSprite.getWithNode(BBTexture.createFromColorRect(p_headSize, p_headSize), "turretHead").node;
-			var rotator:BBRotatorComponent = turret.addComponent(BBRotatorComponent) as BBRotatorComponent;
+			var rotator:BBRotatorComponent = turretBase.addComponent(BBRotatorComponent) as BBRotatorComponent;
 			rotator.angularVelocity = p_angVel;
 			rotator.accurate = p_accurate;
 			rotator.acceleration = p_acceleration;
 			rotator.followMouse = p_followMouse;
-			turret.addChild(barrel);
 
-			//
-			var gun:BBGun = BBGun.get(p_barrelLength);
-			turret.addComponent(gun);
+			var turretHeadTextureName:String = "turretHead_s" + p_baseSize / 2 + "_c_" + BBColor.YELLOW;
+			var turretHead:BBNode = BBSprite.getWithNode(BBTexture.createFromColorRect(p_baseSize / 2, p_baseSize / 2, turretHeadTextureName, BBColor.YELLOW),
+			                                             "turretHead").node;
+			turretBase.addChild(turretHead);
 
-			return turret;
+			var barrel:BBNode = BBNode.get("turretBarrel");
+			var turretBarrelTextureName:String = "turretBarrel_s" + p_baseSize / 4 + "_c_" + BBColor.GRASS;
+			var barrelSprite:BBSprite = BBSprite.get(BBTexture.createFromColorRect(p_barrelLength, p_baseSize / 8, turretBarrelTextureName, BBColor.GRASS));
+			barrel.addComponent(barrelSprite);
+			barrel.transform.setPosition(p_barrelLength / 2, 0);
+
+			turretBase.addChild(barrel);
+
+			var turretHood:BBNode = BBNode.get("turretHood");
+			var turretHoodTextureName:String = "turretHood_s" + p_baseSize / 4 + "_c_" + BBColor.BLOOD + "_co_" + BBColor.BLACK;
+			turretHood.addComponent(BBSprite.get(BBTexture.createFromColorCircle(p_baseSize / 6, turretHoodTextureName, [BBColor.BLOOD], BBColor.BLACK, 2)));
+			turretBase.addChild(turretHood);
+
+			var turretTip:BBNode = BBNode.get("turretTip");
+			var turretTipTextureName:String = "turretTip_s" + p_baseSize / 4 + "_c_" + BBColor.SKY;
+			turretTip.addComponent(BBSprite.get(BBTexture.createFromColorRect(p_barrelLength / 6, p_baseSize / 6, turretTipTextureName, BBColor.SKY)));
+			turretTip.transform.setPosition(p_barrelLength - p_barrelLength / 12, 0);
+			turretBase.addChild(turretTip);
+
+			return turretBase;
 		}
 
 		/**
