@@ -19,6 +19,7 @@ package bb.gameobjects.weapons.gun
 		public var callbackResult:Function = null;
 		public var impactObstacles:Boolean = false;
 		public var multiAims:Boolean = false;
+		public var outputBulletPosition:Boolean = false;
 		public var barrelLength:Number = 0;
 
 		private var _fireDistance:Number = 1000;
@@ -63,6 +64,7 @@ package bb.gameobjects.weapons.gun
 			bullet.direction.set(direction);
 			bullet.fireDistance = _fireDistance;
 			bullet.multiAims = multiAims;
+			bullet.outputPosition = outputBulletPosition;
 			bullet.impactObstacles = impactObstacles;
 			bullet.filter = filter;
 			bullet.callbackResult = callbackResult;
@@ -121,12 +123,13 @@ package bb.gameobjects.weapons.gun
 		/**
 		 * Return instance of gun.
 		 */
-		static public function get(p_barrelLength:int = 0, p_multiAims:Boolean = false, p_impactObstacles:Boolean = false,
-		                           p_callbackFireResult:Function = null):BBGun
+		static public function get(p_barrelLength:int = 0, p_multiAims:Boolean = false, p_outputBulletPosition:Boolean = false,
+		                           p_impactObstacles:Boolean = false, p_callbackFireResult:Function = null):BBGun
 		{
 			var gun:BBGun = BBComponent.get(BBGun) as BBGun;
 			gun.barrelLength = p_barrelLength;
 			gun.multiAims = p_multiAims;
+			gun.outputBulletPosition = p_outputBulletPosition;
 			gun.impactObstacles = p_impactObstacles;
 			gun.callbackResult = p_callbackFireResult;
 
@@ -136,10 +139,11 @@ package bb.gameobjects.weapons.gun
 		/**
 		 * Returns gun instance added to node.
 		 */
-		static public function getWithNode(p_nodeName:String = "", p_barrelLength:int = 0, p_multiAims:Boolean = false, p_impactObstacles:Boolean = false,
-		                                   p_callbackFireResult:Function = null):BBGun
+		static public function getWithNode(p_nodeName:String = "", p_barrelLength:int = 0, p_multiAims:Boolean = false, p_outputBulletPosition:Boolean = false,
+		                                   p_impactObstacles:Boolean = false, p_callbackFireResult:Function = null):BBGun
 		{
-			return BBNode.get(p_nodeName).addComponent(get(p_barrelLength, p_multiAims, p_impactObstacles, p_callbackFireResult)) as BBGun;
+			return BBNode.get(p_nodeName).addComponent(get(p_barrelLength, p_multiAims, p_outputBulletPosition, p_impactObstacles,
+			                                               p_callbackFireResult)) as BBGun;
 		}
 	}
 }
