@@ -21,7 +21,7 @@ package bb.core
 	 */
 	final public class BBTransform extends BBComponent
 	{
-		private const PI2_RAD:Number = Math.PI * 2;
+		private const PI2:Number = Math.PI * 2;
 		private const RAD_TO_DEG:Number = 180.0 / Math.PI;
 		private const DEG_TO_RAD:Number = Math.PI / 180.0;
 
@@ -618,18 +618,14 @@ package bb.core
 		[Inline]
 		final private function fitAngle(p_angle:Number):Number
 		{
-			var pi2:Number = PI2_RAD;
+			var pi2:Number = PI2;
 
-			if (p_angle < 0 && p_angle < -pi2)
+			if (p_angle < 0)
 			{
-				p_angle %= pi2;
+				if (p_angle < -pi2) p_angle %= pi2;
 				p_angle += pi2;
 			}
-			else
-			{
-				if (p_angle < 0) p_angle += pi2;
-				else if (p_angle > pi2) p_angle %= pi2;
-			}
+			else if (p_angle > pi2) p_angle %= pi2;
 
 			return p_angle;
 		}
@@ -722,7 +718,7 @@ package bb.core
 				}
 
 				var newWorldRotation:Number = _localRotation + parentWorldRotation;
-				newWorldRotation = newWorldRotation > PI2_RAD ? (newWorldRotation % PI2_RAD) : newWorldRotation;
+				newWorldRotation = newWorldRotation > PI2 ? (newWorldRotation % PI2) : newWorldRotation;
 
 				if (isRotationChanged || (newWorldRotation > worldRotation ? (newWorldRotation - worldRotation) : (worldRotation - newWorldRotation)) > 0.01)
 				{
