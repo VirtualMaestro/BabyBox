@@ -64,7 +64,7 @@ package bb.gameobjects.weapons.gun
 			bullet.direction.set(direction);
 			bullet.fireDistance = _fireDistance;
 			bullet.multiAims = multiAims;
-			bullet.outputPosition = outputBulletPosition;
+			bullet.findOutputPosition = outputBulletPosition;
 			bullet.impactObstacles = impactObstacles;
 			bullet.filter = filter;
 			bullet.callbackResult = callbackResult;

@@ -7,19 +7,19 @@ package bb.gameobjects.weapons
 {
 	import bb.bb_spaces.bb_private;
 	import bb.gameobjects.weapons.gun.BBBullet;
-	import bb.layer.constants.BBLayerNames;
 	import bb.modules.BBModule;
 	import bb.physics.BBPhysicsModule;
-	import bb.render.components.BBSprite;
-	import bb.render.textures.BBTexture;
 	import bb.signals.BBSignal;
-	import bb.world.BBWorldModule;
+
+	import flash.utils.Dictionary;
 
 	import nape.geom.Ray;
 	import nape.geom.RayResult;
 	import nape.geom.RayResultList;
 	import nape.geom.Vec2;
 	import nape.shape.Shape;
+
+	import vm.ds.stacks.BBStack;
 
 	use namespace bb_private;
 
@@ -33,10 +33,16 @@ package bb.gameobjects.weapons
 		private var _bulletHead:BBBullet;
 		private var _bulletTail:BBBullet;
 
+		private var _minBulletSpeed:Number = 50;
 		private var _ray:Ray;
 		private var _rayResultList:RayResultList;
 		private var _fireResults:Vector.<BBFireResult>;
-		private var _withoutOuter:Vector.<BBFireResult>;
+
+		//
+		private var _prevDistance:Number = 0;
+		private var _numResultsWithoutOuters:int = 0;
+		private var _tableWithoutOuters:Dictionary;
+		private var _resultsStack:BBStack;
 
 		/**
 		 */
@@ -55,7 +61,8 @@ package bb.gameobjects.weapons
 			_ray = new Ray(Vec2.get(), Vec2.get());
 			_rayResultList = new RayResultList();
 			_fireResults = new <BBFireResult>[];
-			_withoutOuter = new <BBFireResult>[];
+			_tableWithoutOuters = new Dictionary();
+			_resultsStack = BBStack.get();
 		}
 
 		/**
@@ -125,163 +132,153 @@ package bb.gameobjects.weapons
 				// if have something to dispatch dispatching it
 				if (_fireResults.length > 0 && currentBullet.callbackResult) currentBullet.callbackResult(_fireResults);
 
-				// clear list of fire results
-				clearFireResults();
-
 				//
 				if (currentBullet.shouldRemove)
 				{
 					currentBullet.dispose();
 				}
+
+				//
+				endBulletProcess();
 			}
 		}
 
-		private function addLine(p_vec:Vec2):void
+		/**
+		 */
+		[Inline]
+		final private function getDistanceDeltaAndCheckBulletStatus(p_bullet:BBBullet, p_deltaTime:int):Number
 		{
-			var sprite:BBSprite = BBSprite.getWithNode(BBTexture.createFromColorRect(4, 50, "line", 0xff00ff00));
-			sprite.node.transform.setPosition(p_vec.x, p_vec.y);
-			(getModule(BBWorldModule) as BBWorldModule).add(sprite.node, BBLayerNames.MIDDLEGROUND);
+			var distanceDelta:Number = (p_bullet.speed * 10.0) * (Number(p_deltaTime) * 0.001);
+			var expectedPassedDistance:Number = p_bullet.passedDistance + distanceDelta;
+			var fireDistance:Number = p_bullet.fireDistance;
+
+			if (p_bullet.speed < _minBulletSpeed) p_bullet.shouldRemove = true;
+
+			if (expectedPassedDistance >= fireDistance)
+			{
+				distanceDelta = expectedPassedDistance > fireDistance ? (fireDistance - p_bullet.passedDistance) : distanceDelta;
+				p_bullet.shouldRemove = true;
+			}
+
+			return distanceDelta;
 		}
 
 		/**
 		 */
 		private function getFireResult(p_bullet:BBBullet, p_deltaTime:int):void
 		{
-			addLine(p_bullet.currentPosition);
-
-			p_bullet.elapsedTime += p_deltaTime;
-
-			var absoluteDistanceDelta:Number = (p_bullet.speed * 10) * (p_deltaTime / 1000.0);
-			var distanceDelta:Number = absoluteDistanceDelta;
-			var expectedPassedDistance:Number = p_bullet.passedDistance + distanceDelta;
-			var fireDistance:Number = p_bullet.fireDistance;
-
-			//
-			if (!(expectedPassedDistance < fireDistance))
-			{
-				distanceDelta = expectedPassedDistance > fireDistance ? (fireDistance - p_bullet.passedDistance) : distanceDelta;
-				p_bullet.shouldRemove = true;
-			}
+			var distanceDelta:Number = 0;
 
 			//
 			if (p_bullet.multiAims)
 			{
-				var findOuterPoints:Boolean = p_bullet.outputPosition || p_bullet.impactObstacles;
-				var numCorrectResults:int = 0;
-				var fartherFireResult:BBFireResult;
-				var biggerDistance:Number = 0;
-				var numResults:int;
-				var breakLoop:Boolean = false;
-				var fireResult:BBFireResult;
+				distanceDelta = getDistanceDeltaAndCheckBulletStatus(p_bullet, p_deltaTime);
+				multiAimsProcess(p_bullet.currentPosition, p_bullet.direction, distanceDelta, p_bullet);
 
-				while (!breakLoop)
+				p_bullet.addDistance(distanceDelta);
+
+				//
+				if (p_bullet.findOutputPosition && _numResultsWithoutOuters > 0)
 				{
-					multiAimsProcess(p_bullet.currentPosition, p_bullet.direction, distanceDelta, p_bullet);
+					var numCorrectResults:int = _fireResults.length;
+					var furtherDistance:int = p_bullet.passedDistance;
+					var complete:Boolean = false;
+					var fireResult:BBFireResult;
+					var numResults:int;
+					var startFrom:int = 0;
 
-					// need to find also points where bullet out from body
-					numResults = _fireResults.length;
-					if (findOuterPoints && numResults > 0)
+					while (!complete)
 					{
-						// mean at least second iteration to find all outer points
-						var numWithoutOuter:int = _withoutOuter.length;
-						if (numWithoutOuter > 0)
+						complete = true;
+
+						multiAimsProcess(p_bullet.currentPosition, p_bullet.direction, distanceDelta, p_bullet);
+
+						for (var i:int = startFrom; i < numCorrectResults; i++)
 						{
-							for (var j:int = 0; j < numWithoutOuter; j++)
+							fireResult = _fireResults[i];
+
+							if (fireResult.outContact == null)
 							{
-								fireResult = _withoutOuter[j];
-
-								//
-								if (fireResult.outContact)
-								{
-									if (fireResult.outContactDistance > biggerDistance)
-									{
-										biggerDistance = fireResult.outContactDistance;
-										fartherFireResult = fireResult;
-									}
-
-									_withoutOuter.splice(j, 1);
-									j--;
-									numWithoutOuter--;
-								}
+								furtherDistance = p_bullet.passedDistance + distanceDelta;
+								complete = false;
+								break;
 							}
-
-							// if after additional raycast for some fire result wasn't find out contact, continue searching
-							numWithoutOuter = _withoutOuter.length;
-							if (numWithoutOuter == 0) // if every out contact were found, try to figure out for new contacts and try to filter them
+							else if (fireResult.outContactDistance > furtherDistance)
 							{
-								// if there are new extra results
-								if (numResults > numCorrectResults)
+								furtherDistance = fireResult.outContactDistance;
+							}
+						}
+
+						startFrom = i;
+
+						//
+						if (complete)
+						{
+							numResults = _fireResults.length;
+
+							if (numResults != numCorrectResults)
+							{
+								for (var j:int = numCorrectResults; j < numResults; j++)
 								{
-									for (var k:int = numCorrectResults; k < numResults; k++)
+									fireResult = _fireResults[i];
+
+									if (furtherDistance - 0.3 > fireResult.inContactDistance)
 									{
-										fireResult = _fireResults[k];
+										numCorrectResults++;
 
-										if (biggerDistance > fireResult.inContactDistance)
+										if (fireResult.outContact == null)
 										{
-											numCorrectResults++;
-
-											if (!fireResult.outContact)
-											{
-												_withoutOuter[numWithoutOuter++] = fireResult;
-												break;
-											}
-											else if (fireResult.outContactDistance > biggerDistance)
-											{
-												fartherFireResult = fireResult;
-												biggerDistance = fireResult.outContactDistance;
-											}
-										}
-										else
-										{
-											clearFireResults(numCorrectResults);
-											breakLoop = true;
+											complete = false;
 											break;
 										}
 									}
 								}
-								else breakLoop = true;
 							}
 						}
-						else    // first iteration
+
+						p_bullet.setDistance(furtherDistance);
+					}
+
+					clearFireResults(numCorrectResults);
+				}
+
+				//
+				if (p_bullet.passedDistance >= p_bullet.fireDistance || p_bullet.speed < _minBulletSpeed)
+				{
+					p_bullet.shouldRemove = true;
+
+					// clear unneeded results which has spent energy 0
+					if (p_bullet.impactObstacles)
+					{
+						var numFireResults:int = _fireResults.length;
+
+						for (i = 0; i < numFireResults; i++)
 						{
-							numCorrectResults = numResults;
-
-							for (var i:int = 0; i < numResults; i++)
+							if (_fireResults[i].energy == 0)
 							{
-								fireResult = _fireResults[i];
-
-								if (fireResult.outContact == null) _withoutOuter[numWithoutOuter++] = fireResult;
+								clearFireResults(i);
+								break;
 							}
-
-							breakLoop = numWithoutOuter == 0;
 						}
 					}
-					else breakLoop = true;
-
-					//
-					p_bullet.currentPosition.addeq(p_bullet.direction.mul(distanceDelta, true));
-					p_bullet.passedDistance += distanceDelta;
-					distanceDelta = absoluteDistanceDelta;
 				}
-
-				if (fartherFireResult)
-				{
-					p_bullet.currentPosition.set(fartherFireResult.outContact);
-					p_bullet.passedDistance = fartherFireResult.outContactDistance;
-				}
-
-				if (!(p_bullet.passedDistance < fireDistance)) p_bullet.shouldRemove = true;
-
-				addLine(p_bullet.currentPosition);
 			}
 			else
 			{
-				_ray.origin.set(p_bullet.currentPosition);
-				_ray.direction.set(p_bullet.direction);
-				_ray.maxDistance = distanceDelta;
-
-				addFireResult(_physicsModule.space.rayCast(_ray, false, p_bullet.filter), p_bullet);
+				addFireResult(getSingleRayResult(p_bullet, p_deltaTime), p_bullet);
 			}
+		}
+
+		/**
+		 */
+		[Inline]
+		final private function getSingleRayResult(p_bullet:BBBullet, p_deltaTime:int):RayResult
+		{
+			_ray.origin.set(p_bullet.currentPosition);
+			_ray.direction.set(p_bullet.direction);
+			_ray.maxDistance = getDistanceDeltaAndCheckBulletStatus(p_bullet, p_deltaTime);
+
+			return _physicsModule.space.rayCast(_ray, false, p_bullet.filter);
 		}
 
 		/**
@@ -293,7 +290,7 @@ package bb.gameobjects.weapons
 			_ray.direction.set(p_bulletDirection);
 			_ray.maxDistance = p_distance;
 
-			_physicsModule.space.rayMultiCast(_ray, p_bullet.outputPosition || p_bullet.impactObstacles, p_bullet.filter, _rayResultList);
+			_physicsModule.space.rayMultiCast(_ray, p_bullet.findOutputPosition || p_bullet.impactObstacles, p_bullet.filter, _rayResultList);
 
 			var rayResultCount:int = _rayResultList.length;
 			var rayResult:RayResult;
@@ -312,54 +309,126 @@ package bb.gameobjects.weapons
 		/**
 		 * Returns true if handling current bullet should stop.
 		 */
-		private function addFireResult(p_rayResult:RayResult, p_bullet:BBBullet):Boolean
+		private function addFireResult(p_rayResult:RayResult, p_bullet:BBBullet):void
 		{
-			var fireResult:BBFireResult;
+			var exitFromShape:Boolean = p_rayResult.inner;
+			var nShape:Shape = p_rayResult.shape;
+			var nDistance:Number = p_rayResult.distance;
+			var nTotalDistance:Number = nDistance + p_bullet.passedDistance;
+			var insideShape:Boolean = _numResultsWithoutOuters > 0;
+			var diffDistance:Number = nTotalDistance - _prevDistance;
+			var energySpentForBody:Number = 0;
+			var impactObstacles:Boolean = p_bullet.impactObstacles;
+			var bulletEnergy:Number;
+			var newBulletEnergy:Number;
 
-			if (p_rayResult.inner)
+			//
+			if (exitFromShape)
 			{
-				var outerFireResult:BBFireResult = findOuterPart(p_rayResult.shape);
-
-				if (outerFireResult)
+				if (insideShape)
 				{
-					outerFireResult.outContact = p_bullet.currentPosition.addMul(p_bullet.direction, p_rayResult.distance);
-					outerFireResult.outContactDistance = p_bullet.passedDistance + p_rayResult.distance;
+					var outerFireResult:BBFireResult = _tableWithoutOuters[nShape];
+
+					if (outerFireResult)
+					{
+						outerFireResult.outContact = p_bullet.currentPosition.addMul(p_bullet.direction, nDistance);
+						outerFireResult.outContactDistance = nTotalDistance;
+						outerFireResult.outSpeed = p_bullet.speed;
+
+						delete _tableWithoutOuters[nShape];
+						_numResultsWithoutOuters--;
+
+						if (impactObstacles)
+						{
+							if (_resultsStack.top.shape == nShape)
+							{
+								energySpentForBody = getSpentEnergy(nShape.material.density, diffDistance);
+
+								bulletEnergy = p_bullet.energy;
+								newBulletEnergy = bulletEnergy - energySpentForBody;
+
+								if (newBulletEnergy <= 0)
+								{
+									newBulletEnergy = 0;
+									energySpentForBody = bulletEnergy;
+								}
+
+								p_bullet.energy = newBulletEnergy;
+								outerFireResult.energy += energySpentForBody;
+
+								_prevDistance = nTotalDistance;
+							}
+
+							outerFireResult.stackNode.dispose();
+						}
+					}
 				}
 			}
 			else
 			{
-				fireResult = BBFireResult.get();
+				var fireResult:BBFireResult = BBFireResult.get();
 				fireResult.bullet = p_bullet;
 				fireResult.rayResult = p_rayResult;
-				fireResult.inContact = p_bullet.currentPosition.addMul(p_bullet.direction, p_rayResult.distance);
-				fireResult.inContactDistance = p_bullet.passedDistance + p_rayResult.distance;
+				fireResult.inContact = p_bullet.currentPosition.addMul(p_bullet.direction, nDistance);
+				fireResult.inContactDistance = nTotalDistance;
+				fireResult.inSpeed = p_bullet.speed;
 
 				_fireResults[_fireResults.length] = fireResult;
-			}
 
-			return false;
+				_numResultsWithoutOuters++;
+
+				//
+				if (impactObstacles)
+				{
+					if (insideShape) // bullet enters the shape which is into some other shape
+					{
+						var lastFireResult:BBFireResult = _resultsStack.top as BBFireResult;
+						energySpentForBody = getSpentEnergy(lastFireResult.shape.material.density, diffDistance);
+
+						bulletEnergy = p_bullet.energy;
+						newBulletEnergy = bulletEnergy - energySpentForBody;
+
+						if (newBulletEnergy <= 0)
+						{
+							newBulletEnergy = 0;
+							energySpentForBody = bulletEnergy;
+						}
+
+						p_bullet.energy = newBulletEnergy;
+						lastFireResult.energy += energySpentForBody;
+					}
+
+					_prevDistance = nTotalDistance;
+
+					fireResult.stackNode = _resultsStack.push(fireResult);
+				}
+
+				//
+				if (p_bullet.findOutputPosition)
+				{
+					_tableWithoutOuters[nShape] = fireResult;
+				}
+			}
 		}
 
 		/**
 		 */
-		private function findOuterPart(p_shape:Shape):BBFireResult
+		[Inline]
+		final private function endBulletProcess():void
 		{
-			var len:int = _fireResults.length;
-			var fireResult:BBFireResult;
-
-			for (var i:int = 0; i < len; i++)
+			for (var key:Object in _tableWithoutOuters)
 			{
-				fireResult = _fireResults[i];
-
-				if (fireResult.rayResult.shape == p_shape) return fireResult;
+				delete _tableWithoutOuters[key];
 			}
 
-			return null;
+			clearFireResults();
+			_resultsStack.clear();
+			_prevDistance = _numResultsWithoutOuters = 0;
 		}
 
 		/**
 		 */
-		private function clearFireResults(p_startClearFromIndex:int = 0):void
+		final private function clearFireResults(p_startClearFromIndex:int = 0):void
 		{
 			var len:int = _fireResults.length;
 			for (var i:int = p_startClearFromIndex; i < len; i++)
@@ -368,6 +437,15 @@ package bb.gameobjects.weapons
 			}
 
 			_fireResults.length = p_startClearFromIndex;
+		}
+
+		/**
+		 * Returns energy which spent during passing through material with specific density for given distance.
+		 */
+		[Inline]
+		static private function getSpentEnergy(p_densityOfMaterial:Number, p_passedDistance:Number):Number
+		{
+			return (150 * p_densityOfMaterial * p_passedDistance * 100) / 30.0;
 		}
 	}
 }

@@ -17,7 +17,7 @@ package bb.gameobjects.weapons.gun
 	 */
 	public class BBBullet
 	{
-		static private const PI4:Number = 6.283185 * 2;
+		static private const PI4:Number = Math.PI * 4;
 
 		bb_private var shouldRemove:Boolean = false;
 
@@ -79,7 +79,7 @@ package bb.gameobjects.weapons.gun
 		 * Whether need to calculate out position of bullet.
 		 * That option has a sense if multiAims is true.
 		 */
-		public var outputPosition:Boolean = false;
+		public var findOutputPosition:Boolean = false;
 
 		/**
 		 * If true impact make influence on the bullet. Bullet behaves more realistic but for that need more computation.
@@ -104,11 +104,6 @@ package bb.gameobjects.weapons.gun
 		public var removeFromList:Function;
 
 		/**
-		 * Time what elapsed when bullet started (in milliseconds).
-		 */
-		public var elapsedTime:int = 0;
-
-		/**
 		 */
 		private var _isDisposed:Boolean = false;
 
@@ -129,10 +124,19 @@ package bb.gameobjects.weapons.gun
 		}
 
 		/**
+		 * Returns energy of bullet for the moment by given speed.
+		 */
+		[Inline]
+		final public function getEnergyBySpeed(p_speed:Number):Number
+		{
+			return (mass * p_speed * p_speed) / (PI4 * radiusTip);
+		}
+
+		/**
 		 */
 		bb_private function get energy():Number
 		{
-			return (mass * speed * speed) / (PI4 * radiusTip);
+			return getEnergyBySpeed(speed);
 		}
 
 		/**
@@ -140,6 +144,30 @@ package bb.gameobjects.weapons.gun
 		bb_private function set energy(p_val:Number):void
 		{
 			speed = p_val > 0 ? Math.sqrt((p_val * PI4 * radiusTip) / mass) : 0;
+		}
+
+		/**
+		 * Adds given distance with calculation of new current position and passed distance.
+		 * Returns new passed distance.
+		 */
+		public function addDistance(p_deltaDistance:Number):Number
+		{
+			currentPosition.addeq(direction.mul(p_deltaDistance, true));
+			passedDistance += p_deltaDistance;
+
+			return passedDistance;
+		}
+
+		/**
+		 * Set distance with calculation of new current position and passed distance.
+		 * Returns passed distance as value of given distance.
+		 */
+		public function setDistance(p_distance:Number):Number
+		{
+			currentPosition.set(origin.addMul(direction, p_distance, true));
+			passedDistance = p_distance;
+
+			return p_distance;
 		}
 
 		/**
@@ -213,7 +241,6 @@ package bb.gameobjects.weapons.gun
 				bullet.direction = Vec2.get(1, 0);
 				bullet.currentPosition = Vec2.get();
 				bullet.passedDistance = 0;
-				bullet.elapsedTime = 0;
 
 				bullet.shouldRemove = false;
 				bullet._isDisposed = false;

@@ -13,6 +13,8 @@ package bb.gameobjects.weapons
 	import nape.geom.Vec2;
 	import nape.shape.Shape;
 
+	import vm.ds.api.BBNodeList;
+
 	use namespace bb_private;
 
 	/**
@@ -22,6 +24,7 @@ package bb.gameobjects.weapons
 	{
 		bb_private var rayResult:RayResult;
 		bb_private var bullet:BBBullet;
+		bb_private var stackNode:BBNodeList;
 
 		/**
 		 * Second output contact if it exist (e.g. point output from shape).
@@ -35,6 +38,11 @@ package bb.gameobjects.weapons
 		public var outContactDistance:Number = 0;
 
 		/**
+		 * Speed of the bullet when it exits the shape.
+		 */
+		public var outSpeed:Number = 0;
+
+		/**
 		 * Contact point of first intersection (e.g. point of input bullet in shape).
 		 */
 		public var inContact:Vec2;
@@ -43,6 +51,16 @@ package bb.gameobjects.weapons
 		 * Distance from 'origin' to 'inContact' point.
 		 */
 		public var inContactDistance:Number = 0;
+
+		/**
+		 * Speed of the bullet when it enters the shape.
+		 */
+		public var inSpeed:Number = 0;
+
+		/**
+		 * Spent bullet's energy for that shape.
+		 */
+		public var energy:Number = 0;
 
 		//
 		private var _isDisposed:Boolean = false;
@@ -85,6 +103,7 @@ package bb.gameobjects.weapons
 				rayResult = null;
 
 				bullet = null;
+				stackNode = null;
 
 				inContact.dispose();
 				inContact = null;
@@ -96,7 +115,10 @@ package bb.gameobjects.weapons
 				}
 
 				inContactDistance = 0;
+				inSpeed = 0;
 				outContactDistance = 0;
+				outSpeed = 0;
+				energy = 0;
 
 				put(this);
 			}
