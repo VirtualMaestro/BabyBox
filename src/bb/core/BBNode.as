@@ -589,6 +589,15 @@ package bb.core
 		}
 
 		/**
+		 * Clear all tags.
+		 */
+		[Inline]
+		public function removeAllTags():void
+		{
+			_tags = [];
+		}
+
+		/**
 		 * Check if given tag exist.
 		 */
 		public function hasTag(p_tag:String):Boolean
@@ -893,7 +902,7 @@ package bb.core
 		private function disposeComponents():void
 		{
 			var component:BBComponent;
-			for (var componentClass:Object in _lookupComponentTable)
+			for (var componentClass:* in _lookupComponentTable)
 			{
 				component = _lookupComponentTable[componentClass];
 
@@ -905,6 +914,7 @@ package bb.core
 		/**
 		 * Disposes dynamic properties.
 		 */
+		[Inline]
 		private function clearProperties():void
 		{
 			for (var prop:* in _properties)
@@ -1035,6 +1045,9 @@ package bb.core
 
 			// clear properties
 			clearProperties();
+
+			//
+			removeAllTags();
 		}
 
 		/**
