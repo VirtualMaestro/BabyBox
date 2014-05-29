@@ -28,31 +28,31 @@ package bb.core
 	final public class BBNode
 	{
 		// Next/prev links to be able to create dynamic linked list
-		public var next:BBNode = null;
-		public var prev:BBNode = null;
+		public var next:BBNode;
+		public var prev:BBNode;
 
 		// Node's children
-		public var childrenHead:BBNode = null;
-		public var childrenTail:BBNode = null;
+		public var childrenHead:BBNode;
+		public var childrenTail:BBNode;
 
 		// Node's components for updating
-		bb_private var z_upt_head:BBComponent = null;
-		bb_private var z_upt_tail:BBComponent = null;
+		bb_private var z_upt_head:BBComponent;
+		bb_private var z_upt_tail:BBComponent;
 
 		// Node's components for rendering
-		bb_private var z_renderComponent:BBRenderable = null;
+		bb_private var z_renderComponent:BBRenderable;
 
 		// root of tree
-		bb_private var _tree:BBTreeModule = null;
+		bb_private var _tree:BBTreeModule;
 
 		//
-		bb_private var mouseOver:BBNode = null;
-		bb_private var mouseDown:BBNode = null;
+		bb_private var mouseOver:BBNode;
+		bb_private var mouseDown:BBNode;
 
 		/**
 		 * Name of node. Nothing special just name for node. Not using internal.
 		 */
-		private var _name:String = "";
+		private var _name:String;
 
 		// id of node
 		private var _id:int = 0;
@@ -71,7 +71,7 @@ package bb.core
 		 * Transform component of node.
 		 * (as public member for faster access, so read-only)
 		 */
-		public var transform:BBTransform = null;
+		public var transform:BBTransform;
 
 		/**
 		 * Allows to handle of mouse events for children nodes.
@@ -96,30 +96,30 @@ package bb.core
 		 * Table where stored all components related to this node.
 		 * key is class of component, value is component itself.
 		 */
-		private var _lookupComponentTable:Dictionary = null;
+		private var _lookupComponentTable:Dictionary;
 
 		//
 		private var _numChildren:int = 0;
 		private var _numComponents:int = 0;
 
-		private var _parent:BBNode = null;
+		private var _parent:BBNode;
 		private var _isOnStage:Boolean = false;
 
 		//
 		private var _visible:Boolean = true;
 
 		// This ref contain z_renderComponent until _visible == false
-		private var _backupRenderComponent:BBRenderable = null;
+		private var _backupRenderComponent:BBRenderable;
 
 		// Tags
-		private var _tags:Array = null;
+		private var _tags:Array;
 
 		// dynamics properties
 		private var _properties:Dictionary;
 
 		// Helper fields to prevent crash iterations by removing next element
-		private var _nextComponentUpdList:BBComponent = null;
-		private var _nextChildNode:BBNode = null;
+		private var _nextComponentUpdList:BBComponent;
+		private var _nextChildNode:BBNode;
 
 		//
 		private var _isDisposed:Boolean = false;
@@ -129,29 +129,29 @@ package bb.core
 		///////////////////
 
 		// When node was added to stage (render graph)
-		private var _onAddedToStage:BBSignal = null;
+		private var _onAddedToStage:BBSignal;
 
 		// When node was from stage (render graph)
-		private var _onRemovedFromStage:BBSignal = null;
+		private var _onRemovedFromStage:BBSignal;
 
 		//
-		private var _onAdded:BBSignal = null;
-		private var _onRemoved:BBSignal = null;
+		private var _onAdded:BBSignal;
+		private var _onRemoved:BBSignal;
 
 		// Signal dispatches when node passed all update loop and fully updated, with all components and children
 		private var _onUpdated:BBSignal;
 
 		// Signal dispatches when node passed all renderer loop, with all components and children
 		private var _onRendered:BBSignal;
-		private var _onActive:BBSignal = null;
+		private var _onActive:BBSignal;
 
 		// Mouse signals
-		private var _onMouseClick:BBSignal = null;
-		private var _onMouseUp:BBSignal = null;
-		private var _onMouseDown:BBSignal = null;
-		private var _onMouseOver:BBSignal = null;
-		private var _onMouseOut:BBSignal = null;
-		private var _onMouseMove:BBSignal = null;
+		private var _onMouseClick:BBSignal;
+		private var _onMouseUp:BBSignal;
+		private var _onMouseDown:BBSignal;
+		private var _onMouseOver:BBSignal;
+		private var _onMouseOut:BBSignal;
+		private var _onMouseMove:BBSignal;
 
 		//////////////////////////////////
 
@@ -163,7 +163,6 @@ package bb.core
 			name = p_name;
 
 			_id = UniqueId.getId();
-			_tags = [];
 			_lookupComponentTable = new Dictionary();
 			_properties = new Dictionary();
 
@@ -577,6 +576,7 @@ package bb.core
 		 */
 		public function addTag(p_tag:String):void
 		{
+			if (_tags == null) _tags = [];
 			_tags[p_tag] = p_tag;
 		}
 
@@ -585,7 +585,7 @@ package bb.core
 		 */
 		public function removeTag(p_tag:String):void
 		{
-			_tags[p_tag] = null;
+			if (_tags) _tags[p_tag] = null;
 		}
 
 		/**
@@ -594,7 +594,7 @@ package bb.core
 		[Inline]
 		public function removeAllTags():void
 		{
-			_tags = [];
+			_tags = null;
 		}
 
 		/**
@@ -602,7 +602,7 @@ package bb.core
 		 */
 		public function hasTag(p_tag:String):Boolean
 		{
-			return _tags[p_tag] != null;
+			return _tags && (_tags[p_tag] != null);
 		}
 
 		/**
@@ -1077,9 +1077,12 @@ package bb.core
 			copyNode._visible = _visible;
 
 			// copy tags
-			for each (var tag:String in _tags)
+			if (_tags)
 			{
-				copyNode.addTag(tag);
+				for each (var tag:String in _tags)
+				{
+					copyNode.addTag(tag);
+				}
 			}
 
 			// partially copy  of properties
@@ -1252,12 +1255,15 @@ package bb.core
 			nodePrototype.@alias = alias == null ? "" : alias;
 
 			// parse tags and combine them into one string
-			var tagsResult:String = "";
-			for each(var val:String in _tags)
+			if (_tags)
 			{
-				tagsResult += val + ",";
+				var tagsResult:String = "";
+				for each(var val:String in _tags)
+				{
+					tagsResult += val + ",";
+				}
+				nodePrototype.@tags = tagsResult.substr(0, tagsResult.length - 1);
 			}
-			nodePrototype.@tags = tagsResult.substr(0, tagsResult.length - 1);
 
 			// parse components
 			nodePrototype.components = <components/>;
@@ -1327,12 +1333,15 @@ package bb.core
 
 				if (alias != "") node.addProperty("bb_alias", alias);
 
-				var tags:Array = p_prototype.@tags.split(",");
-				var tagsLen:int = tags.length;
-				var i:int;
-				for (i = 0; i < tagsLen; i++)
+				if (p_prototype.hasOwnProperty("tags"))
 				{
-					node.addTag(tags[i]);
+					var tags:Array = p_prototype.@tags.split(",");
+					var tagsLen:int = tags.length;
+					var i:int;
+					for (i = 0; i < tagsLen; i++)
+					{
+						node.addTag(tags[i]);
+					}
 				}
 
 				// parse components
