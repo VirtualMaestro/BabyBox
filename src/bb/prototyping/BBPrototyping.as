@@ -6,6 +6,8 @@
 package bb.prototyping
 {
 	import bb.core.BBNode;
+	import bb.gameobjects.BBRotatorComponent;
+	import bb.gameobjects.weapons.gun.BBGun;
 	import bb.physics.components.BBPhysicsBody;
 	import bb.physics.joints.BBJoint;
 	import bb.physics.utils.BBPhysicalMaterials;
@@ -82,8 +84,10 @@ package bb.prototyping
 
 		/**
 		 * Creates cart.
+		 * Wheels have names - leftWheel and rightWheel accordingly, so you can get wheel by its name.
 		 */
-		static public function getCart(p_width:Number = 200, p_height:Number = 50, p_radius:Number = 25, p_wheelPosition:Vec2 = null):BBNode
+		static public function getCart(p_width:Number = 200, p_height:Number = 50, p_radius:Number = 25, p_wheelPosition:Vec2 = null,
+		                               p_allowHand:Boolean = true):BBNode
 		{
 			var leftWheelX:Number = -70;
 			var leftWheelY:Number = 20;
@@ -101,6 +105,7 @@ package bb.prototyping
 			var cart:BBNode = BBNode.get("cart");
 			var physics:BBPhysicsBody = BBPhysicsBody.get(BodyType.DYNAMIC);
 			physics.addBox(p_width, p_height);
+			physics.allowHand = p_allowHand;
 			cart.addComponent(physics);
 
 			var skin:BBSprite = BBSprite.get(BBTexture.createFromColorRect(p_width, p_height));
@@ -110,6 +115,7 @@ package bb.prototyping
 			var wheel:BBNode = BBNode.get("leftWheel");
 			physics = BBPhysicsBody.get(BodyType.DYNAMIC);
 			physics.addCircle(p_radius);
+			physics.allowHand = p_allowHand;
 			wheel.addComponent(physics);
 
 			skin = BBSprite.get(BBTexture.createFromColorCircle(p_radius));
@@ -124,8 +130,10 @@ package bb.prototyping
 			wheel = BBNode.get("rightWheel");
 			physics = BBPhysicsBody.get(BodyType.DYNAMIC);
 			physics.addCircle(p_radius);
+			physics.allowHand = p_allowHand;
 			wheel.addComponent(physics);
 
+			//
 			skin = BBSprite.get(BBTexture.createFromColorCircle(p_radius));
 			wheel.addComponent(skin);
 			wheel.transform.setPosition(rightWheelX, rightWheelY);
@@ -135,6 +143,51 @@ package bb.prototyping
 			cart.addChild(wheel);
 
 			return cart;
+		}
+
+		/**
+		 * Returns weapon - gun.
+		 */
+		static public function getCannon(p_baseSize:int = 100, p_barrelLength:int = 100, p_angVel:Number = 500 * Math.PI / 180.0,
+		                                 p_accurate:Number = 2 * Math.PI / 180.0, p_acceleration:Number = 360 * Math.PI / 180.0,
+		                                 p_followMouse:Boolean = true):BBNode
+		{
+			var turretBase:BBNode = BBNode.get("turretBase");
+			var turretBaseTextureName:String = "turretBase_s" + p_baseSize / 2 + "_c_" + BBColor.BLUE + "_co_" + BBColor.WHITE;
+			turretBase.addComponent(BBSprite.get(BBTexture.createFromColorCircle(p_baseSize / 2, turretBaseTextureName, [BBColor.SKY], BBColor.WHITE, 2)));
+			turretBase.addComponent(BBGun.get(p_barrelLength));
+
+			var rotator:BBRotatorComponent = turretBase.addComponent(BBRotatorComponent) as BBRotatorComponent;
+			rotator.angularVelocity = p_angVel;
+			rotator.accurate = p_accurate;
+			rotator.acceleration = p_acceleration;
+			rotator.followMouse = p_followMouse;
+
+			var turretHeadTextureName:String = "turretHead_s" + p_baseSize / 2 + "_c_" + BBColor.YELLOW;
+			var turretHead:BBNode = BBSprite.getWithNode(BBTexture.createFromColorRect(p_baseSize / 2, p_baseSize / 2, turretHeadTextureName, BBColor.YELLOW),
+			                                             "turretHead").node;
+			turretBase.addChild(turretHead);
+
+			var barrel:BBNode = BBNode.get("turretBarrel");
+			var turretBarrelTextureName:String = "turretBarrel_s" + p_baseSize / 4 + "_c_" + BBColor.GRASS;
+			var barrelSprite:BBSprite = BBSprite.get(BBTexture.createFromColorRect(p_barrelLength, p_baseSize / 8, turretBarrelTextureName, BBColor.GRASS));
+			barrel.addComponent(barrelSprite);
+			barrel.transform.setPosition(p_barrelLength / 2, 0);
+
+			turretBase.addChild(barrel);
+
+			var turretHood:BBNode = BBNode.get("turretHood");
+			var turretHoodTextureName:String = "turretHood_s" + p_baseSize / 4 + "_c_" + BBColor.BLOOD + "_co_" + BBColor.BLACK;
+			turretHood.addComponent(BBSprite.get(BBTexture.createFromColorCircle(p_baseSize / 6, turretHoodTextureName, [BBColor.BLOOD], BBColor.BLACK, 2)));
+			turretBase.addChild(turretHood);
+
+			var turretTip:BBNode = BBNode.get("turretTip");
+			var turretTipTextureName:String = "turretTip_s" + p_baseSize / 4 + "_c_" + BBColor.SKY;
+			turretTip.addComponent(BBSprite.get(BBTexture.createFromColorRect(p_barrelLength / 6, p_baseSize / 6, turretTipTextureName, BBColor.SKY)));
+			turretTip.transform.setPosition(p_barrelLength - p_barrelLength / 12, 0);
+			turretBase.addChild(turretTip);
+
+			return turretBase;
 		}
 
 		/**

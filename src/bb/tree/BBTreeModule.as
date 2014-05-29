@@ -45,7 +45,7 @@ package bb.tree
 			_superDummyNode = BBNode.get("superNode");
 			_rootNode = BBNode.get("root");
 			_superDummyNode.addChild(_rootNode);
-			_rootNode.z_core = this;
+			_rootNode._tree = this;
 			_rootNode.markAsRoot();
 			_rootNode.mouseChildren = true;
 			_rootNode.group = -1;   // will displays for all possible values of camera masks

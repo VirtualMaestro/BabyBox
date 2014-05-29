@@ -25,7 +25,12 @@ package bb.input.components
 		public function BBInputListenerComponent()
 		{
 			super();
+		}
 
+		/**
+		 */
+		override protected function init():void
+		{
 			_inputListener = new BBInputListener();
 		}
 
@@ -55,26 +60,34 @@ package bb.input.components
 
 		/**
 		 */
-		override public function dispose():void
+		override protected function destroy():void
 		{
-			if (!isDisposed)
+			if (_inputListener)
 			{
 				_inputListener.dispose();
-				if (_onUnlinkedListener) _onUnlinkedListener.removeAllListeners();
-
-				super.dispose();
+				_inputListener = null;
 			}
+
+			if (_onUnlinkedListener)
+			{
+				_onUnlinkedListener.removeAllListeners();
+				_onUnlinkedListener = null;
+			}
+
+			//
+			super.destroy();
 		}
 
 		/**
 		 */
 		override protected function rid():void
 		{
-			super.rid();
-
 			if (_onUnlinkedListener) _onUnlinkedListener.dispose();
 			_onUnlinkedListener = null;
 			_inputListener = null;
+
+			//
+			super.rid();
 		}
 
 		/**

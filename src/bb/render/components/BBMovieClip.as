@@ -30,32 +30,45 @@ package bb.render.components
 		/**
 		 * Determines if animation continue playing after it reach the end.
 		 */
-		public var repeatable:Boolean = true;
+		public var repeatable:Boolean;
 
 		/**
 		 * Independent on delta time all frames will be played in correct sequence.
 		 */
-		public var keepSequence:Boolean = true;
+		public var keepSequence:Boolean;
 
 		//
 		private var _textureAtlas:BBTextureAtlas;
-		private var _currentFrame:int = 0;
+		private var _currentFrame:int;
 
 		private var _speed:Number;
-		private var _accumulatedTime:Number = 0;
+		private var _accumulatedTime:Number;
 
 		private var _allTextures:Array;
 		private var _allFrameIds:Array;
 		private var _frameIds:Array;
-		private var _framesCount:int = 0;
+		private var _framesCount:int;
 
 		/**
 		 */
 		public function BBMovieClip()
 		{
 			super();
+		}
+
+		/**
+		 */
+		override protected function init():void
+		{
+			super.init();
+
 			updateEnable = false;
 
+			repeatable = true;
+			keepSequence = true;
+			_currentFrame = 0;
+			_framesCount = 0;
+			_accumulatedTime = 0;
 			_speed = 1000.0 / BabyBox.get().config.animationFrameRate;
 		}
 
@@ -279,17 +292,20 @@ package bb.render.components
 
 		/**
 		 */
-		override public function dispose():void
+		override protected function destroy():void
 		{
-			if (_onAnimationEnd) _onAnimationEnd.dispose();
-			_onAnimationEnd = null;
+			if (_onAnimationEnd)
+			{
+				_onAnimationEnd.dispose();
+				_onAnimationEnd = null;
+			}
 
 			_textureAtlas = null;
 			_allFrameIds = null;
 			_allFrameIds = null;
 			_allTextures = null;
 
-			super.dispose();
+			super.destroy();
 		}
 
 		/**

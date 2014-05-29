@@ -21,73 +21,115 @@ package bb.core
 	 */
 	final public class BBTransform extends BBComponent
 	{
-		private const PI2_RAD:Number = Math.PI * 2;
+		private const PI2:Number = Math.PI * 2;
 		private const RAD_TO_DEG:Number = 180.0 / Math.PI;
 		private const DEG_TO_RAD:Number = Math.PI / 180.0;
 
 		//
-		private var _localX:Number = 0;
-		private var _localY:Number = 0;
-		bb_private var worldX:Number = 0;
-		bb_private var worldY:Number = 0;
+		private var _localX:Number;
+		private var _localY:Number;
+		bb_private var worldX:Number;
+		bb_private var worldY:Number;
 
-		private var _localRotation:Number = 0; // in radians
-		bb_private var worldRotation:Number = 0; // in radians
+		private var _localRotation:Number; // in radians
+		bb_private var worldRotation:Number; // in radians
 
-		private var _localScaleX:Number = 1;
-		private var _localScaleY:Number = 1;
-		bb_private var worldScaleX:Number = 1;
-		bb_private var worldScaleY:Number = 1;
+		private var _localScaleX:Number;
+		private var _localScaleY:Number;
+		bb_private var worldScaleX:Number;
+		bb_private var worldScaleY:Number;
 
-		private var _worldTransformMatrix:Matrix = null;
-		private var _localTransformMatrix:Matrix = null;
-		private var _isWorldTransformMatrixChanged:Boolean = true;
+		private var _worldTransformMatrix:Matrix;
+		private var _localTransformMatrix:Matrix;
+		private var _isWorldTransformMatrixChanged:Boolean;
 
-		bb_private var isTransformChanged:Boolean = false;
-		bb_private var isPositionChanged:Boolean = false;
-		bb_private var isRotationChanged:Boolean = false;
-		bb_private var isScaleChanged:Boolean = false;
-		bb_private var isColorChanged:Boolean = false;
+		bb_private var isTransformChanged:Boolean;
+		bb_private var isPositionChanged:Boolean;
+		bb_private var isRotationChanged:Boolean;
+		bb_private var isScaleChanged:Boolean;
+		bb_private var isColorChanged:Boolean;
 
-		bb_private var COS:Number = 1.0;
-		bb_private var SIN:Number = 0.0;
+		bb_private var COS:Number;
+		bb_private var SIN:Number;
 
 		// color //
-		bb_private var isColorShouldBeDisplayed:Boolean = false;
+		bb_private var isColorShouldBeDisplayed:Boolean;
 
-		bb_private var worldRed:Number = 1;
-		private var _red:Number = 1;
+		bb_private var worldRed:Number;
+		private var _red:Number;
 
-		bb_private var worldGreen:Number = 1;
-		private var _green:Number = 1;
+		bb_private var worldGreen:Number;
+		private var _green:Number;
 
-		bb_private var worldBlue:Number = 1;
-		private var _blue:Number = 1;
+		bb_private var worldBlue:Number;
+		private var _blue:Number;
 
-		bb_private var worldAlpha:Number = 1;
-		private var _alpha:Number = 1;
+		bb_private var worldAlpha:Number;
+		private var _alpha:Number;
 
 		/**
 		 * Lock invalidation method, so world's parameters like worldX, worldRotation etc. won't not update (changed).
 		 */
-		public var lockInvalidation:Boolean = false;
-		public var invalidateOnce:Boolean = false;
+		public var lockInvalidation:Boolean;
+		public var invalidateOnce:Boolean;
 
 		/**
 		 * Is transform changed and updated values.
 		 */
-		public var isInvalidated:Boolean = false;
-		public var isPositionInvalidated:Boolean = false;
-		public var isRotationInvalidated:Boolean = false;
-		public var isScaleInvalidated:Boolean = false;
-		public var isPRSInvalidated:Boolean = false;
-		public var isColorInvalidated:Boolean = false;
+		public var isInvalidated:Boolean;
+		public var isPositionInvalidated:Boolean;
+		public var isRotationInvalidated:Boolean;
+		public var isScaleInvalidated:Boolean;
+		public var isPRSInvalidated:Boolean;
+		public var isColorInvalidated:Boolean;
 
 		/**
 		 */
 		public function BBTransform()
 		{
 			super();
+		}
+
+		/**
+		 */
+		override protected function init():void
+		{
+			_localX = 0;
+			_localY = 0;
+			worldX = 0;
+			worldY = 0;
+			_localRotation = 0;
+			worldRotation = 0;
+			_localScaleX = 1;
+			_localScaleY = 1;
+			worldScaleX = 1;
+			worldScaleY = 1;
+			_alpha = 1;
+			worldAlpha = 1;
+			_red = 1;
+			worldRed = 1;
+			_green = 1;
+			worldGreen = 1;
+			_blue = 1;
+			worldBlue = 1;
+			COS = 1;
+			SIN = 0;
+
+			isScaleChanged = false;
+			isRotationChanged = false;
+			isPositionChanged = false;
+			isTransformChanged = false;
+			isColorChanged = false;
+			isColorShouldBeDisplayed = false;
+			_isWorldTransformMatrixChanged = true;
+			isInvalidated = false;
+			isScaleInvalidated = false;
+			isColorInvalidated = false;
+			isPositionInvalidated = false;
+			isRotationInvalidated = false;
+			isPRSInvalidated = false;
+			lockInvalidation = false;
+			invalidateOnce = false;
 		}
 
 		/**
@@ -282,22 +324,36 @@ package bb.core
 			invalidateOnce = true;
 		}
 
+		//
+		private var _localPos:Vec2;
+
 		/**
-		 * Returns instance of Vec2 with position values.
-		 * Creates new Vec2 non-weak instance.
+		 * Returns Vec2 with position values.
+		 * If you need to change or store returned vector, you should to make a copy from given,
+		 * because current method doesn't creates new instance.
 		 */
 		final public function getPosition():Vec2
 		{
-			return Vec2.get(x, y);
+			if (_localPos) _localPos.setxy(_localX, _localY);
+			else _localPos = Vec2.get(_localX, _localY);
+
+			return _localPos;
 		}
 
+		//
+		private var _worldPos:Vec2;
+
 		/**
-		 * Returns point with world position.
-		 * Returns new Vec2 instance non-weak.
+		 * Returns Vec2 with world position.
+		 * If you need to change or store returned vector, you should to make a copy from given,
+		 * because current method doesn't creates new instance.
 		 */
 		final public function getPositionWorld():Vec2
 		{
-			return Vec2.get(worldX, worldY);
+			if (_worldPos) _worldPos.setxy(worldX, worldY);
+			else _worldPos = Vec2.get(worldX, worldY);
+
+			return _worldPos;
 		}
 
 		/**
@@ -341,12 +397,10 @@ package bb.core
 		{
 			_localX = p_x;
 			_localY = p_y;
-			_localRotation = p_angle % PI2_RAD;
 
-			isTransformChanged = true;
+			rotation = p_angle;
+
 			isPositionChanged = true;
-			isRotationChanged = true;
-			invalidateOnce = true;
 		}
 
 		/**
@@ -355,7 +409,7 @@ package bb.core
 		[Inline]
 		final public function set rotation(p_angle:Number):void
 		{
-			_localRotation = p_angle % PI2_RAD;
+			_localRotation = fitAngle(p_angle);
 
 			isTransformChanged = true;
 			isRotationChanged = true;
@@ -394,28 +448,84 @@ package bb.core
 		}
 
 		/**
+		 * Set rotation in world coordinates.
 		 */
-		bb_private function setWorldPositionAndRotation(p_x:Number, p_y:Number, p_rotation:Number):void
+		[Inline]
+		final public function set rotationWorld(p_angle:Number):void
 		{
-			worldX = p_x;
-			worldY = p_y;
-			worldRotation = p_rotation;
+			worldRotation = fitAngle(p_angle);
 
-			var trans:BBTransform = node.parent.transform;
-			_localX = worldX - trans.worldX;
-			_localY = worldY - trans.worldY;
-			_localRotation = worldRotation - trans.worldRotation;
-
-			isTransformChanged = true;
-			isPositionChanged = true;
-			isRotationChanged = true;
-			_isWorldTransformMatrixChanged = true;
+			var parent:BBNode = node.parent;
+			_localRotation = parent ? fitAngle(worldRotation - parent.transform.worldRotation) : worldRotation;
 
 			if (node.numChildren > 0)
 			{
 				COS = Math.cos(worldRotation);
 				SIN = Math.sin(worldRotation);
 			}
+
+			isTransformChanged = true;
+			isRotationChanged = true;
+			_isWorldTransformMatrixChanged = true;
+		}
+
+		//
+		private var _directionWorld:Vec2;
+
+		/**
+		 * Returns direction in world coordinates system.
+		 * If you need to change or store returned vector, you should to make a copy from given,
+		 * because current method doesn't creates new instance.
+		 */
+		final public function get directionWorld():Vec2
+		{
+			if (lockInvalidation && (isRotationChanged || node.numChildren == 0))
+			{
+				COS = Math.cos(worldRotation);
+				SIN = Math.sin(worldRotation);
+			}
+
+			if (!_directionWorld) _directionWorld = Vec2.get(COS, SIN);
+			else _directionWorld.setxy(COS, SIN);
+
+			return _directionWorld;
+		}
+
+		/**
+		 * Set position and rotation in world coordinates.
+		 */
+		final public function setPosAndRotWorld(p_x:Number, p_y:Number, p_rotation:Number):void
+		{
+			setPositionWorld(p_x, p_y);
+			rotationWorld = p_rotation;
+		}
+
+		/**
+		 * Set position in world coordinates.
+		 */
+		[Inline]
+		final public function setPositionWorld(p_x:Number, p_y:Number):void
+		{
+			worldX = p_x;
+			worldY = p_y;
+
+			var parent:BBNode = node.parent;
+
+			if (parent)
+			{
+				var trans:BBTransform = parent.transform;
+				_localX = worldX - trans.worldX;
+				_localY = worldY - trans.worldY;
+			}
+			else
+			{
+				_localX = worldX;
+				_localY = worldY;
+			}
+
+			isPositionChanged = true;
+			isTransformChanged = true;
+			_isWorldTransformMatrixChanged = true;
 		}
 
 		/**
@@ -469,6 +579,7 @@ package bb.core
 		}
 
 		/**
+		 * Shifts scale by given value.
 		 */
 		public function shiftScale(p_shiftScaleX:Number, p_shiftScaleY:Number):void
 		{
@@ -484,7 +595,7 @@ package bb.core
 		}
 
 		/**
-		 * Shift rotation by given angel.
+		 * Shift rotation by given angel (in radians).
 		 */
 		public function set shiftRotation(p_offsetAngle:Number):void
 		{
@@ -492,11 +603,31 @@ package bb.core
 		}
 
 		/**
+		 * Shifted position and angle by given values.
+		 * (angle in radians)
 		 */
 		public function shiftPositionAndRotation(p_offsetX:Number, p_offsetY:Number, p_offsetAngle:Number):void
 		{
 			shiftPosition(p_offsetX, p_offsetY);
 			shiftRotation = p_offsetAngle;
+		}
+
+		/**
+		 * Fit angle to positive value in range 0 - 360.
+		 */
+		[Inline]
+		final private function fitAngle(p_angle:Number):Number
+		{
+			var pi2:Number = PI2;
+
+			if (p_angle < 0)
+			{
+				if (p_angle < -pi2) p_angle %= pi2;
+				p_angle += pi2;
+			}
+			else if (p_angle > pi2) p_angle %= pi2;
+
+			return p_angle;
 		}
 
 		/**
@@ -551,7 +682,6 @@ package bb.core
 		/**
 		 * Invalidate transformation settings.
 		 */
-		[Inline]
 		final bb_private function invalidate(p_updatedTransformation:Boolean, p_updateColor:Boolean):void
 		{
 			var parentTransform:BBTransform = node.parent.transform;
@@ -588,7 +718,9 @@ package bb.core
 				}
 
 				var newWorldRotation:Number = _localRotation + parentWorldRotation;
-				if (isRotationChanged || Math.abs(newWorldRotation - worldRotation) > 0.01)
+				newWorldRotation = newWorldRotation > PI2 ? (newWorldRotation % PI2) : newWorldRotation;
+
+				if (isRotationChanged || (newWorldRotation > worldRotation ? (newWorldRotation - worldRotation) : (worldRotation - newWorldRotation)) > 0.01)
 				{
 					worldRotation = newWorldRotation;
 					COS = Math.cos(worldRotation);
@@ -639,46 +771,40 @@ package bb.core
 
 		/**
 		 */
-		override public function dispose():void
+		override protected function destroy():void
 		{
-			super.dispose();
+			if (_localPos)
+			{
+				_localPos.dispose();
+				_localPos = null;
+			}
 
-			_localX = 0;
-			_localY = 0;
-			worldX = 0;
-			worldY = 0;
-			_localRotation = 0;
-			worldRotation = 0;
-			_localScaleX = 1;
-			_localScaleY = 1;
-			worldScaleX = 1;
-			worldScaleY = 1;
-			_alpha = 1;
-			worldAlpha = 1;
-			_red = 1;
-			worldRed = 1;
-			_green = 1;
-			worldGreen = 1;
-			_blue = 1;
-			worldBlue = 1;
-			COS = 1;
-			SIN = 0;
+			if (_worldPos)
+			{
+				_worldPos.dispose();
+				_worldPos = null;
+			}
 
-			isScaleChanged = false;
-			isRotationChanged = false;
-			isPositionChanged = false;
-			isTransformChanged = false;
-			isColorChanged = false;
-			isColorShouldBeDisplayed = false;
-			_isWorldTransformMatrixChanged = true;
-			isInvalidated = false;
-			isScaleInvalidated = false;
-			isColorInvalidated = false;
-			isPositionInvalidated = false;
-			isRotationInvalidated = false;
-			isPRSInvalidated = false;
-			lockInvalidation = false;
-			invalidateOnce = false;
+			if (_directionWorld)
+			{
+				_directionWorld.dispose();
+				_directionWorld = null;
+			}
+
+			if (_worldTransformMatrix)
+			{
+				BBNativePool.putMatrix(_worldTransformMatrix);
+				_worldTransformMatrix = null;
+			}
+
+			if (_localTransformMatrix)
+			{
+				BBNativePool.putMatrix(_localTransformMatrix);
+				_localTransformMatrix = null;
+			}
+
+			//
+			super.destroy();
 		}
 
 		/**

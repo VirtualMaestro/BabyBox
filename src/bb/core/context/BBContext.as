@@ -25,8 +25,6 @@ package bb.core.context
 	import flash.geom.Point;
 	import flash.geom.Rectangle;
 
-	import vm.math.trigonometry.TrigUtil;
-
 	use namespace bb_private;
 
 	/**
@@ -34,7 +32,13 @@ package bb.core.context
 	 */
 	public class BBContext
 	{
-		static private const RAD_TO_DEG:Number = TrigUtil.RAD_TO_DEG;
+		private const RAD_TO_DEG:Number = 180.0 / Math.PI;
+		private const PI2:Number = Math.PI * 2;
+
+		//
+		private var _rotationPrecise:Number;
+		private var _scalePrecise:Number;
+		private var _colorPrecise:Number;
 
 		/**
 		 * Sends when context was initialized.
@@ -98,10 +102,11 @@ package bb.core.context
 			// prepare sin and cos tables
 			_sinTable = new <Number>[];
 			_cosTable = new <Number>[];
-			var angleRad:Number = -2 * Math.PI;
-			var stepAngle:Number = Math.PI / 180.0;
 
-			for (var i:int = 0; i < 720; i++)
+			var angleRad:Number = 0;
+			var stepAngle:Number = Math.PI / 1800.0;
+
+			for (var i:int = 0; i < 3600; i++)
 			{
 				_sinTable[i] = Math.sin(angleRad);
 				_cosTable[i] = Math.cos(angleRad);
@@ -225,6 +230,10 @@ package bb.core.context
 		 */
 		public function beginRender():void
 		{
+			_rotationPrecise = BBConfig.ROTATION_PRECISE;
+			_scalePrecise = BBConfig.SCALE_PRECISE;
+			_colorPrecise = BBConfig.COLOR_PRECISE;
+
 			if (_isStage3d)
 			{
 
@@ -277,7 +286,7 @@ package bb.core.context
 			var newTextureX:Number = (dx * cosCam - sinCam * dy) * _currentCameraTotalScaleX + _currentCameraViewportCenterX + p_offsetX;
 			var newTextureY:Number = (dx * sinCam + cosCam * dy) * _currentCameraTotalScaleY + _currentCameraViewportCenterY + p_offsetY;
 
-			var totalRotation:Number = p_allowRotation ? (p_rotation - _currentCameraRotation + p_offsetRotation) % TrigUtil.PI2 : 0;
+			var totalRotation:Number = p_allowRotation ? fitAngle(p_rotation - _currentCameraRotation + p_offsetRotation) : 0;
 			var totalScaleX:Number = 1.0;
 			var totalScaleY:Number = 1.0;
 
@@ -297,10 +306,9 @@ package bb.core.context
 			var heightRectTextureRender:Number = textureHeight;
 
 			//
-			var totalRotABS:Number = Math.abs(totalRotation);
-			var isRotationNotChanged:Boolean = totalRotABS < BBConfig.ROTATION_PRECISE || (TrigUtil.PI2 - totalRotABS) < BBConfig.ROTATION_PRECISE;
-			var isScaleNotChanged:Boolean = Math.abs(1 - totalScaleX) < BBConfig.SCALE_PRECISE && Math.abs(1 - totalScaleY) < BBConfig.SCALE_PRECISE;
-			var isColorTransformNotChanged:Boolean = !((1.0 - (p_alphaMultiplier * p_redMultiplier * p_greenMultiplier * p_blueMultiplier)) > BBConfig.COLOR_PRECISE);
+			var isRotationNotChanged:Boolean = totalRotation < _rotationPrecise || (PI2 - totalRotation) < _rotationPrecise;
+			var isScaleNotChanged:Boolean = Math.abs(1 - totalScaleX) < _scalePrecise && Math.abs(1 - totalScaleY) < _scalePrecise;
+			var isColorTransformNotChanged:Boolean = !((1.0 - (p_alphaMultiplier * p_redMultiplier * p_greenMultiplier * p_blueMultiplier)) > _colorPrecise);
 			var isCopyPixelsDrawing:Boolean = isRotationNotChanged && isColorTransformNotChanged && isScaleNotChanged && (p_blendMode == null);
 
 			var totalRotCos:Number = 1.0;
@@ -469,11 +477,30 @@ package bb.core.context
 		}
 
 		/**
+		 * Fit angle to positive value in range 0 - 360.
+		 */
+		[Inline]
+		final private function fitAngle(p_angle:Number):Number
+		{
+			var pi2:Number = PI2;
+
+			if (p_angle < 0)
+			{
+				if (p_angle < -pi2) p_angle %= pi2;
+				p_angle += pi2;
+			}
+			else if (p_angle > pi2) p_angle %= pi2;
+
+			return p_angle;
+		}
+
+		/**
 		 */
 		[Inline]
 		final private function cos(p_angleRad:Number):Number
 		{
-			return _cosTable[int(p_angleRad * RAD_TO_DEG + 360)];
+			return _cosTable[int(p_angleRad * RAD_TO_DEG * 10)];
+//			return Math.cos(p_angleRad);
 		}
 
 		/**
@@ -481,7 +508,8 @@ package bb.core.context
 		[Inline]
 		final private function sin(p_angleRad:Number):Number
 		{
-			return _sinTable[int(p_angleRad * RAD_TO_DEG + 360)];
+			return _sinTable[int(p_angleRad * RAD_TO_DEG * 10)];
+//			return Math.sin(p_angleRad);
 		}
 
 		/**

@@ -36,7 +36,6 @@ package bb.physics.components
 	import nape.space.Space;
 
 	import vm.math.numbers.NumberUtil;
-	import vm.math.trigonometry.TrigUtil;
 	import vm.str.StringUtil;
 
 	CONFIG::debug
@@ -117,10 +116,14 @@ package bb.physics.components
 			//
 			_thisJoints = new <BBJoint>[];
 			_attachedJoints = new <BBJoint>[];
+		}
 
-			//
+		/**
+		 */
+		override protected function init():void
+		{
 			onAdded.add(addedToNodeHandler);
-			onRemoved.add(unlinkedFromNodeHandler);
+			onRemoved.add(removedFromNodeHandler);
 		}
 
 		/**
@@ -132,26 +135,16 @@ package bb.physics.components
 			_physicsModule = BabyBox.get().getModule(BBPhysicsModule) as BBPhysicsModule;
 			if (!_space) _space = _physicsModule.space;
 
-			if (node.isOnStage) addToStage();
+			if (node.isOnStage) addedToStageHandler();
 
-			node.onAdded.add(addedToStageHandler);
-			node.onRemoved.add(unlinkedFromStageHandler);
+			node.onAddedToStage.add(addedToStageHandler);
+			node.onRemovedFromStage.add(removedFromStageHandler);
 			node.onActive.add(onNodeActiveHandler);
 		}
 
 		/**
 		 */
-		private function addedToStageHandler(p_signal:BBSignal):void
-		{
-			if (node.isOnStage)
-			{
-				addToStage();
-			}
-		}
-
-		/**
-		 */
-		private function addToStage():void
+		private function addedToStageHandler(p_signal:BBSignal = null):void
 		{
 			node.onUpdated.add(initBody);
 			node.onUpdated.add(initJoints);
@@ -159,9 +152,39 @@ package bb.physics.components
 
 		/**
 		 */
+		private function removedFromStageHandler(p_signal:BBSignal):void
+		{
+			activateJoints = false;
+			_body.space = null;
+		}
+
+		/**
+		 */
+		private function removedFromNodeHandler(p_signal:BBSignal):void
+		{
+			node.onAddedToStage.remove(addedToStageHandler);
+			node.onRemovedFromStage.remove(removedFromStageHandler);
+			node.onActive.remove(onNodeActiveHandler);
+
+			///
+			activateJoints = false;
+			_transform.lockInvalidation = false;
+			_body.space = null;
+			_body.group = null;
+		}
+
+		/**
+		 */
+		private function onNodeActiveHandler(p_signal:BBSignal):void
+		{
+			active = p_signal.params;
+		}
+
+		/**
+		 */
 		private function initBody(p_signal:BBSignal):void
 		{
-			if (_active)
+			if (active)
 			{
 				p_signal.removeCurrentListener();
 
@@ -185,41 +208,6 @@ package bb.physics.components
 					if (parentPhysicsComponent.isBullet) _body.isBullet = parentPhysicsComponent.isBullet;
 				}
 			}
-		}
-
-		/**
-		 */
-		private function unlinkedFromStageHandler(p_signal:BBSignal):void
-		{
-			node.onRemoved.remove(unlinkedFromStageHandler);
-			node.onUpdated.remove(initBody);
-			node.onUpdated.remove(initJoints);
-
-			////
-			activateJoints = false;
-			_body.space = null;
-		}
-
-		/**
-		 */
-		private function unlinkedFromNodeHandler(p_signal:BBSignal):void
-		{
-			node.onAdded.remove(addedToStageHandler);
-			node.onRemoved.remove(unlinkedFromStageHandler);
-			node.onActive.remove(onNodeActiveHandler);
-
-			///
-			activateJoints = false;
-			_transform.lockInvalidation = false;
-			_body.space = null;
-			_body.group = null;
-		}
-
-		/**
-		 */
-		private function onNodeActiveHandler(p_signal:BBSignal):void
-		{
-			active = p_signal.params;
 		}
 
 		/**
@@ -358,15 +346,16 @@ package bb.physics.components
 		                           p_material:Material = null, p_filter:InteractionFilter = null):Polygon
 		{
 			// calc num vertices
-			var numVertices:int = TrigUtil.PI2 / Math.acos(1 - 0.6 / (Math.sqrt(p_radiusX * p_radiusX + p_radiusY * p_radiusY)));
+			var pi2:Number = Math.PI * 2;
+			var numVertices:int = pi2 / Math.acos(1 - 0.6 / (Math.sqrt(p_radiusX * p_radiusX + p_radiusY * p_radiusY)));
 			var vertices:Vector.<Vec2> = new <Vec2>[];
 			var angle:Number;
 
 			// calc coordinates of vertices
 			for (var i:int = 0; i < numVertices; i++)
 			{
-				angle = TrigUtil.PI2 / numVertices * i;
-				vertices[i] = new Vec2(p_radiusX * Math.cos(angle), p_radiusY * Math.sin(angle));
+				angle = pi2 / numVertices * i;
+				vertices[i] = Vec2.get(p_radiusX * Math.cos(angle), p_radiusY * Math.sin(angle));
 			}
 
 			var ellipse:Polygon = new Polygon(vertices, p_material, p_filter);
@@ -394,7 +383,7 @@ package bb.physics.components
 		{
 			if (!_initJointList) _initJointList = new <BBJoint>[];
 
-			_initJointList.push(p_joint);
+			_initJointList[_initJointList.length] = p_joint;
 
 			if (!_isNeedInitJoints)
 			{
@@ -407,7 +396,7 @@ package bb.physics.components
 		 */
 		private function initJoints(p_signal:BBSignal):void
 		{
-			if (_active)
+			if (active)
 			{
 				p_signal.removeCurrentListener();
 
@@ -421,6 +410,7 @@ package bb.physics.components
 					var currentNodeName:String = node.name;
 					var jointsNum:int = _initJointList.length;
 					var joint:BBJoint;
+
 					for (var i:int = 0; i < jointsNum; i++)
 					{
 						joint = _initJointList[i];
@@ -438,7 +428,7 @@ package bb.physics.components
 
 							//
 							createJoint(joint);
-							_thisJoints.push(joint);
+							_thisJoints[_thisJoints.length] = joint;
 							if (joint.jointedBodyComponent) joint.jointedBodyComponent._attachedJoints.push(joint);
 						}
 					}
@@ -603,25 +593,27 @@ package bb.physics.components
 		 */
 		public function removeAllJoints(p_removeAttached:Boolean = false):void
 		{
-			var numJoints:int;
-			while ((numJoints = _thisJoints.length) > 0)
+			var numJoints:int = _thisJoints.length;
+			while (numJoints > 0)
 			{
-				_thisJoints[numJoints - 1].dispose();
+				_thisJoints[--numJoints].dispose();
 			}
 
 			if (p_removeAttached)
 			{
-				while ((numJoints = _attachedJoints.length) > 0)
+				numJoints = _attachedJoints.length;
+				while (numJoints > 0)
 				{
-					_attachedJoints[numJoints - 1].dispose();
+					_attachedJoints[--numJoints].dispose();
 				}
 			}
 
 			if (_initJointList)
 			{
-				while ((numJoints = _initJointList.length) > 0)
+				numJoints = _initJointList.length;
+				while (numJoints > 0)
 				{
-					_initJointList[numJoints - 1].dispose();
+					_initJointList[--numJoints].dispose();
 				}
 
 				_initJointList = null;
@@ -760,8 +752,8 @@ package bb.physics.components
 				var joint:BBJoint;
 				if (_thisJoints && _thisJoints.length > 0)
 				{
-					var _jointsNum:int = _thisJoints.length;
-					for (var i:int = 0; i < _jointsNum; i++)
+					var jointsNum:int = _thisJoints.length;
+					for (var i:int = 0; i < jointsNum; i++)
 					{
 						joint = _thisJoints[i];
 
@@ -840,10 +832,10 @@ package bb.physics.components
 		 */
 		override public function set active(p_val:Boolean):void
 		{
-			if (_active == p_val) return;
+			if (active == p_val) return;
 			super.active = p_val;
 
-			if (_active)
+			if (p_val)
 			{
 				if (node && node.isOnStage)
 				{
@@ -902,7 +894,7 @@ package bb.physics.components
 					_body.angularVel = angularVelocityInt / 1000.0;
 				}
 
-				_transform.setWorldPositionAndRotation(_bodyPosition.x, _bodyPosition.y, _body.rotation);
+				_transform.setPosAndRotWorld(_bodyPosition.x, _bodyPosition.y, _body.rotation);
 			}
 		}
 
@@ -918,12 +910,10 @@ package bb.physics.components
 
 		/**
 		 */
-		override public function dispose():void
+		override protected function destroy():void
 		{
 			removeAllJoints(true);
 			removeShapes();
-
-			super.dispose();
 
 			_transform = null;
 			_scaleX = 1.0;
@@ -931,28 +921,23 @@ package bb.physics.components
 			_isNeedInitJoints = false;
 			sleep = false;
 
-			if (cacheable)
-			{
-				onAdded.add(addedToNodeHandler);
-				onRemoved.add(unlinkedFromNodeHandler);
+			_body.cbTypes.clear();
+			_body.rotation = 0;
+			_body.position.setxy(0, 0);
+			_body.velocity.setxy(0, 0);
+			_body.kinematicVel.setxy(0, 0);
+			_body.surfaceVel.setxy(0, 0);
+			_body.angularVel = 0;
+			_body.kinAngVel = 0;
 
-				_body.cbTypes.clear();
-				_body.rotation = 0;
-				_body.position.setxy(0, 0);
-				_body.velocity.setxy(0, 0);
-				_body.kinematicVel.setxy(0, 0);
-				_body.surfaceVel.setxy(0, 0);
-				_body.angularVel = 0;
-				_body.kinAngVel = 0;
-			}
+			//
+			super.destroy();
 		}
 
 		/**
 		 */
 		override protected function rid():void
 		{
-			super.rid();
-
 			_thisJoints = null;
 			_attachedJoints = null;
 			_initJointList = null;
@@ -961,6 +946,9 @@ package bb.physics.components
 			delete _body.userData.bb_component;
 			_body = null;
 			_bodyPosition = null;
+
+			//
+			super.rid();
 		}
 
 		/**

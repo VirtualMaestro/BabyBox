@@ -11,7 +11,6 @@ package bb.camera.components
 	import bb.config.BBConfig;
 	import bb.core.BBComponent;
 	import bb.core.BBNode;
-	import bb.core.BBNodeStatus;
 	import bb.core.BBTransform;
 	import bb.core.BabyBox;
 	import bb.core.context.BBContext;
@@ -119,7 +118,7 @@ package bb.camera.components
 		private var _zoom:Number = 1;
 
 		//
-		private var _core:BBTreeModule = null;
+		private var _tree:BBTreeModule = null;
 		private var _config:BBConfig = null;
 
 		//
@@ -166,7 +165,12 @@ package bb.camera.components
 		public function BBCamera()
 		{
 			super();
+		}
 
+		/**
+		 */
+		override protected function init():void
+		{
 			onAdded.add(cameraAddedToNode);
 		}
 
@@ -178,12 +182,13 @@ package bb.camera.components
 			if (isCaptured) return false;
 			isCaptured = true;
 
-			return _core.root.processMouseEvent(p_captured, p_event);
+			return _tree.root.processMouseEvent(p_captured, p_event);
 		}
 
 		/**
 		 * Calculate new position of given point related to coordinate system of camera.
 		 * Return false if point is not in the camera's viewPort.
+		 * (given p_point instance will be updated with new results values)
 		 */
 		bb_private function calcRelatedPosition(p_point:Point):Boolean
 		{
@@ -226,27 +231,16 @@ package bb.camera.components
 
 			radiusCalm = (_viewPort.width > _viewPort.height ? _viewPort.width : _viewPort.height) / 6;
 
-			node.onAdded.add(nodeAddedToParentHandler);
-
 			if (node.isOnStage) addCameraToEngine();
+			else node.onAddedToStage.addFirst(addCameraToEngine);
 		}
 
 		/**
 		 */
-		private function nodeAddedToParentHandler(p_signal:BBSignal):void
+		private function addCameraToEngine(p_signal:BBSignal = null):void
 		{
-			var status:BBNodeStatus = p_signal.params as BBNodeStatus;
-			if (status.isOnStage) addCameraToEngine();
-
-			updateEnable = true;
-		}
-
-		/**
-		 */
-		private function addCameraToEngine():void
-		{
-			_core = node.z_core;
-			(_core.getModule(BBCamerasModule) as BBCamerasModule).addCamera(this);
+			_tree = node.tree;
+			(_tree.getModule(BBCamerasModule) as BBCamerasModule).addCamera(this);
 
 			if (_parentCamera)
 			{
@@ -260,6 +254,8 @@ package bb.camera.components
 				displayLayers = _displayLayers;
 				_displayLayers = null;
 			}
+
+			updateEnable = true;
 		}
 
 		/**
@@ -408,7 +404,7 @@ package bb.camera.components
 			if (viewportColor) p_context.fillRect(_viewPort.x, _viewPort.y, _viewPort.width, _viewPort.height, viewportColor.color);
 
 			// start to rendering all nodes
-			_core.root.render(p_context);
+			_tree.root.render(p_context);
 		}
 
 		/**
@@ -682,18 +678,26 @@ package bb.camera.components
 		 */
 		public function set displayLayers(p_layers:Array):void
 		{
-			if (p_layers == null || p_layers.length < 1) mask = -1;
+			CONFIG::debug
+			{
+				Assert.isTrue((p_layers != null), "parameter p_layers can't be null", "BBCamera.displayLayers");
+			}
+
+			var numLayers:int = p_layers.length;
+
+			if (numLayers < 1) mask = -1;
 			else
 			{
 				if (node.isOnStage)
 				{
-					var layerModule:BBLayerModule = _core.getModule(BBLayerModule) as BBLayerModule;
+					var layerModule:BBLayerModule = _tree.getModule(BBLayerModule) as BBLayerModule;
 					var groups:Array = [];
 					var layer:BBLayer;
-					for (var i:int = 0; i < p_layers.length; i++)
+
+					for (var i:int = 0; i < numLayers; i++)
 					{
 						layer = layerModule.get(p_layers[i]);
-						groups.push(layer.group);
+						groups[i] = layer.group;
 					}
 
 					displayGroups = groups;
@@ -705,50 +709,51 @@ package bb.camera.components
 		/**
 		 * Disposes camera. Remove from render graph and from system.
 		 */
-		override public function dispose():void
+		override protected function destroy():void
 		{
-			if (!isDisposed)
+			if (_tree)
 			{
-				if (_core)
-				{
-					(_core.getModule(BBCamerasModule) as BBCamerasModule).removeCamera(this);
-					_core = null;
-				}
-
-				if (_onShakeComplete) _onShakeComplete.dispose();
-				_onShakeComplete = null;
-
-				_parentCamera = null;
-				_parentCameraTransform = null;
-
-				_displayLayers = null;
-				mask = -1;
-
-				mouseEnable = false;
-				smoothMove = false;
-				fadeMove = 0.0;
-				radiusCalm = 133;
-				border = null;
-
-				_fitContentToViewport = false;
-				_accumulateFadeMoveX = 0;
-				_accumulateFadeMoveY = 0;
-				_leader = null;
-				_zoom = 1.0;
-				_offsetX = 1.0;
-				_offsetY = 1.0;
-				_offsetZoom = 1.0;
-				_offsetRotation = 1.0;
-
-				BBNativePool.putRect(_viewPort);
-
-				_config = null;
-				_viewPort = null;
-				_transform = null;
-				viewportColor = null;
-
-				super.dispose();
+				(_tree.getModule(BBCamerasModule) as BBCamerasModule).removeCamera(this);
+				_tree = null;
 			}
+
+			if (_onShakeComplete)
+			{
+				_onShakeComplete.dispose();
+				_onShakeComplete = null;
+			}
+
+			_parentCamera = null;
+			_parentCameraTransform = null;
+			_displayLayers = null;
+
+			mask = -1;
+
+			mouseEnable = false;
+			smoothMove = false;
+			fadeMove = 0.0;
+			radiusCalm = 133;
+			border = null;
+
+			_fitContentToViewport = false;
+			_accumulateFadeMoveX = 0;
+			_accumulateFadeMoveY = 0;
+			_leader = null;
+			_zoom = 1.0;
+			_offsetX = 1.0;
+			_offsetY = 1.0;
+			_offsetZoom = 1.0;
+			_offsetRotation = 1.0;
+
+			BBNativePool.putRect(_viewPort);
+
+			_config = null;
+			_viewPort = null;
+			_transform = null;
+			viewportColor = null;
+
+			//
+			super.destroy();
 		}
 
 		// static pool methods

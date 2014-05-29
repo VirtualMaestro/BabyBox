@@ -14,7 +14,6 @@ package bb.render.components
 	import bb.mouse.events.BBMouseEvent;
 	import bb.pools.BBNativePool;
 	import bb.render.textures.BBTexture;
-	import bb.signals.BBSignal;
 
 	import flash.geom.Matrix;
 	import flash.geom.Rectangle;
@@ -89,26 +88,34 @@ package bb.render.components
 		public function BBRenderable()
 		{
 			super();
-			onAdded.add(onAddedToNodeHandler);
 		}
 
 		/**
 		 */
-		public function onAddedToNodeHandler(p_signal:BBSignal):void
+		override protected function init():void
 		{
+			allowSelfRotation = true;
+			allowRotation = true;
+			blendMode = null;
 			mousePixelEnabled = BabyBox.get().config.mousePixelEnable;
 			isCulling = BabyBox.get().config.isCulling;
 			smoothing = BabyBox.get().config.smoothingDraw;
+			offsetScaleX = 1.0;
+			offsetScaleY = 1.0;
+			offsetX = 0.0;
+			offsetY = 0.0;
+			offsetRotation = 0.0;
+			_offsetsChecksum = 0;
 		}
 
 		/**
 		 */
 		override public function set active(p_val:Boolean):void
 		{
-			if (_active == p_val) return;
+			if (active == p_val) return;
 			super.active = p_val;
 
-			if (node) node.visible = node.visible;
+			if (node) node.visible = !node.visible;
 		}
 
 		/**
@@ -275,8 +282,8 @@ package bb.render.components
 			else
 			{
 				var matrix:Matrix = currentNode.transform.getTransformedWorldMatrix(offsetScaleX, offsetScaleY, offsetRotation, offsetX, offsetY, true);
-				var camX:Number = p_event.cameraX;
-				var camY:Number = p_event.cameraY;
+				var camX:Number = p_event.worldX;
+				var camY:Number = p_event.worldY;
 				var localMouseX:Number = camX * matrix.a + camY * matrix.c + matrix.tx;
 				var localMouseY:Number = camX * matrix.b + camY * matrix.d + matrix.ty;
 				var texPivotX:Number = z_texture.pivotX;
@@ -358,7 +365,7 @@ package bb.render.components
 
 		/**
 		 */
-		override public function dispose():void
+		override protected function destroy():void
 		{
 			z_texture = null;
 
@@ -368,18 +375,7 @@ package bb.render.components
 				_worldBounds = null;
 			}
 
-			allowSelfRotation = true;
-			allowRotation = true;
-			blendMode = null;
-			mousePixelEnabled = false;
-			isCulling = false;
-			offsetScaleX = 1.0;
-			offsetScaleY = 1.0;
-			offsetX = 0.0;
-			offsetY = 0.0;
-			offsetRotation = 0.0;
-
-			super.dispose();
+			super.destroy();
 		}
 
 		/**

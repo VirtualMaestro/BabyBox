@@ -31,6 +31,14 @@ package bb.ui
 		public function BBLabel()
 		{
 			super();
+		}
+
+		/**
+		 */
+		override protected function init():void
+		{
+			super.init();
+
 			_textField = new TextField();
 			_textField.autoSize = TextFieldAutoSize.RIGHT;
 			_textField.multiline = true;
@@ -273,24 +281,12 @@ package bb.ui
 
 		/**
 		 */
-		override public function dispose():void
-		{
-			_textField.text = "";
-			_textFormat = new TextFormat();
-			_textField.defaultTextFormat = _textFormat;
-			_textField.setTextFormat(_textFormat);
-
-			super.dispose();
-		}
-
-		/**
-		 */
-		override protected function rid():void
+		override protected function destroy():void
 		{
 			_textField = null;
 			_textFormat = null;
 
-			super.rid();
+			super.destroy();
 		}
 
 		/**

@@ -1,6 +1,5 @@
 package bb.core
 {
-	import bb.bb_spaces.bb_private;
 	import bb.signals.BBSignal;
 
 	import flash.utils.Dictionary;
@@ -11,62 +10,80 @@ package bb.core
 	import vm.classes.ClassUtil;
 	import vm.math.unique.UniqueId;
 
-	use namespace bb_private;
-
 	/**
 	 * Base class for components.
 	 */
 	public class BBComponent
 	{
 		// Next/prev links for able to create dynamic linked list
-		bb_private var next:BBComponent = null;
-		bb_private var prev:BBComponent = null;
-
-		/**
-		 * Signal dispatches when component adds or removes from update list of node.
-		 */
-		bb_private var onUpdate:BBSignal = null;
-		bb_private var _node:BBNode = null;
-
-		// Dispatches when component was unlinked from its node.
-		internal var _onRemoved:BBSignal = null;
+		internal var next:BBComponent = null;
+		internal var prev:BBComponent = null;
 
 		/**
 		 * If this component should be cached.
 		 */
 		protected var cacheable:Boolean = true;
-		protected var _active:Boolean = true;
+
+		// Dispatches when component was unlinked from its node.
+		private var _onRemoved:BBSignal = null;
 
 		// Dispatches when component was added to node.
 		private var _onAdded:BBSignal = null;
-		private var _id:int;
+
+		/**
+		 * Reference to node's function of adding component to update list.
+		 * Signature: (p_component:BBComponent, p_isNeedAdded:Boolean);
+		 */
+		private var _updateCallback:Function = null;
+		private var _node:BBNode = null;
 		private var _lookupClass:Class = null;
 		private var _componentClass:Class = null;
+		private var _userData:Object = null;
+
+		private var _id:int;
+
+		private var _active:Boolean = true;
 		private var _updateEnable:Boolean = false;
-		private var _userData:Object;
 		private var _isDisposed:Boolean = false;
-		private var _isRid:Boolean = false;
 
 		/**
 		 */
 		public function BBComponent()
 		{
-			// System signal. Dispatches when component enable/disable to update
-			onUpdate = BBSignal.get(this);
-
-			_onAdded = BBSignal.get(this);
-			_onAdded.add(onAddedToNodeHandler);
-
+			// generate unique id for current instance
 			_id = UniqueId.getId();
+
+			init();
 		}
 
 		/**
+		 * Method invoked when component created or get from pool.
+		 * It is can be override in children with invocation of super method.
 		 */
-		private function onAddedToNodeHandler(p_signal:BBSignal):void
+		protected function init():void
 		{
-			var params:Object = p_signal.params;
-			_node = params.node;
-			_lookupClass = params.lookupClass;
+			// override in children
+		}
+
+		/**
+		 * Method invoked when component was added/removed to/from node.
+		 */
+		final internal function nodeInit(p_node:BBNode, p_lookupClass:Class, p_onUpdateComponent:Function):void
+		{
+			_lookupClass = p_lookupClass;
+			_updateCallback = p_onUpdateComponent;
+
+			if (p_lookupClass)
+			{
+				_node = p_node;
+				if (_onAdded) _onAdded.dispatch();
+				if (_updateEnable && _active) _updateCallback(this, true);
+			}
+			else
+			{
+				if (_onRemoved) _onRemoved.dispatch();
+				_node = p_node;
+			}
 		}
 
 		/**
@@ -82,7 +99,8 @@ package bb.core
 		 * Returns node to which this component is assigned.
 		 * If component isn't assigned to any node returns null.
 		 */
-		public function get node():BBNode
+		[Inline]
+		final public function get node():BBNode
 		{
 			return _node;
 		}
@@ -115,6 +133,7 @@ package bb.core
 		 */
 		public function get onAdded():BBSignal
 		{
+			if (_onAdded == null) _onAdded = BBSignal.get(this);
 			return _onAdded;
 		}
 
@@ -145,7 +164,7 @@ package bb.core
 			if (_updateEnable == p_val) return;
 
 			_updateEnable = p_val;
-			if (_active) onUpdate.dispatch(_updateEnable);
+			if (_active && _updateCallback) _updateCallback(this, _updateEnable);
 		}
 
 		/**
@@ -171,10 +190,9 @@ package bb.core
 		{
 			if (_active == p_val) return;
 
-			if (_updateEnable)
+			if (_updateEnable && _updateCallback)
 			{
-				if (p_val) onUpdate.dispatch(true);
-				else onUpdate.dispatch(false);
+				_updateCallback(this, p_val);
 			}
 
 			_active = p_val;
@@ -195,7 +213,8 @@ package bb.core
 		 * If yes this is mean that component can't reuse any more.
 		 * Also this component can't be putted to pool.
 		 */
-		public function get isDisposed():Boolean
+		[Inline]
+		final public function get isDisposed():Boolean
 		{
 			return _isDisposed;
 		}
@@ -203,32 +222,43 @@ package bb.core
 		/**
 		 * Dispose component.
 		 */
-		public function dispose():void
+		final public function dispose():void
 		{
 			if (_isDisposed) return;
+			_isDisposed = true;
+
+			//
 			destroy();
 
-			if (cacheable)
-			{
-				_onAdded.addFirst(onAddedToNodeHandler);
-				put(this);
-			}
+			//
+			if (cacheable) put(this);
 			else rid();
 		}
 
 		/**
+		 * Method invoked when component destroying.
+		 * Need to override in children with invocation of super method for custom implementation.
 		 */
-		private function destroy():void
+		protected function destroy():void
 		{
-			_isDisposed = true;
+			if (_node)
+			{
+				_node.removeComponent(_lookupClass);
+				_node = null;
+			}
 
-			if (_node) _node.removeComponent(_lookupClass);
+			if (_onAdded)
+			{
+				_onAdded.dispose();
+				_onAdded = null;
+			}
 
-			onUpdate.removeAllListeners();
-			_onAdded.removeAllListeners();
-			if (_onRemoved) _onRemoved.removeAllListeners();
+			if (_onRemoved)
+			{
+				_onRemoved.dispose();
+				_onRemoved = null;
+			}
 
-			_node = null;
 			_updateEnable = false;
 			_lookupClass = null;
 			next = null;
@@ -237,21 +267,12 @@ package bb.core
 		}
 
 		/**
+		 * Use when need completely remove component (without caching).
+		 * Need to override in children with invocation of super method for custom implementation.
 		 */
 		protected function rid():void
 		{
-			if (!_isDisposed) destroy();
-			if (!_isRid)
-			{
-				_isRid = true;
-				onUpdate.dispose();
-				_onAdded.dispose();
-				if (_onRemoved) _onRemoved.dispose();
-				onUpdate = null;
-				_onAdded = null;
-				_onRemoved = null;
-				_componentClass = null;
-			}
+			_componentClass = null;
 		}
 
 		/**
@@ -419,7 +440,7 @@ package bb.core
 		static private var _numInPool:int = 0;
 
 		/**
-		 * Adds component instance to pool of course of component isn't disposed.
+		 * Adds component instance to pool of course if component isn't disposed.
 		 */
 		static private function put(p_component:BBComponent):void
 		{
@@ -450,6 +471,7 @@ package bb.core
 				_pool[componentClass] = head;
 				component.next = null;
 				component._isDisposed = false;
+				component.init();
 				--_numInPool;
 			}
 			else component = new componentClass();

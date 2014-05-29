@@ -43,7 +43,7 @@ package bb.core
 		bb_private var z_renderComponent:BBRenderable = null;
 
 		// root of tree
-		bb_private var z_core:BBTreeModule = null;
+		bb_private var _tree:BBTreeModule = null;
 
 		//
 		bb_private var mouseOver:BBNode = null;
@@ -128,10 +128,20 @@ package bb.core
 		///// Signals /////
 		///////////////////
 
+		// When node was added to stage (render graph)
+		private var _onAddedToStage:BBSignal = null;
+
+		// When node was from stage (render graph)
+		private var _onRemovedFromStage:BBSignal = null;
+
+		//
 		private var _onAdded:BBSignal = null;
 		private var _onRemoved:BBSignal = null;
-		// Signal dispatches when node was fully updated, with all components and children
+
+		// Signal dispatches when node passed all update loop and fully updated, with all components and children
 		private var _onUpdated:BBSignal;
+
+		// Signal dispatches when node passed all renderer loop, with all components and children
 		private var _onRendered:BBSignal;
 		private var _onActive:BBSignal = null;
 
@@ -151,75 +161,138 @@ package bb.core
 		public function BBNode(p_name:String = "")
 		{
 			name = p_name;
+
 			_id = UniqueId.getId();
 			_tags = [];
 			_lookupComponentTable = new Dictionary();
 			_properties = new Dictionary();
-			_onAdded = BBSignal.get(this);
-			_onRemoved = BBSignal.get(this);
-
-			//
-			_onAdded.add(onAddedHandler);
-			_onRemoved.add(onRemovedHandler);
 
 			//
 			transform = addComponent(BBTransform) as BBTransform;
 		}
 
 		/**
+		 * Internal system method which invokes when node was added/removed to/from another one.
 		 */
-		private function onAddedHandler(p_signal:BBSignal):void
+		private function init(p_parent:BBNode, p_isOnStage:Boolean, p_tree:BBTreeModule):void
 		{
-			var status:BBNodeStatus = p_signal.params as BBNodeStatus;
-			_parent = status.parent;
-			_isOnStage = status.isOnStage;
-			z_core = status.core;
+			var parentChanged:Boolean = _parent != p_parent;
+			var stageChanged:Boolean = _isOnStage != p_isOnStage;
 
-			// Sends new status to children
-			dispatchAddedToChildren();
-		}
+			_parent = p_parent;
+			_isOnStage = p_isOnStage;
+			_tree = p_tree;
 
-		/**
-		 */
-		private function dispatchAddedToChildren():void
-		{
-			if (childrenHead != null)
+			//
+			if (parentChanged)
 			{
-				var status:BBNodeStatus = BBNodeStatus.get(this, _isOnStage, z_core);
-				var node:BBNode = childrenHead;
-				var curNode:BBNode;
-
-				while (node)
+				if (_parent)
 				{
-					curNode = node;
-					node = node.next;
-					curNode.onAdded.dispatch(status);
+					if (_onAdded) _onAdded.dispatch();
 				}
-
-				status.dispose();
+				else
+				{
+					if (_onRemoved) _onRemoved.dispatch();
+				}
 			}
-		}
 
-		/**
-		 */
-		private function onRemovedHandler(p_signal:BBSignal):void
-		{
-			var nodeStatus:BBNodeStatus = p_signal.params as BBNodeStatus;
-			_parent = nodeStatus.parent;
-			_isOnStage = nodeStatus.isOnStage;
-			z_core = nodeStatus.core;
+			//
+			if (stageChanged)
+			{
+				if (_isOnStage)
+				{
+					if (_onAddedToStage) _onAddedToStage.dispatch();
+				}
+				else
+				{
+					if (_onRemovedFromStage) _onRemovedFromStage.dispatch();
+				}
+			}
 
 			// Sends new status to children
-			dispatchOnRemovedToChildren();
+			dispatchChangedStateToChildren();
+		}
+
+		/**
+		 * Adds child node.
+		 */
+		public function addChild(p_node:BBNode):void
+		{
+			// If node already attached to another node it is detached from previous node and attached to this
+			if (p_node.parent != null)
+			{
+				if (p_node.parent == this) return;
+				p_node.parent.removeChild(p_node);
+			}
+
+			// add to list
+			if (childrenTail)
+			{
+				childrenTail.next = p_node;
+				p_node.prev = childrenTail;
+			}
+			else childrenHead = p_node;
+
+			childrenTail = p_node;
+
+			_numChildren++;
+
+			// update group
+			if (!p_node.keepGroup)
+			{
+				p_node.group = group;
+				p_node.updateChildrenGroups();
+			}
+
+			//
+			p_node.init(this, _isOnStage, _tree);
+		}
+
+		/**
+		 * Unlink given child node from this parent node.
+		 */
+		public function removeChild(p_node:BBNode):void
+		{
+			if (p_node == childrenHead)
+			{
+				childrenHead = childrenHead.next;
+
+				if (childrenHead == null) childrenTail = null;
+				else childrenHead.prev = null;
+			}
+			else if (p_node == childrenTail)
+			{
+				childrenTail = childrenTail.prev;
+
+				if (childrenTail == null) childrenHead = null;
+				else childrenTail.next = null;
+			}
+			else
+			{
+				var prevNode:BBNode = p_node.prev;
+				var nextNode:BBNode = p_node.next;
+				prevNode.next = nextNode;
+				nextNode.prev = prevNode;
+			}
+
+			if (_nextChildNode == p_node) _nextChildNode = p_node.next;
+
+			p_node.next = null;
+			p_node.prev = null;
+
+			_numChildren--;
+
+			//
+			p_node.init(null, false, _tree);
 		}
 
 		/**
 		 */
-		private function dispatchOnRemovedToChildren():void
+		[Inline]
+		final private function dispatchChangedStateToChildren():void
 		{
 			if (childrenHead != null)
 			{
-				var status:BBNodeStatus = BBNodeStatus.get(this, _isOnStage, z_core);
 				var node:BBNode = childrenHead;
 				var curNode:BBNode;
 
@@ -227,10 +300,8 @@ package bb.core
 				{
 					curNode = node;
 					node = node.next;
-					curNode.onRemoved.dispatch(status);
+					curNode.init(this, _isOnStage, _tree);
 				}
-
-				status.dispose();
 			}
 		}
 
@@ -276,11 +347,8 @@ package bb.core
 			}
 
 			_lookupComponentTable[lookup] = component;
-			component.onAdded.dispatch({node: this, lookupClass: lookup});
-			component.onUpdate.add(onUpdateComponentHandler);
-
-			// If component need to update add it to update list
-			if (component.active && component.updateEnable) addComponentToUpdateList(component);
+			++_numComponents;
+			component.nodeInit(this, lookup, onUpdateComponentHandler);
 
 			// If component renderable set to render component ref
 			if (component is BBRenderable)
@@ -289,20 +357,15 @@ package bb.core
 				if (component.active && _visible) z_renderComponent = _backupRenderComponent;
 			}
 
-			++_numComponents;
-
 			return component;
 		}
 
 		/**
 		 */
-		private function onUpdateComponentHandler(signal:BBSignal):void
+		final private function onUpdateComponentHandler(p_component:BBComponent, p_isNeedAdded:Boolean):void
 		{
-			var component:BBComponent = signal.dispatcher as BBComponent;
-			var isNeedAdd:Boolean = signal.params;
-
-			if (isNeedAdd) addComponentToUpdateList(component);
-			else unlinkComponentFromUpdateList(component);
+			if (p_isNeedAdded) addComponentToUpdateList(p_component);
+			else unlinkComponentFromUpdateList(p_component);
 		}
 
 		/**
@@ -393,91 +456,10 @@ package bb.core
 			// remove it from lookup table
 			delete _lookupComponentTable[p_componentLookupClass];
 
-			// send signal to component when it was unlinked
-			if (component._onRemoved) component._onRemoved.dispatch();
-
-			//
-			component._node = null;
-
 			--_numComponents;
-		}
 
-		/**
-		 * Adds child node.
-		 */
-		public function addChild(p_node:BBNode):void
-		{
-			// If node already attached to another node it is detached from previous node and attached to this
-			if (p_node.parent != null)
-			{
-				if (p_node.parent == this) return;
-				p_node.parent.removeChild(p_node);
-			}
-
-			// add to list
-			if (childrenTail)
-			{
-				childrenTail.next = p_node;
-				p_node.prev = childrenTail;
-			}
-			else childrenHead = p_node;
-
-			childrenTail = p_node;
-
-			_numChildren++;
-
-			// update group
-			if (!p_node.keepGroup)
-			{
-				p_node.group = group;
-				p_node.updateChildrenGroups();
-			}
-
-			// dispatch to node that it was added to parent
-			var status:BBNodeStatus = BBNodeStatus.get(this, _isOnStage, z_core);
-			p_node.onAdded.dispatch(status);
-			status.dispose();
-		}
-
-		/**
-		 * Unlink given child node from this parent node.
-		 */
-		public function removeChild(p_node:BBNode):void
-		{
-			if (p_node == childrenHead)
-			{
-				childrenHead = childrenHead.next;
-				if (childrenHead == null) childrenTail = null;
-				else childrenHead.prev = null;
-			}
-			else if (p_node == childrenTail)
-			{
-				childrenTail = childrenTail.prev;
-				if (childrenTail == null) childrenHead = null;
-				else childrenTail.next = null;
-			}
-			else
-			{
-				var prevNode:BBNode = p_node.prev;
-				var nextNode:BBNode = p_node.next;
-				prevNode.next = nextNode;
-				nextNode.prev = prevNode;
-			}
-
-			if (_nextChildNode == p_node) _nextChildNode = p_node.next;
-
-			p_node.next = null;
-			p_node.prev = null;
-
-			_numChildren--;
-
-			if (p_node.onRemoved.numListeners > 0)
-			{
-				// dispatch to node that it was removed from parent
-				var status:BBNodeStatus = BBNodeStatus.get(null, false, z_core);
-				p_node.onRemoved.dispatch(status);
-				status.dispose();
-			}
+			// init component's props in null
+			component.nodeInit(null, null, null);
 		}
 
 		/**
@@ -522,7 +504,8 @@ package bb.core
 		/**
 		 * Returns parent if it exist.
 		 */
-		public function get parent():BBNode
+		[Inline]
+		final public function get parent():BBNode
 		{
 			return _parent;
 		}
@@ -533,50 +516,6 @@ package bb.core
 		public function get isOnStage():Boolean
 		{
 			return _isOnStage;
-		}
-
-		/**
-		 * Signal dispatches when node was added to another node as child or was added to stage.
-		 * As parameter sends BBNodeStatus object.
-		 */
-		public function get onAdded():BBSignal
-		{
-			return _onAdded;
-		}
-
-		/**
-		 * Signal dispatches when node was removed from another node or stage.
-		 */
-		public function get onRemoved():BBSignal
-		{
-			return _onRemoved;
-		}
-
-		/**
-		 * Signal dispatches when node was fully updated, with all components and children.
-		 */
-		public function get onUpdated():BBSignal
-		{
-			if (!_onUpdated) _onUpdated = BBSignal.get(this);
-			return _onUpdated;
-		}
-
-		/**
-		 * Signal dispatches when node was fully rendered - its render component and all render components of nested children.
-		 */
-		public function get onRendered():BBSignal
-		{
-			if (!_onRendered) _onRendered = BBSignal.get(this);
-			return _onRendered;
-		}
-
-		/**
-		 * Signal dispatches when active state of node was changed.
-		 */
-		public function get onActive():BBSignal
-		{
-			if (!_onActive) _onActive = BBSignal.get(this);
-			return _onActive;
 		}
 
 		/**
@@ -623,6 +562,7 @@ package bb.core
 			// send to children
 			var child:BBNode = childrenHead;
 			var currentChild:BBNode;
+
 			while (child)
 			{
 				currentChild = child;
@@ -646,6 +586,15 @@ package bb.core
 		public function removeTag(p_tag:String):void
 		{
 			_tags[p_tag] = null;
+		}
+
+		/**
+		 * Clear all tags.
+		 */
+		[Inline]
+		public function removeAllTags():void
+		{
+			_tags = [];
 		}
 
 		/**
@@ -728,6 +677,12 @@ package bb.core
 
 				component = _nextComponentUpdList;
 			}
+
+			// if transform was changed by some component so need to invalidate because in another case it will never invalidated
+			updateTransformation = !updateTransformation && transform.isTransformChanged;
+			updateColor = !updateColor && transform.isColorChanged;
+
+			if (updateTransformation || updateColor) transform.invalidate(updateTransformation, updateColor);
 
 			// iterate nested nodes and invokes their update method
 			var childNode:BBNode = childrenHead;
@@ -911,6 +866,15 @@ package bb.core
 		}
 
 		/**
+		 * Returns BBTreeModule if node in tree now.
+		 */
+		[Inline]
+		public function get tree():BBTreeModule
+		{
+			return _tree;
+		}
+
+		/**
 		 * Detaches children from this parent node and disposes them.
 		 */
 		bb_private function disposeChildren():void
@@ -938,7 +902,7 @@ package bb.core
 		private function disposeComponents():void
 		{
 			var component:BBComponent;
-			for (var componentClass:Object in _lookupComponentTable)
+			for (var componentClass:* in _lookupComponentTable)
 			{
 				component = _lookupComponentTable[componentClass];
 
@@ -950,6 +914,7 @@ package bb.core
 		/**
 		 * Disposes dynamic properties.
 		 */
+		[Inline]
 		private function clearProperties():void
 		{
 			for (var prop:* in _properties)
@@ -988,29 +953,77 @@ package bb.core
 			if (_parent) _parent.removeChild(this);
 			removeProperty("bb_layer");
 
-			if (_onActive) _onActive.dispose();
-			_onActive = null;
+			if (_onAddedToStage)
+			{
+				_onAddedToStage.dispose();
+				_onAddedToStage = null;
+			}
 
-			if (_onUpdated) _onUpdated.dispose();
-			_onUpdated = null;
+			if (_onRemovedFromStage)
+			{
+				_onRemovedFromStage.dispose();
+				_onRemovedFromStage = null;
+			}
 
-			if (_onMouseClick) _onMouseClick.dispose();
-			_onMouseClick = null;
+			if (_onAdded)
+			{
+				_onAdded.dispose();
+				_onAdded = null;
+			}
 
-			if (_onMouseDown) _onMouseDown.dispose();
-			_onMouseDown = null;
+			if (_onRemoved)
+			{
+				_onRemoved.dispose();
+				_onRemoved = null;
+			}
 
-			if (_onMouseMove) _onMouseMove.dispose();
-			_onMouseMove = null;
+			if (_onActive)
+			{
+				_onActive.dispose();
+				_onActive = null;
+			}
 
-			if (_onMouseOut) _onMouseOut.dispose();
-			_onMouseOut = null;
+			if (_onUpdated)
+			{
+				_onUpdated.dispose();
+				_onUpdated = null;
+			}
 
-			if (_onMouseOver) _onMouseOver.dispose();
-			_onMouseOver = null;
+			if (_onMouseClick)
+			{
+				_onMouseClick.dispose();
+				_onMouseClick = null;
+			}
 
-			if (_onMouseUp) _onMouseUp.dispose();
-			_onMouseUp = null;
+			if (_onMouseDown)
+			{
+				_onMouseDown.dispose();
+				_onMouseDown = null;
+			}
+
+			if (_onMouseMove)
+			{
+				_onMouseMove.dispose();
+				_onMouseMove = null;
+			}
+
+			if (_onMouseOut)
+			{
+				_onMouseOut.dispose();
+				_onMouseOut = null;
+			}
+
+			if (_onMouseOver)
+			{
+				_onMouseOver.dispose();
+				_onMouseOver = null;
+			}
+
+			if (_onMouseUp)
+			{
+				_onMouseUp.dispose();
+				_onMouseUp = null;
+			}
 
 			_nextComponentUpdList = null;
 			_nextChildNode = null;
@@ -1023,12 +1036,6 @@ package bb.core
 			mouseChildren = false;
 			mouseSettings = 0;
 
-			// Remove all listeners to prevent dispatching 'onUnlinked' signal for better performance due to avoiding issues which lie behind it
-			_onAdded.removeAllListeners();
-			_onRemoved.removeAllListeners();
-			_onAdded.add(onAddedHandler);
-			_onRemoved.add(onRemovedHandler);
-
 			// Remove all components
 			disposeComponents();
 			transform = null;
@@ -1038,6 +1045,9 @@ package bb.core
 
 			// clear properties
 			clearProperties();
+
+			//
+			removeAllTags();
 		}
 
 		/**
@@ -1047,15 +1057,9 @@ package bb.core
 		{
 			if (!_isDisposed) destroy();
 
-			_onAdded.dispose();
-			_onRemoved.dispose();
-
-			_onAdded = null;
-			_onRemoved = null;
 			_properties = null;
-
 			_lookupComponentTable = null;
-			z_core = null;
+			_tree = null;
 		}
 
 		/**
@@ -1125,6 +1129,69 @@ package bb.core
 					"{numChildren: " + _numChildren + "}-{numComponents: " + _numComponents + "}-{has parent: " + (_parent != null) + "}-{isOnStage: " + _isOnStage + "}-{visible: " + _visible + "}\n" +
 					"{Components:\n " + componentsStr + "}]\n" +
 					"===========================================================================================================================================";
+		}
+
+		/**
+		 * Signal dispatches when node was added to stage (render graph).
+		 */
+		public function get onAddedToStage():BBSignal
+		{
+			if (!_onAddedToStage) _onAddedToStage = BBSignal.get(this);
+			return _onAddedToStage;
+		}
+
+		/**
+		 * Signal dispatches when node was added to another node as child.
+		 */
+		public function get onAdded():BBSignal
+		{
+			if (!_onAdded) _onAdded = BBSignal.get(this);
+			return _onAdded;
+		}
+
+		/**
+		 * Signal dispatches when node was removed from stage (render graph).
+		 */
+		public function get onRemovedFromStage():BBSignal
+		{
+			if (!_onRemovedFromStage) _onRemovedFromStage = BBSignal.get(this);
+			return _onRemovedFromStage;
+		}
+
+		/**
+		 * Signal dispatches when node was removed from another node.
+		 */
+		public function get onRemoved():BBSignal
+		{
+			if (!_onRemoved) _onRemoved = BBSignal.get(this);
+			return _onRemoved;
+		}
+
+		/**
+		 * Signal dispatches when node was fully updated, with all components and children.
+		 */
+		public function get onUpdated():BBSignal
+		{
+			if (!_onUpdated) _onUpdated = BBSignal.get(this);
+			return _onUpdated;
+		}
+
+		/**
+		 * Signal dispatches when node was fully rendered - its render component and all render components of nested children.
+		 */
+		public function get onRendered():BBSignal
+		{
+			if (!_onRendered) _onRendered = BBSignal.get(this);
+			return _onRendered;
+		}
+
+		/**
+		 * Signal dispatches when active state of node was changed.
+		 */
+		public function get onActive():BBSignal
+		{
+			if (!_onActive) _onActive = BBSignal.get(this);
+			return _onActive;
 		}
 
 		/**

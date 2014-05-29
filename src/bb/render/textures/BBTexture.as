@@ -372,9 +372,9 @@ package bb.render.textures
 			var color:uint = 0xff9abe5e;
 			var alpha:Number;
 
-			if (p_colors == null || p_colors.length <= 1)
+			if (p_colors == null || p_colors.length < 2)
 			{
-
+				color = p_colors ? p_colors[0] : color;
 				alpha = BBColor.getAlpha(color, true);
 				color = color & 0x00ffffff;
 
