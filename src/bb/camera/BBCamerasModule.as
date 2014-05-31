@@ -9,7 +9,6 @@ package bb.camera
 	import bb.camera.components.BBCamera;
 	import bb.core.BBNode;
 	import bb.modules.BBModule;
-	import bb.signals.BBSignal;
 	import bb.tree.BBTreeModule;
 
 	CONFIG::debug
@@ -32,14 +31,13 @@ package bb.camera
 		public function BBCamerasModule()
 		{
 			super();
-			onInit.add(onInitHandler);
 
 			_camerasList = new <BBCamera>[];
 		}
 
 		/**
 		 */
-		private function onInitHandler(p_signal:BBSignal):void
+		override protected function init():void
 		{
 			_rootNode = (getModule(BBTreeModule) as BBTreeModule).root;
 		}

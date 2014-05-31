@@ -52,13 +52,11 @@ package bb.mouse
 			_onUp = BBSignal.get(this);
 			_onDown = BBSignal.get(this);
 			_onMove = BBSignal.get(this);
-
-			onReadyToUse.add(readyToUseHandler);
 		}
 
 		/**
 		 */
-		private function readyToUseHandler(p_signal:BBSignal):void
+		override protected function ready():void
 		{
 			_camerasList = (getModule(BBCamerasModule) as BBCamerasModule).cameras;
 			_viewRect = (engine as BabyBox).config.getViewRect();

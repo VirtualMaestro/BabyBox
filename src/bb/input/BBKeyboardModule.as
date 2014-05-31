@@ -26,13 +26,11 @@ package bb.input
 			super();
 
 			_inputDispatcher = new BBInputDispatcher(BBInputType.KEYBOARD);
-
-			onReadyToUse.add(readyToUseHandler);
 		}
 
 		/**
 		 */
-		private function readyToUseHandler(p_signal:BBSignal):void
+		override protected function ready():void
 		{
 			enableDispatching = true;
 		}
@@ -71,7 +69,7 @@ package bb.input
 		/**
 		 * Adds given listener to specific channel.
 		 */
-		public function addListener(p_listener:BBIInputListener, p_channel:int = 0):void
+		public function addInputListener(p_listener:BBIInputListener, p_channel:int = 0):void
 		{
 			_inputDispatcher.addListener(p_listener, p_channel);
 		}
@@ -79,7 +77,7 @@ package bb.input
 		/**
 		 * Removes given listener from the list.
 		 */
-		public function removeListener(p_listener:BBIInputListener):void
+		public function removeInputListener(p_listener:BBIInputListener):void
 		{
 			_inputDispatcher.removeListener(p_listener);
 		}
@@ -87,7 +85,7 @@ package bb.input
 		/**
 		 * Removes all attached listeners.
 		 */
-		public function removeAllListeners():void
+		public function removeAllInputListeners():void
 		{
 			_inputDispatcher.removeAllListeners();
 		}

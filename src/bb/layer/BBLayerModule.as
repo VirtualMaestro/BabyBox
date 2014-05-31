@@ -8,7 +8,6 @@ package bb.layer
 	import bb.bb_spaces.bb_private;
 	import bb.core.BBNode;
 	import bb.modules.*;
-	import bb.signals.BBSignal;
 	import bb.tree.BBTreeModule;
 
 	import flash.utils.Dictionary;
@@ -34,12 +33,11 @@ package bb.layer
 		public function BBLayerModule()
 		{
 			super();
-			onInit.add(onInitHandler);
 		}
 
 		/**
 		 */
-		private function onInitHandler(p_signal:BBSignal):void
+		override protected function init():void
 		{
 			_layersTable = new Dictionary();
 			_graph = getModule(BBTreeModule) as BBTreeModule;
@@ -81,7 +79,9 @@ package bb.layer
 		{
 			CONFIG::debug
 			{
-				Assert.isTrue(isExist(p_addToLayer), "Layer  ('" + p_addToLayer + "') to which new layer is attached ('" + p_layer + "') is not exist. Layer ('" + p_addToLayer + "') have to already exist and added to layer module", "BBLayerModule.addTo");
+				Assert.isTrue(isExist(p_addToLayer),
+				              "Layer  ('" + p_addToLayer + "') to which new layer is attached ('" + p_layer + "') is not exist. Layer ('" + p_addToLayer + "') have to already exist and added to layer module",
+				              "BBLayerModule.addTo");
 			}
 
 			var addingLayer:BBLayer;

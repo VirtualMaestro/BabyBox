@@ -22,12 +22,11 @@ package bb.config
 		 */
 		public function BBConfigModule()
 		{
-			onReadyToUse.add(moduleReadyHandler);
 		}
 
 		/**
 		 */
-		private function moduleReadyHandler(signal:BBSignal):void
+		override protected function ready():void
 		{
 			config.onChanged.add(configChangedHandler);
 			applyStartupConfigSettings();

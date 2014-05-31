@@ -9,7 +9,6 @@ package bb.gameobjects.weapons
 	import bb.gameobjects.weapons.gun.BBBullet;
 	import bb.modules.BBModule;
 	import bb.physics.BBPhysicsModule;
-	import bb.signals.BBSignal;
 
 	import flash.utils.Dictionary;
 
@@ -49,13 +48,11 @@ package bb.gameobjects.weapons
 		public function BBWeaponModule()
 		{
 			super();
-
-			onInit.add(onInitHandler);
 		}
 
 		/**
 		 */
-		private function onInitHandler(p_signal:BBSignal):void
+		override protected function init():void
 		{
 			_physicsModule = getModule(BBPhysicsModule) as BBPhysicsModule;
 			_ray = new Ray(Vec2.get(), Vec2.get());

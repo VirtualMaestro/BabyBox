@@ -14,7 +14,6 @@ package bb.world
 	import bb.layer.BBLayerModule;
 	import bb.layer.constants.BBLayerNames;
 	import bb.modules.*;
-	import bb.signals.BBSignal;
 	import bb.world.profiles.BBGameType;
 
 	import vm.debug.Assert;
@@ -35,13 +34,11 @@ package bb.world
 		public function BBWorldModule()
 		{
 			super();
-			onInit.add(onInitHandler);
-			onReadyToUse.add(readyToUseHandler);
 		}
 
 		/**
 		 */
-		private function onInitHandler(p_signal:BBSignal):void
+		override protected function init():void
 		{
 			_config = (engine as BabyBox).config;
 			_layerManager = getModule(BBLayerModule) as BBLayerModule;
@@ -49,7 +46,7 @@ package bb.world
 
 		/**
 		 */
-		private function readyToUseHandler(p_signal:BBSignal):void
+		override protected function ready():void
 		{
 			setupGameType(_config.gameType);
 		}

@@ -39,9 +39,6 @@ package bb.tree
 		{
 			super();
 
-			onInit.add(onInitHandler);
-			onReadyToUse.add(readyToUseHandler);
-
 			_superDummyNode = BBNode.get("superNode");
 			_rootNode = BBNode.get("root");
 			_superDummyNode.addChild(_rootNode);
@@ -53,7 +50,7 @@ package bb.tree
 
 		/**
 		 */
-		private function onInitHandler(p_signal:BBSignal):void
+		override protected function init():void
 		{
 			_context = (engine as BabyBox).context;
 			_config = (engine as BabyBox).config;
@@ -64,7 +61,7 @@ package bb.tree
 
 		/**
 		 */
-		private function readyToUseHandler(p_signal:BBSignal):void
+		override protected function ready():void
 		{
 			// init mouse handling
 			if (_mouseModule) mouseSettings = _config.mouseNodeSettings;

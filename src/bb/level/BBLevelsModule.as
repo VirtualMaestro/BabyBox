@@ -45,12 +45,11 @@ package bb.level
 			super();
 
 			_levelsCache = new Dictionary();
-			onReadyToUse.add(readyToUseHandler);
 		}
 
 		/**
 		 */
-		private function readyToUseHandler(p_signal:BBSignal):void
+		override protected function ready():void
 		{
 			_world = getModule(BBWorldModule) as BBWorldModule;
 			_layerModule = getModule(BBLayerModule) as BBLayerModule;

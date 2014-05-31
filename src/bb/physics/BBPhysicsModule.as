@@ -64,12 +64,11 @@ package bb.physics
 		public function BBPhysicsModule()
 		{
 			super();
-			onReadyToUse.add(readyToUseHandler);
 		}
 
 		/**
 		 */
-		private function readyToUseHandler(p_signal:BBSignal):void
+		override protected function ready():void
 		{
 			_config = (engine as BabyBox).config;
 			_mouseModule = getModule(BBMouseModule) as BBMouseModule;

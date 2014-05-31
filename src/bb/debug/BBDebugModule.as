@@ -9,7 +9,6 @@ package bb.debug
 	import bb.core.BabyBox;
 	import bb.modules.*;
 	import bb.physics.BBPhysicsModule;
-	import bb.signals.BBSignal;
 
 	import flash.display.DisplayObjectContainer;
 	import flash.geom.Rectangle;
@@ -38,12 +37,11 @@ package bb.debug
 		public function BBDebugModule()
 		{
 			super();
-			onReadyToUse.add(onReadyToUseHandler);
 		}
 
 		/**
 		 */
-		private function onReadyToUseHandler(p_signal:BBSignal):void
+		override protected function ready():void
 		{
 			_config = (engine as BabyBox).config;
 			if (_config.physicsEnable)
